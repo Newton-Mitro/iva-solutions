@@ -152,3 +152,15 @@ getByRole('button', { name: 'Next Step' })
 getByRole('textbox', { name: '01......' })
 getByRole('textbox', { name: 'Enter your password' })
 getByRole('button', { name: 'Sign In Now' })
+
+## Close Popups
+
+## Sign Up Process
+
+## Sign In Process
+
+## Submit Application Process
+
+## Sign In Process
+
+## Book Appointment Process
