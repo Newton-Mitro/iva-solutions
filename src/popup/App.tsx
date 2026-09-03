@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { subscribeToAuth } from "../firebase/auth";
-import { Dashboard } from "./components/dashboard/Dashboard";
-import AuthScreen from "./components/AuthScreen";
+import AuthScreen from "./AuthScreen";
 import type { User as FirebaseUser } from "firebase/auth";
+import { Dashboard } from "./Dashboard";
 
 export default function App() {
   const [user, setUser] = useState<FirebaseUser | null | undefined>(undefined);

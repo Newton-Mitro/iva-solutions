@@ -1,4 +1,12 @@
-import { ArrowRight, RefreshCw } from "lucide-react";
+import {
+  ArrowRight,
+  Pause,
+  Play,
+  RefreshCw,
+  SkipForward,
+  Square,
+  X,
+} from "lucide-react";
 import WorkflowSteps from "./WorkflowSteps";
 import { Step, WorkflowPhase } from "../../types";
 import { flowTabs, workflowPhases } from "../../constants";
@@ -133,14 +141,80 @@ export default function WorkflowCard({
           </ManualNotice>
         )}
 
-        <button
-          onClick={onStart}
-          className="mt-3 w-full rounded-lg bg-blue-600 py-2.5 text-[10px] font-bold text-white hover:bg-blue-700"
-        >
-          {started ? "Continue flow" : "Start flow"}
+        <div className="mt-4 flex justify-center">
+          <div
+            className="
+      flex items-center gap-2 rounded-full
+      border border-slate-200/80
+      bg-slate-100/70 p-1.5
+      shadow-sm shadow-slate-900/5
+      backdrop-blur-sm
+      dark:border-slate-700/60
+      dark:bg-slate-800/60
+    "
+          >
+            {/* Start / Pause */}
+            <button
+              onClick={onStart}
+              title={started ? "Pause" : "Start"}
+              className={`
+        group flex h-10 w-10 items-center justify-center
+        rounded-full
+        text-white
+        shadow-md
+        transition-all duration-200
+        hover:scale-105
+        active:scale-90
+        ${
+          started
+            ? "bg-gradient-to-br from-amber-400 to-orange-500 shadow-orange-500/20"
+            : "bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/25"
+        }
+      `}
+            >
+              {started ? (
+                <Pause
+                  size={15}
+                  fill="currentColor"
+                  strokeWidth={0}
+                  className="transition-transform group-hover:scale-110"
+                />
+              ) : (
+                <Play
+                  size={15}
+                  fill="currentColor"
+                  strokeWidth={0}
+                  className="ml-0.5 transition-transform group-hover:scale-110"
+                />
+              )}
+            </button>
 
-          <ArrowRight size={12} className="ml-1 inline" />
-        </button>
+            {/* Stop */}
+            <button
+              title="Stop"
+              className="
+        group flex h-10 w-10 items-center justify-center
+        rounded-full
+        border border-red-500/20
+        bg-red-500/10
+        text-red-500
+        transition-all duration-200
+        hover:scale-105
+        hover:bg-red-500/15
+        hover:shadow-md hover:shadow-red-500/10
+        active:scale-90
+        dark:text-red-400
+      "
+            >
+              <Square
+                size={13}
+                fill="currentColor"
+                strokeWidth={0}
+                className="transition-transform duration-200 group-hover:scale-110"
+              />
+            </button>
+          </div>
+        </div>
       </div>
     </section>
   );

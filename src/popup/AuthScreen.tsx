@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { configureAuth, signIn, signUp } from "../../firebase/auth";
-import { firebaseConfigured } from "../../firebase/config";
+import { configureAuth, signIn, signUp } from "../firebase/auth";
+import { firebaseConfigured } from "../firebase/config";
 
 export default function AuthScreen() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");

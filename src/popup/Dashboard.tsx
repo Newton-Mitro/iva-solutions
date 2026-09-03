@@ -1,22 +1,20 @@
 import { useEffect, useState } from "react";
 import type { User as FirebaseUser } from "firebase/auth";
-import { useDashboardData } from "../../hooks/useDashboardData";
-import { useWorkflow } from "../../hooks/useWorkflow";
-import DashboardHeader from "../DashboardHeader";
-import DashboardEmpty from "./DashboardEmpty";
-import ManagementPanel from "../../Management";
-import SettingsModal from "./SettingsModal";
-import ApplicantSelector from "./ApplicantSelector";
-import ApplicationSelector from "./ApplicationSelector";
-import DocumentsCard from "./DocumentsCard";
-import WorkflowCard from "./WorkflowCard";
-import { WorkflowPhase } from "../../types";
-import ProgressCard from "./ProgressCard";
-import AppointmentCard from "./AppointmentCard";
-import PaymentCard from "./PaymentCard";
-import ActivityLog from "./ActivityLog";
-import { subscribeToAuth } from "../../../firebase/auth";
-import AuthScreen from "../AuthScreen";
+import { useDashboardData } from "./hooks/useDashboardData";
+import { useWorkflow } from "./hooks/useWorkflow";
+import ManagementPanel from "./Management";
+import { WorkflowPhase } from "./types";
+import DashboardHeader from "./components/dashboard/DashboardHeader";
+import DashboardEmpty from "./components/dashboard/DashboardEmpty";
+import SettingsModal from "./components/dashboard/SettingsModal";
+import ApplicantSelector from "./components/dashboard/ApplicantSelector";
+import ApplicationSelector from "./components/dashboard/ApplicationSelector";
+import DocumentsCard from "./components/dashboard/DocumentsCard";
+import WorkflowCard from "./components/dashboard/WorkflowCard";
+import ProgressCard from "./components/dashboard/ProgressCard";
+import AppointmentCard from "./components/dashboard/AppointmentCard";
+import PaymentCard from "./components/dashboard/PaymentCard";
+import ActivityLog from "./components/dashboard/ActivityLog";
 
 export function Dashboard({ user }: { user: FirebaseUser }) {
   const {
