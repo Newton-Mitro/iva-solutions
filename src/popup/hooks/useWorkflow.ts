@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { initialSteps, workflowPhases } from "../constants";
-import type { WorkflowPhase } from "../types";
+import { createWorkflowSteps, workflowStepsByPhase } from "../constants";
+import type { WorkflowPhase, WorkflowStep } from "../types";
 import { signOutUser } from "../../firebase/auth";
 
 type LogType = "success" | "info" | "warning" | "error";
@@ -12,18 +12,59 @@ export type WorkflowLog = {
 };
 
 export function useWorkflow() {
-  const [steps, setSteps] = useState(initialSteps);
+  /**
+   * ============================================================
+   * WORKFLOW STATE
+   * ============================================================
+   */
+
   const [workflowPhase, setWorkflowPhase] = useState<WorkflowPhase>("signup");
+
+  const [steps, setSteps] = useState<WorkflowStep[]>(() =>
+    createWorkflowSteps("signup"),
+  );
+
+  /**
+   * ============================================================
+   * AUTOMATION STATE
+   * ============================================================
+   */
 
   const [running, setRunning] = useState(false);
   const [paused, setPaused] = useState(false);
 
-  const [startedFlows, setStartedFlows] = useState<Record<string, boolean>>({});
+  /**
+   * Tracks whether each workflow phase has been started.
+   *
+   * Example:
+   *
+   * {
+   *   signup: true,
+   *   signin: true,
+   *   payment: false
+   * }
+   */
+  const [startedFlows, setStartedFlows] = useState<
+    Partial<Record<WorkflowPhase, boolean>>
+  >({});
+  /**
+   * ============================================================
+   * LOGS
+   * ============================================================
+   */
 
   const [logs, setLogs] = useState<WorkflowLog[]>([]);
 
+  /**
+   * ============================================================
+   * PROGRESS
+   * ============================================================
+   */
+
   const progress = useMemo(() => {
-    if (!steps.length) return 0;
+    if (!steps.length) {
+      return 0;
+    }
 
     const completed = steps.filter(
       (step) => step.status === "completed",
@@ -31,15 +72,29 @@ export function useWorkflow() {
 
     const current = steps.find((step) => step.status === "running");
 
+    const currentProgress = current?.progress ?? 0;
+
     return Math.round(
-      ((completed + (current?.progress ?? 0) / 100) / steps.length) * 100,
+      ((completed + currentProgress / 100) / steps.length) * 100,
     );
   }, [steps]);
+
+  /**
+   * ============================================================
+   * CURRENT STEP
+   * ============================================================
+   */
 
   const currentStep = useMemo(
     () => steps.find((step) => step.status === "running"),
     [steps],
   );
+
+  /**
+   * ============================================================
+   * ADD LOG
+   * ============================================================
+   */
 
   function addLog(message: string, type: LogType = "info") {
     setLogs((previous) => [
@@ -56,11 +111,27 @@ export function useWorkflow() {
     ]);
   }
 
+  /**
+   * ============================================================
+   * START FLOW
+   * ============================================================
+   */
+
   function startFlow() {
-    const phase = workflowPhases.find((item) => item.id === workflowPhase);
+    const phaseSteps = workflowStepsByPhase[workflowPhase];
 
-    if (!phase) return;
+    /**
+     * No steps configured for this phase.
+     */
+    if (!phaseSteps?.length) {
+      addLog(`No workflow steps configured for ${workflowPhase}.`, "warning");
 
+      return;
+    }
+
+    /**
+     * First start.
+     */
     if (!startedFlows[workflowPhase]) {
       setStartedFlows((current) => ({
         ...current,
@@ -68,33 +139,195 @@ export function useWorkflow() {
       }));
 
       setRunning(true);
+      setPaused(false);
 
-      addLog(`${phase.title} flow started`, "info");
+      /**
+       * Start the first pending step.
+       */
+      setSteps((current) =>
+        current.map((step, index) =>
+          index === 0
+            ? {
+                ...step,
+                status: "running",
+                progress: 0,
+              }
+            : step,
+        ),
+      );
+
+      addLog(`${workflowPhase} flow started`, "info");
 
       return;
     }
 
-    addLog(`${phase.title} checkpoint opened`, "info");
+    /**
+     * Flow was already started.
+     */
+    setRunning(true);
+    setPaused(false);
+
+    addLog(`${workflowPhase} checkpoint opened`, "info");
   }
 
+  /**
+   * ============================================================
+   * CHANGE WORKFLOW PHASE / TAB
+   * ============================================================
+   */
+
   function goToPhase(phase: WorkflowPhase) {
+    /**
+     * Change selected tab.
+     */
     setWorkflowPhase(phase);
+
+    /**
+     * Load the steps belonging to that tab.
+     */
+    setSteps(createWorkflowSteps(phase));
+
+    /**
+     * Stop the current running state.
+     */
+    setRunning(false);
+    setPaused(false);
 
     addLog(`Workflow stage: ${phase}`, "info");
   }
 
+  /**
+   * ============================================================
+   * UPDATE STEP
+   * ============================================================
+   */
+
+  function updateStep(stepId: string, updates: Partial<WorkflowStep>) {
+    setSteps((current) =>
+      current.map((step) =>
+        step.id === stepId
+          ? {
+              ...step,
+              ...updates,
+            }
+          : step,
+      ),
+    );
+  }
+
+  /**
+   * ============================================================
+   * COMPLETE STEP
+   * ============================================================
+   */
+
+  function completeStep(stepId: string) {
+    setSteps((current) => {
+      const index = current.findIndex((step) => step.id === stepId);
+
+      if (index === -1) {
+        return current;
+      }
+
+      return current.map((step, stepIndex) => {
+        /**
+         * Complete current step.
+         */
+        if (stepIndex === index) {
+          return {
+            ...step,
+            status: "completed",
+            progress: 100,
+          };
+        }
+
+        /**
+         * Start next pending step.
+         */
+        if (stepIndex === index + 1 && step.status === "pending") {
+          return {
+            ...step,
+            status: "running",
+            progress: 0,
+          };
+        }
+
+        return step;
+      });
+    });
+
+    addLog(`Step completed: ${stepId}`, "success");
+  }
+
+  /**
+   * ============================================================
+   * FAIL STEP
+   * ============================================================
+   */
+
+  function failStep(stepId: string) {
+    updateStep(stepId, {
+      status: "failed",
+    });
+
+    setRunning(false);
+
+    addLog(`Step failed: ${stepId}`, "error");
+  }
+
+  /**
+   * ============================================================
+   * UPDATE STEP PROGRESS
+   * ============================================================
+   */
+
+  function updateStepProgress(stepId: string, progress: number) {
+    setSteps((current) =>
+      current.map((step) =>
+        step.id === stepId
+          ? {
+              ...step,
+              progress: Math.min(100, Math.max(0, progress)),
+              status: progress >= 100 ? "completed" : "running",
+            }
+          : step,
+      ),
+    );
+  }
+
+  /**
+   * ============================================================
+   * SIGN OUT
+   * ============================================================
+   */
+
   async function signOut() {
     addLog("Signing out of Indian Visa Application Workspace", "info");
+
+    setRunning(false);
+    setPaused(false);
 
     await signOutUser();
   }
 
+  /**
+   * ============================================================
+   * RESET
+   * ============================================================
+   */
+
   function reset() {
-    setSteps(initialSteps);
-    setWorkflowPhase("signup");
+    const initialPhase: WorkflowPhase = "signup";
+
+    setWorkflowPhase(initialPhase);
+
+    setSteps(createWorkflowSteps(initialPhase));
+
     setRunning(false);
     setPaused(false);
+
     setStartedFlows({});
+
     setLogs([
       {
         type: "success",
@@ -103,6 +336,12 @@ export function useWorkflow() {
       },
     ]);
   }
+
+  /**
+   * ============================================================
+   * PAUSE / RESUME
+   * ============================================================
+   */
 
   function togglePause() {
     setPaused((current) => {
@@ -117,25 +356,53 @@ export function useWorkflow() {
     });
   }
 
+  /**
+   * ============================================================
+   * RETURN
+   * ============================================================
+   */
+
   return {
+    /**
+     * Steps
+     */
     steps,
     setSteps,
+    updateStep,
+    updateStepProgress,
+    completeStep,
+    failStep,
 
+    /**
+     * Selected workflow/tab
+     */
     workflowPhase,
     setWorkflowPhase: goToPhase,
 
+    /**
+     * Automation
+     */
     running,
     paused,
 
+    /**
+     * Progress
+     */
     progress,
     currentStep,
 
+    /**
+     * Logs
+     */
     logs,
-
-    startFlow,
     addLog,
-    reset,
+
+    /**
+     * Actions
+     */
+    startFlow,
     togglePause,
+    reset,
     signOut,
   };
 }

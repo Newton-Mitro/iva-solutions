@@ -165,7 +165,6 @@ export type WorkflowPhase =
   | "signin"
   | "webfile"
   | "mission"
-  | "relogin"
   | "appointment"
   | "payment"
   | "invoice"
@@ -175,4 +174,17 @@ export type LogEntry = {
   type: "success" | "info" | "warning" | "error";
   message: string;
   time: string;
+};
+
+export type WorkflowStep = {
+  id: string;
+  phase: WorkflowPhase;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  manual?: boolean;
+
+  status: "pending" | "running" | "completed" | "failed";
+
+  progress: number;
 };

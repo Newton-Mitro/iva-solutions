@@ -26,7 +26,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import type { Step, WorkflowPhase } from "./types";
+import type { Step, WorkflowPhase, WorkflowStep } from "./types";
 
 /**
  * ============================================================
@@ -344,30 +344,6 @@ export const missionWorkflowPhases: WorkflowStepDefinition[] = [
 
 /**
  * ============================================================
- * RE-LOGIN / WAIT
- * ============================================================
- */
-
-export const reloginWorkflowPhases: WorkflowStepDefinition[] = [
-  {
-    id: "relogin-wait",
-    phase: "relogin",
-    title: "Wait Until 6:00 PM",
-    description: "Wait until the portal allows appointment booking again.",
-    icon: Clock,
-  },
-  {
-    id: "relogin-signin",
-    phase: "relogin",
-    title: "Sign In Again",
-    description: "Sign in again after 6:00 PM to continue booking.",
-    icon: LogIn,
-    manual: true,
-  },
-];
-
-/**
- * ============================================================
  * BOOK APPOINTMENT
  * ============================================================
  */
@@ -536,24 +512,6 @@ export const signOutWorkflowPhases: WorkflowStepDefinition[] = [
 
 /**
  * ============================================================
- * ALL WORKFLOW STEPS
- * ============================================================
- */
-
-export const workflowPhases: WorkflowStepDefinition[] = [
-  ...signUpWorkflowPhases,
-  ...signInWorkflowPhases,
-  ...ivacApplicationWorkflowPhases,
-  ...missionWorkflowPhases,
-  ...reloginWorkflowPhases,
-  ...bookAppointmentWorkflowPhases,
-  ...paymentWorkflowPhases,
-  ...invoiceWorkflowPhases,
-  ...signOutWorkflowPhases,
-];
-
-/**
- * ============================================================
  * FLOW TABS
  * ============================================================
  */
@@ -576,10 +534,6 @@ export const flowTabs = [
     title: "Mission & Indian Visa Application",
   },
   {
-    id: "relogin" as const,
-    title: "Re-login",
-  },
-  {
     id: "appointment" as const,
     title: "Book Appointment",
   },
@@ -597,20 +551,24 @@ export const flowTabs = [
   },
 ];
 
-/**
- * ============================================================
- * INITIAL STEPS
- * ============================================================
- *
- * Convert workflow definitions into the Step type expected
- * by the Dashboard.
- */
+export function createWorkflowSteps(phase: WorkflowPhase): WorkflowStep[] {
+  return workflowStepsByPhase[phase].map((step) => ({
+    ...step,
+    status: "pending",
+    progress: 0,
+  }));
+}
 
-export const initialSteps: Step[] = workflowPhases.map((step) => ({
-  id: step.id,
-  title: step.title,
-  description: step.description,
-  icon: step.icon,
-  status: "pending",
-  progress: 0,
-}));
+export const workflowStepsByPhase: Record<
+  WorkflowPhase,
+  WorkflowStepDefinition[]
+> = {
+  signup: signUpWorkflowPhases,
+  signin: signInWorkflowPhases,
+  webfile: ivacApplicationWorkflowPhases,
+  mission: missionWorkflowPhases,
+  appointment: bookAppointmentWorkflowPhases,
+  payment: paymentWorkflowPhases,
+  invoice: invoiceWorkflowPhases,
+  signout: signOutWorkflowPhases,
+};
