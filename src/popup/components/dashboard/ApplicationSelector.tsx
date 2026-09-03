@@ -52,7 +52,7 @@ export default function ApplicationSelector({
               >
                 <span className="min-w-0">
                   <span className="block truncate text-xs font-semibold">
-                    {item.visaType ?? "IVAC Application"}
+                    {item.visaType ?? "Indian Visa Application Application"}
                   </span>
 
                   <span className="block truncate text-[9px] ivac-text-muted">
@@ -76,7 +76,10 @@ export default function ApplicationSelector({
           value={application.applicationNumber ?? "-"}
         />
 
-        <InfoRow label="IVAC Center" value={application.ivacCenter ?? "-"} />
+        <InfoRow
+          label="Indian Visa Application Center"
+          value={application.ivacCenter ?? "-"}
+        />
 
         <InfoRow
           label="Payment"

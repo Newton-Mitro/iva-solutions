@@ -40,7 +40,7 @@ export function ApplicationForm({
         />
         <Field
           name="ivacCenter"
-          label="IVAC center"
+          label="Indian Visa Application center"
           defaultValue={text(initialRecord ?? {}, "ivacCenter")}
         />
         <Field

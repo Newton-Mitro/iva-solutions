@@ -25,7 +25,9 @@ export function AccountSection({
         <div className="flex items-center gap-2 min-w-0">
           <KeyRound size={13} className="shrink-0" />
           <span className="text-[9px] font-bold truncate">
-            {account ? text(account, "email") : "No IVAC account"}
+            {account
+              ? text(account, "email")
+              : "No Indian Visa Application account"}
           </span>
         </div>
         <div className="flex gap-1 shrink-0">

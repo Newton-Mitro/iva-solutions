@@ -55,7 +55,7 @@ export const signUpWorkflowPhases: WorkflowStepDefinition[] = [
     phase: "signup",
     title: "Enter email address",
     description:
-      "Enter the email address that will be used to create the IVAC account.",
+      "Enter the email address that will be used to create the Indian Visa Application account.",
     icon: AtSign,
   },
   {
@@ -156,7 +156,7 @@ export const signUpWorkflowPhases: WorkflowStepDefinition[] = [
     id: "signup-password",
     phase: "signup",
     title: "Enter password",
-    description: "Enter the password for the IVAC account.",
+    description: "Enter the password for the Indian Visa Application account.",
     icon: Lock,
   },
   {
@@ -214,14 +214,16 @@ export const signInWorkflowPhases: WorkflowStepDefinition[] = [
     id: "signin-email",
     phase: "signin",
     title: "Enter email address",
-    description: "Enter the registered IVAC account email address.",
+    description:
+      "Enter the registered Indian Visa Application account email address.",
     icon: AtSign,
   },
   {
     id: "signin-password",
     phase: "signin",
     title: "Enter password",
-    description: "Enter the registered IVAC account password.",
+    description:
+      "Enter the registered Indian Visa Application account password.",
     icon: Lock,
   },
   {
@@ -310,7 +312,7 @@ export const ivacApplicationWorkflowPhases: WorkflowStepDefinition[] = [
 
 /**
  * ============================================================
- * MISSION / IVAC CENTER
+ * MISSION / Indian Visa Application CENTER
  * ============================================================
  */
 
@@ -325,15 +327,17 @@ export const missionWorkflowPhases: WorkflowStepDefinition[] = [
   {
     id: "mission-ivac-center",
     phase: "mission",
-    title: "Select IVAC Center",
-    description: "Select IVAC, Dhaka (JFP) as the IVAC center.",
+    title: "Select Indian Visa Application Center",
+    description:
+      "Select Indian Visa Application, Dhaka (JFP) as the Indian Visa Application center.",
     icon: MapPin,
   },
   {
     id: "mission-confirm",
     phase: "mission",
-    title: "Confirm Mission & IVAC Center",
-    description: "Confirm the selected mission and IVAC center.",
+    title: "Confirm Mission & Indian Visa Application Center",
+    description:
+      "Confirm the selected mission and Indian Visa Application center.",
     icon: CheckCircle,
   },
 ];
@@ -525,7 +529,7 @@ export const signOutWorkflowPhases: WorkflowStepDefinition[] = [
     id: "signout",
     phase: "signout",
     title: "Sign Out",
-    description: "Sign out from the IVAC account.",
+    description: "Sign out from the Indian Visa Application account.",
     icon: LogOut,
   },
 ];
@@ -569,7 +573,7 @@ export const flowTabs = [
   },
   {
     id: "mission" as const,
-    title: "Mission & IVAC",
+    title: "Mission & Indian Visa Application",
   },
   {
     id: "relogin" as const,

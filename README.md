@@ -20,13 +20,13 @@ The Records management UI stores records in Firestore under `users/{uid}`. Webfi
 
 The client data API is in `src/firebase/data.ts`. Records are stored below `users/{uid}` in `applicants`, `automationAccounts`, `ivacApplications`, `webfiles`, `appointments`, `payments`, `automationStatus`, and `automationLogs`.
 
-The scheduled function currently moves pending automation status records to `queued`; the actual IVAC automation worker should be added behind that queue and must run server-side.
+The scheduled function currently moves pending automation status records to `queued`; the actual Indian Visa Application automation worker should be added behind that queue and must run server-side.
 
 ### Auth network errors
 
 After changing `public/manifest.json`, rebuild and reload the unpacked `dist` extension in `chrome://extensions`. In Firebase Console, verify that Email/Password is enabled under Authentication > Sign-in method, the project API key has no referrer-only restriction that blocks an extension origin, and the browser can reach `identitytoolkit.googleapis.com` and `securetoken.googleapis.com`.
 
-## Existing IVAC workflow
+## Existing Indian Visa Application workflow
 
 ```graphql
 type User @table {
@@ -208,7 +208,7 @@ getByRole('button', { name: 'Sign In Now' })
 4. click sign in now
 5. enter otp from mobile
 
-## Upload Webfile and Confirm Mission & IVAC Center Process
+## Upload Webfile and Confirm Mission & Indian Visa Application Center Process
 
 1. click take your appointment button.
 2. click next step button.
@@ -217,8 +217,8 @@ getByRole('button', { name: 'Sign In Now' })
 5. click all the information is correct button.
 6. form confirm dialog click save & continue button.
 7. Select a mission (Dhaka).
-8. Select you IVAC center (IVAC, Dhaka (JFP)).
-9. click Confirm Mission & IVAC Center.
+8. Select you Indian Visa Application center (Indian Visa Application, Dhaka (JFP)).
+9. click Confirm Mission & Indian Visa Application Center.
 
 Please login again at 6:00PM to book your appointment
 

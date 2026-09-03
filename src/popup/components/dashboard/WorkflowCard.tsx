@@ -33,10 +33,12 @@ export default function WorkflowCard({
       <div className="mb-3 flex items-center justify-between">
         <div>
           <p className="text-[9px] font-semibold uppercase tracking-wide ivac-text-muted">
-            IVAC process
+            Indian Visa Application process
           </p>
 
-          <h2 className="mt-0.5 text-sm font-bold">IVAC flows</h2>
+          <h2 className="mt-0.5 text-sm font-bold">
+            Indian Visa Application flows
+          </h2>
         </div>
 
         <span className="ivac-primary-bg rounded-full px-2 py-1 text-[9px] font-bold ivac-primary">
@@ -104,7 +106,10 @@ export default function WorkflowCard({
           <div className="mt-3 grid grid-cols-2 gap-2">
             <ReadOnlyField label="Mission" value="Dhaka" />
 
-            <ReadOnlyField label="IVAC Center" value="IVAC, Dhaka (JFP)" />
+            <ReadOnlyField
+              label="Indian Visa Application Center"
+              value="Indian Visa Application, Dhaka (JFP)"
+            />
           </div>
         )}
 

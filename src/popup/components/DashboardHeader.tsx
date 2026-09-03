@@ -15,14 +15,14 @@ export default function DashboardHeader({
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center">
             <img
-              src="/icons/process-32.png"
-              alt="IVAC Visa Assistant"
+              src="/icons/icon32.png"
+              alt="Indian Visa Assistant"
               className="h-8 w-8"
             />
           </div>
           <div>
             <h1 className="text-sm font-bold text-[var(--app-text)]">
-              IVAC Visa Assistant
+              Indian Visa Assistant
             </h1>
             <p className="text-[9px] text-[var(--app-text-muted)]">
               Application & Appointment Booking Assistant

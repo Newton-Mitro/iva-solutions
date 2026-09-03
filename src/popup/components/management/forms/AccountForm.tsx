@@ -35,7 +35,7 @@ export function AccountForm({
         <input type="hidden" name="applicantId" value={applicantId} />
         <Field
           name="email"
-          label="IVAC email"
+          label="Indian Visa Application email"
           type="email"
           required
           defaultValue={text(initialRecord ?? {}, "email")}

@@ -1,14 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "IVAC Visa Assistant",
-  "description": "Automate visa application workflows including applicant management, document uploads, appointment booking, and payment processing for Indian visa applications through IVAC.",
+  "name": "Indian Visa Assistant",
+  "description": "Automate visa application workflows including applicant management, document uploads, appointment booking, and payment processing for Indian visa applications through Indian Visa Application.",
   "version": "1.0.0",
 
   "icons": {
-    "16": "icons/process-16.png",
-    "32": "icons/process-32.png",
-    "48": "icons/process-48.png",
-    "128": "icons/process-128.png"
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   },
 
   "permissions": ["storage", "activeTab", "scripting", "tabs", "windows"],
@@ -21,12 +21,12 @@
   ],
 
   "action": {
-    "default_title": "IVAC Visa Assistant",
+    "default_title": "Indian Visa Assistant",
     "default_icon": {
-      "16": "icons/process-16.png",
-      "32": "icons/process-32.png",
-      "48": "icons/process-48.png",
-      "128": "icons/process-128.png"
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
     }
   },
 

@@ -84,7 +84,7 @@ export function useWorkflow() {
   }
 
   async function signOut() {
-    addLog("Signing out of IVAC Workspace", "info");
+    addLog("Signing out of Indian Visa Application Workspace", "info");
 
     await signOutUser();
   }
