@@ -1,3 +1,29 @@
+## Firebase setup
+
+The extension uses Firebase Authentication, user-scoped Firestore collections, Firebase Storage for Webfiles, and a scheduled Cloud Function for queued automation work.
+
+1. Create a Firebase project and register a Web app in the Firebase Console.
+2. Enable Email/Password under Authentication > Sign-in method.
+3. Create a Firestore database and enable Storage.
+4. Copy `.env.example` to `.env` and fill in the Web app configuration values. These `VITE_` values are client configuration, not admin credentials.
+5. Install the Firebase CLI, authenticate, select the project, and deploy the rules/functions:
+
+```sh
+firebase login
+firebase use YOUR_FIREBASE_PROJECT_ID
+firebase deploy --only firestore:rules,firestore:indexes,storage,functions
+```
+
+The client data API is in `src/firebase/data.ts`. Records are stored below `users/{uid}` in `applicants`, `ivacAccounts`, `webfiles`, `appointments`, `payments`, `automationStatus`, and `automationLogs`. Webfile objects use `users/{uid}/webfiles/{recordId}/{fileName}`.
+
+The scheduled function currently moves pending automation status records to `queued`; the actual IVAC automation worker should be added behind that queue and must run server-side.
+
+### Auth network errors
+
+After changing `public/manifest.json`, rebuild and reload the unpacked `dist` extension in `chrome://extensions`. In Firebase Console, verify that Email/Password is enabled under Authentication > Sign-in method, the project API key has no referrer-only restriction that blocks an extension origin, and the browser can reach `identitytoolkit.googleapis.com` and `securetoken.googleapis.com`.
+
+## Existing IVAC workflow
+
 ```php
 Schema::create('applicants', function (Blueprint $table) {
     $table->id();
@@ -204,6 +230,9 @@ Schema::create('automation_logs', function (Blueprint $table) {
     $table->timestamps();
 });
 ```
+
+Functions build: npm run build --prefix functions
+Extension type check: npm run type-check
 
 getByRole('button', { name: 'Close notice' })
 getByRole('button', { name: 'Close popup' })

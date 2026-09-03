@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
-import type { FormEvent } from "react";
+import { useMemo, useState } from "react";
 import {
   Activity,
   AlertCircle,
@@ -25,17 +24,6 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import {
-  configureAuth,
-  signIn,
-  signOutUser,
-  signUp,
-  subscribeToAuth,
-} from "../firebase/auth";
-import { firebaseConfigured } from "../firebase/config";
-import { createRecord } from "../firebase/data";
-import { uploadWebfile } from "../firebase/storage";
-import type { User as FirebaseUser } from "firebase/auth";
 
 type Status = "completed" | "running" | "pending" | "failed" | "paused";
 
@@ -323,7 +311,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
    APP
    ========================================================= */
 
-function Dashboard({ user }: { user: FirebaseUser }) {
+export default function App() {
   const [selectedApplicantId, setSelectedApplicantId] = useState(1);
 
   const [selectedApplicationId, setSelectedApplicationId] = useState(101);
@@ -340,10 +328,6 @@ function Dashboard({ user }: { user: FirebaseUser }) {
   const [showSettings, setShowSettings] = useState(false);
 
   const [applicantSearch, setApplicantSearch] = useState("");
-
-  const [uploadState, setUploadState] = useState<
-    "idle" | "uploading" | "done" | "error"
-  >("idle");
 
   const [logs, setLogs] = useState([
     {
@@ -414,31 +398,6 @@ function Dashboard({ user }: { user: FirebaseUser }) {
         }),
       },
     ]);
-  }
-
-  async function handleWebfileUpload(file: File) {
-    setUploadState("uploading");
-    try {
-      const record = await createRecord(user.uid, "webfiles", {
-        applicationId: String(application.id),
-        webfileNumber: application.webFileNumber,
-        originalName: file.name,
-        status: "pending",
-      });
-      const downloadUrl = await uploadWebfile(user.uid, file, record.id);
-      await createRecord(user.uid, "automationLogs", {
-        applicationId: String(application.id),
-        step: "webfile_upload",
-        status: "completed",
-        message: `Uploaded ${file.name}`,
-        downloadUrl,
-      });
-      setUploadState("done");
-      addLog("Webfile uploaded successfully", "success");
-    } catch {
-      setUploadState("error");
-      addLog("Webfile upload failed", "error");
-    }
   }
 
   function continueAutomation() {
@@ -633,18 +592,12 @@ function Dashboard({ user }: { user: FirebaseUser }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-1">
-            <span className="hidden max-w-28 truncate text-[9px] text-[var(--app-text-muted)] sm:block">
-              {user.email}
-            </span>
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              className="ivac-hover rounded-lg p-2 text-[var(--app-text-muted)]"
-              aria-label="Open settings"
-            >
-              <Settings size={17} />
-            </button>
-          </div>
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className="ivac-hover rounded-lg p-2 text-[var(--app-text-muted)]"
+          >
+            <Settings size={17} />
+          </button>
         </div>
       </header>
 
@@ -822,48 +775,6 @@ function Dashboard({ user }: { user: FirebaseUser }) {
 
               <InfoRow label="Payment" value={application.paymentStatus} />
             </div>
-          )}
-        </section>
-
-        <section className="ivac-card rounded-xl p-3 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <FileCheck2 size={14} className="ivac-primary" />
-                <p className="text-[9px] font-semibold uppercase tracking-wide ivac-text-muted">
-                  Webfile
-                </p>
-              </div>
-              <p className="mt-1 text-xs font-bold">
-                Upload supporting document
-              </p>
-              <p className="mt-0.5 text-[10px] ivac-text-muted">
-                PDF or image, up to 10 MB
-              </p>
-            </div>
-            <label className="shrink-0 cursor-pointer rounded-lg bg-blue-600 px-3 py-2 text-[10px] font-bold text-white hover:bg-blue-700">
-              {uploadState === "uploading" ? "Uploading..." : "Choose file"}
-              <input
-                type="file"
-                accept="application/pdf,image/*"
-                className="hidden"
-                disabled={uploadState === "uploading"}
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (file) void handleWebfileUpload(file);
-                }}
-              />
-            </label>
-          </div>
-          {uploadState === "done" && (
-            <p className="mt-2 text-[10px] ivac-success">
-              Saved to Webfiles and logged.
-            </p>
-          )}
-          {uploadState === "error" && (
-            <p className="mt-2 text-[10px] ivac-danger">
-              Upload failed. Check your connection and try again.
-            </p>
           )}
         </section>
 
@@ -1331,178 +1242,9 @@ function Dashboard({ user }: { user: FirebaseUser }) {
             >
               Save Settings
             </button>
-
-            <button
-              onClick={() => void signOutUser()}
-              className="mt-2 w-full rounded-lg border border-red-200 py-2.5 text-xs font-bold text-red-500 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950/20"
-            >
-              Sign out
-            </button>
           </div>
         </div>
       )}
     </div>
   );
-}
-
-function AuthScreen() {
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  function authErrorMessage(authError: unknown) {
-    if (authError && typeof authError === "object" && "code" in authError) {
-      const code = String(authError.code);
-      if (code === "auth/network-request-failed") {
-        return "Firebase cannot be reached. Check your internet connection, extension Firebase host permissions, and API key restrictions.";
-      }
-      if (code === "auth/operation-not-allowed") {
-        return "Email/password sign-in is disabled. Enable it in Firebase Console > Authentication > Sign-in method.";
-      }
-      if (
-        code === "auth/invalid-api-key" ||
-        code === "auth/invalid-credential"
-      ) {
-        return "Firebase credentials are invalid. Check the VITE_FIREBASE_* values in .env.";
-      }
-    }
-    return authError instanceof Error
-      ? authError.message
-      : "Unable to authenticate.";
-  }
-
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setBusy(true);
-    setError("");
-    try {
-      await configureAuth();
-      if (mode === "signin") await signIn(email, password);
-      else await signUp(email, password);
-    } catch (authError) {
-      setError(authErrorMessage(authError));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  if (!firebaseConfigured) {
-    return (
-      <main className="flex min-h-screen items-center justify-center p-6">
-        <section className="ivac-card w-full max-w-sm rounded-2xl p-6 shadow-sm">
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white">
-              <Zap size={20} />
-            </div>
-            <div>
-              <p className="text-sm font-bold">IVAC Workspace</p>
-              <p className="text-[11px] ivac-text-muted">
-                Firebase connection required
-              </p>
-            </div>
-          </div>
-          <h1 className="text-xl font-bold">Connect your project</h1>
-          <p className="mt-2 text-xs leading-5 ivac-text-secondary">
-            Copy <strong>.env.example</strong> to <strong>.env</strong> and add
-            your Firebase Web app values before signing in.
-          </p>
-        </section>
-      </main>
-    );
-  }
-
-  return (
-    <main className="flex min-h-screen items-center justify-center p-6">
-      <form
-        onSubmit={submit}
-        className="ivac-card w-full max-w-sm rounded-2xl p-6 shadow-sm"
-      >
-        <div className="mb-8 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white">
-            <Zap size={20} />
-          </div>
-          <div>
-            <p className="text-sm font-bold">IVAC Workspace</p>
-            <p className="text-[11px] ivac-text-muted">
-              Secure automation console
-            </p>
-          </div>
-        </div>
-        <h1 className="text-xl font-bold">
-          {mode === "signin" ? "Welcome back" : "Create your account"}
-        </h1>
-        <p className="mt-1 text-xs ivac-text-secondary">
-          {mode === "signin"
-            ? "Sign in to access your applicants and runs."
-            : "Your records stay isolated to your account."}
-        </p>
-        <label className="mt-6 block text-[11px] font-semibold">
-          Email
-          <input
-            className="ivac-input mt-1"
-            type="email"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="you@example.com"
-          />
-        </label>
-        <label className="mt-3 block text-[11px] font-semibold">
-          Password
-          <input
-            className="ivac-input mt-1"
-            type="password"
-            required
-            minLength={6}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="At least 6 characters"
-          />
-        </label>
-        {error && (
-          <p className="mt-3 rounded-lg ivac-danger-bg p-2 text-[11px] ivac-danger">
-            {error}
-          </p>
-        )}
-        <button
-          disabled={busy}
-          className="mt-5 w-full rounded-lg bg-blue-600 px-3 py-2.5 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-60"
-        >
-          {busy
-            ? "Please wait..."
-            : mode === "signin"
-              ? "Sign in"
-              : "Create account"}
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setMode(mode === "signin" ? "signup" : "signin");
-            setError("");
-          }}
-          className="mt-4 w-full text-center text-[11px] font-semibold text-blue-600"
-        >
-          {mode === "signin"
-            ? "Create a new account"
-            : "Already have an account? Sign in"}
-        </button>
-      </form>
-    </main>
-  );
-}
-
-export default function App() {
-  const [user, setUser] = useState<FirebaseUser | null | undefined>(undefined);
-
-  useEffect(() => subscribeToAuth(setUser), []);
-
-  if (user === undefined)
-    return (
-      <main className="flex min-h-screen items-center justify-center text-xs ivac-text-muted">
-        Loading workspace...
-      </main>
-    );
-  return user ? <Dashboard user={user} /> : <AuthScreen />;
 }

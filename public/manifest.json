@@ -12,7 +12,12 @@
 
   "permissions": ["storage", "activeTab", "scripting", "tabs", "windows"],
 
-  "host_permissions": ["https://appointment.ivacbd.com/*"],
+  "host_permissions": [
+    "https://appointment.ivacbd.com/*",
+    "https://*.googleapis.com/*",
+    "https://*.firebaseapp.com/*",
+    "https://*.firebasestorage.app/*"
+  ],
 
   "action": {
     "default_title": "IVAC Automation",
