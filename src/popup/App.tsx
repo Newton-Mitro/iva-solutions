@@ -34,8 +34,8 @@ import {
 } from "../firebase/auth";
 import { firebaseConfigured } from "../firebase/config";
 import { createRecord } from "../firebase/data";
-import { uploadWebfile } from "../firebase/storage";
 import type { User as FirebaseUser } from "firebase/auth";
+import ManagementPanel from "./Management";
 
 type Status = "completed" | "running" | "pending" | "failed" | "paused";
 
@@ -69,6 +69,75 @@ type Application = {
   status: string;
   paymentStatus: string;
 };
+
+type WorkflowPhase =
+  | "signup"
+  | "signin"
+  | "webfile"
+  | "mission"
+  | "relogin"
+  | "appointment"
+  | "payment"
+  | "signout";
+
+const workflowPhases: Array<{
+  id: WorkflowPhase;
+  title: string;
+  description: string;
+  action: string;
+}> = [
+  {
+    id: "signup",
+    title: "Create IVAC account",
+    description:
+      "Email OTP, mobile OTP, applicant details, password and consent",
+    action: "Start sign up",
+  },
+  {
+    id: "signin",
+    title: "Sign in to IVAC",
+    description: "Email, password, human verification and mobile OTP",
+    action: "Open sign in",
+  },
+  {
+    id: "webfile",
+    title: "Upload Webfiles",
+    description:
+      "Upload primary and additional Webfiles, then confirm the form",
+    action: "Prepare Webfiles",
+  },
+  {
+    id: "mission",
+    title: "Confirm mission",
+    description: "Choose Dhaka and IVAC, Dhaka (JFP)",
+    action: "Confirm mission",
+  },
+  {
+    id: "relogin",
+    title: "Re-login at 6:00 PM",
+    description:
+      "The portal requires a fresh sign-in before appointment booking",
+    action: "Mark reminder",
+  },
+  {
+    id: "appointment",
+    title: "Book appointment",
+    description: "Choose date and time, verify human check, continue booking",
+    action: "Find appointment",
+  },
+  {
+    id: "payment",
+    title: "Complete payment",
+    description: "SSLCommerz card or bKash, then download the invoice",
+    action: "Review payment",
+  },
+  {
+    id: "signout",
+    title: "Sign out",
+    description: "End the IVAC portal session after the workflow",
+    action: "Sign out",
+  },
+];
 
 /* =========================================================
    DEMO DATA
@@ -339,6 +408,13 @@ function Dashboard({ user }: { user: FirebaseUser }) {
 
   const [showSettings, setShowSettings] = useState(false);
 
+  const [showManagement, setShowManagement] = useState(false);
+
+  const [workflowPhase, setWorkflowPhase] = useState<WorkflowPhase>("signup");
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedTime, setSelectedTime] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "bkash">("card");
+
   const [applicantSearch, setApplicantSearch] = useState("");
 
   const [uploadState, setUploadState] = useState<
@@ -416,22 +492,75 @@ function Dashboard({ user }: { user: FirebaseUser }) {
     ]);
   }
 
+  function advanceWorkflow() {
+    const index = workflowPhases.findIndex(
+      (phase) => phase.id === workflowPhase,
+    );
+    const next = workflowPhases[index + 1];
+    {
+      workflowPhase === "mission" && (
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <label className="text-[9px] font-semibold text-blue-900 dark:text-blue-100">
+            Mission
+            <input className="ivac-input mt-1" value="Dhaka" readOnly />
+          </label>
+          <label className="text-[9px] font-semibold text-blue-900 dark:text-blue-100">
+            IVAC center
+            <input
+              className="ivac-input mt-1"
+              value="IVAC, Dhaka (JFP)"
+              readOnly
+            />
+          </label>
+        </div>
+      );
+    }
+    if (!next) {
+      addLog("IVAC workflow completed", "success");
+      return;
+    }
+    setWorkflowPhase(next.id);
+    addLog(`Workflow stage: ${next.title}`, "info");
+  }
+
+  function runPhaseAction() {
+    const phase = workflowPhases.find((item) => item.id === workflowPhase)!;
+    if (workflowPhase === "signout") {
+      addLog("Signing out of IVAC Workspace", "info");
+      void signOutUser();
+      return;
+    }
+    if (workflowPhase === "appointment" && (!selectedDate || !selectedTime)) {
+      addLog("Select an appointment date and time first", "warning");
+      return;
+    }
+    if (workflowPhase === "relogin")
+      addLog("Reminder set for 6:00 PM", "success");
+    else if (workflowPhase === "payment")
+      addLog(
+        `Payment ready via ${paymentMethod === "card" ? "SSLCommerz card" : "bKash"}`,
+        "warning",
+      );
+    else addLog(`${phase.title} checkpoint opened`, "info");
+    advanceWorkflow();
+  }
+
   async function handleWebfileUpload(file: File) {
     setUploadState("uploading");
     try {
       const record = await createRecord(user.uid, "webfiles", {
-        applicationId: String(application.id),
+        ivacApplicationId: String(application.id),
         webfileNumber: application.webFileNumber,
         originalName: file.name,
+        filePath: file.webkitRelativePath || file.name,
         status: "pending",
       });
-      const downloadUrl = await uploadWebfile(user.uid, file, record.id);
       await createRecord(user.uid, "automationLogs", {
-        applicationId: String(application.id),
+        ivacApplicationId: String(application.id),
         step: "webfile_upload",
         status: "completed",
         message: `Uploaded ${file.name}`,
-        downloadUrl,
+        filePath: file.webkitRelativePath || file.name,
       });
       setUploadState("done");
       addLog("Webfile uploaded successfully", "success");
@@ -638,6 +767,13 @@ function Dashboard({ user }: { user: FirebaseUser }) {
               {user.email}
             </span>
             <button
+              onClick={() => setShowManagement(true)}
+              aria-label="Open records"
+              className="ivac-hover rounded-lg px-2 py-1.5 text-[10px] font-semibold ivac-primary"
+            >
+              Records
+            </button>
+            <button
               onClick={() => setShowSettings(!showSettings)}
               className="ivac-hover rounded-lg p-2 text-[var(--app-text-muted)]"
               aria-label="Open settings"
@@ -838,7 +974,7 @@ function Dashboard({ user }: { user: FirebaseUser }) {
                 Upload supporting document
               </p>
               <p className="mt-0.5 text-[10px] ivac-text-muted">
-                PDF or image, up to 10 MB
+                PDF or image path saved in Firestore
               </p>
             </div>
             <label className="shrink-0 cursor-pointer rounded-lg bg-blue-600 px-3 py-2 text-[10px] font-bold text-white hover:bg-blue-700">
@@ -865,6 +1001,153 @@ function Dashboard({ user }: { user: FirebaseUser }) {
               Upload failed. Check your connection and try again.
             </p>
           )}
+        </section>
+
+        <section className="ivac-card rounded-xl p-3 shadow-sm">
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <p className="text-[9px] font-semibold uppercase tracking-wide ivac-text-muted">
+                IVAC process
+              </p>
+              <h2 className="mt-0.5 text-sm font-bold">
+                Guided application flow
+              </h2>
+            </div>
+            <span className="ivac-primary-bg rounded-full px-2 py-1 text-[9px] font-bold ivac-primary">
+              {workflowPhases.findIndex((phase) => phase.id === workflowPhase) +
+                1}{" "}
+              / {workflowPhases.length}
+            </span>
+          </div>
+
+          <div className="mb-3 flex gap-1 overflow-x-auto pb-1">
+            {workflowPhases.map((phase, index) => (
+              <button
+                key={phase.id}
+                onClick={() => setWorkflowPhase(phase.id)}
+                aria-label={`Open ${phase.title}`}
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${phase.id === workflowPhase ? "bg-blue-600 text-white" : index < workflowPhases.findIndex((item) => item.id === workflowPhase) ? "bg-emerald-100 text-emerald-700" : "ivac-surface-2 ivac-text-muted"}`}
+              >
+                {index + 1}
+              </button>
+            ))}
+          </div>
+
+          <div className="rounded-lg border border-blue-200 bg-blue-50/70 p-3 dark:border-blue-900 dark:bg-blue-950/20">
+            <p className="text-[9px] font-bold uppercase tracking-wide text-blue-600 dark:text-blue-400">
+              Current stage
+            </p>
+            <h3 className="mt-1 text-sm font-bold text-blue-950 dark:text-blue-100">
+              {
+                workflowPhases.find((phase) => phase.id === workflowPhase)
+                  ?.title
+              }
+            </h3>
+            <p className="mt-1 text-[10px] leading-4 text-blue-800 dark:text-blue-200">
+              {
+                workflowPhases.find((phase) => phase.id === workflowPhase)
+                  ?.description
+              }
+            </p>
+
+            {workflowPhase === "signup" && (
+              <p className="mt-2 rounded-md bg-white/70 p-2 text-[9px] text-blue-900 dark:bg-blue-950/40 dark:text-blue-100">
+                Close both IVAC notices first. Complete email OTP, mobile OTP,
+                date of birth, passport, NID, surname, given name, password,
+                confirmation, and all three consent checks.
+              </p>
+            )}
+            {workflowPhase === "signin" && (
+              <p className="mt-2 rounded-md bg-amber-50 p-2 text-[9px] text-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
+                Human verification and the mobile OTP must be completed manually
+                in the portal.
+              </p>
+            )}
+            {workflowPhase === "webfile" && (
+              <p className="mt-2 rounded-md bg-white/70 p-2 text-[9px] text-blue-900 dark:bg-blue-950/40 dark:text-blue-100">
+                Upload the primary Webfile and any additional Webfiles, confirm
+                the information, then choose Save & Continue.
+              </p>
+            )}
+            {workflowPhase === "mission" && (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <label className="text-[9px] font-semibold text-blue-900 dark:text-blue-100">
+                  Mission
+                  <input className="ivac-input mt-1" value="Dhaka" readOnly />
+                </label>
+                <label className="text-[9px] font-semibold text-blue-900 dark:text-blue-100">
+                  IVAC center
+                  <input
+                    className="ivac-input mt-1"
+                    value="IVAC, Dhaka (JFP)"
+                    readOnly
+                  />
+                </label>
+              </div>
+            )}
+            {workflowPhase === "relogin" && (
+              <p className="mt-2 rounded-md bg-amber-50 p-2 text-[9px] font-semibold text-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
+                Please sign in again at 6:00 PM before booking becomes
+                available.
+              </p>
+            )}
+            {workflowPhase === "appointment" && (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <label className="text-[9px] font-semibold text-blue-900 dark:text-blue-100">
+                  Appointment date
+                  <select
+                    className="ivac-input mt-1"
+                    value={selectedDate}
+                    onChange={(event) => setSelectedDate(event.target.value)}
+                  >
+                    <option value="">Select date</option>
+                    <option>10 Sep 2026</option>
+                    <option>12 Sep 2026</option>
+                    <option>15 Sep 2026</option>
+                  </select>
+                </label>
+                <label className="text-[9px] font-semibold text-blue-900 dark:text-blue-100">
+                  Appointment time
+                  <select
+                    className="ivac-input mt-1"
+                    value={selectedTime}
+                    onChange={(event) => setSelectedTime(event.target.value)}
+                  >
+                    <option value="">Select time</option>
+                    <option>09:00 AM</option>
+                    <option>11:30 AM</option>
+                    <option>02:00 PM</option>
+                  </select>
+                </label>
+              </div>
+            )}
+            {workflowPhase === "payment" && (
+              <div className="mt-2 flex gap-2">
+                <button
+                  onClick={() => setPaymentMethod("card")}
+                  className={`flex-1 rounded-lg border p-2 text-[10px] font-semibold ${paymentMethod === "card" ? "border-blue-500 bg-white text-blue-700" : "border-blue-200 text-blue-800"}`}
+                >
+                  SSLCommerz card
+                </button>
+                <button
+                  onClick={() => setPaymentMethod("bkash")}
+                  className={`flex-1 rounded-lg border p-2 text-[10px] font-semibold ${paymentMethod === "bkash" ? "border-blue-500 bg-white text-blue-700" : "border-blue-200 text-blue-800"}`}
+                >
+                  bKash
+                </button>
+              </div>
+            )}
+            <button
+              onClick={runPhaseAction}
+              className="mt-3 w-full rounded-lg bg-blue-600 py-2.5 text-[10px] font-bold text-white hover:bg-blue-700"
+            >
+              {
+                workflowPhases.find((phase) => phase.id === workflowPhase)
+                  ?.action
+              }
+              <ArrowRight size={12} className="ml-1 inline" />
+            </button>
+          </div>
         </section>
 
         {/* ===================================================
@@ -1340,6 +1623,13 @@ function Dashboard({ user }: { user: FirebaseUser }) {
             </button>
           </div>
         </div>
+      )}
+
+      {showManagement && (
+        <ManagementPanel
+          userId={user.uid}
+          onClose={() => setShowManagement(false)}
+        />
       )}
     </div>
   );

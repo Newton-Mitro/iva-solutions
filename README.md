@@ -14,7 +14,11 @@ firebase use YOUR_FIREBASE_PROJECT_ID
 firebase deploy --only firestore:rules,firestore:indexes,storage,functions
 ```
 
-The client data API is in `src/firebase/data.ts`. Records are stored below `users/{uid}` in `applicants`, `ivacAccounts`, `webfiles`, `appointments`, `payments`, `automationStatus`, and `automationLogs`. Webfile objects use `users/{uid}/webfiles/{recordId}/{fileName}`.
+This repository is already bound to `ivac-automation-26023` in `.firebaserc`. If the app shows `Permission denied`, install the Firebase CLI, authenticate with an account that has access to this project, and run the deployment command above.
+
+The Records management UI stores records in Firestore under `users/{uid}`. Webfiles are metadata-only records: the UI stores the selected file name and browser-provided relative path in Firestore and never uploads the file to Firebase Storage. Browsers do not expose a reliable absolute local filesystem path; users must choose files through the file picker.
+
+The client data API is in `src/firebase/data.ts`. Records are stored below `users/{uid}` in `applicants`, `automationAccounts`, `ivacApplications`, `webfiles`, `appointments`, `payments`, `automationStatus`, and `automationLogs`.
 
 The scheduled function currently moves pending automation status records to `queued`; the actual IVAC automation worker should be added behind that queue and must run server-side.
 
@@ -24,211 +28,131 @@ After changing `public/manifest.json`, rebuild and reload the unpacked `dist` ex
 
 ## Existing IVAC workflow
 
-```php
-Schema::create('applicants', function (Blueprint $table) {
-    $table->id();
-    $table->string('surname');
-    $table->string('given_name');
-    $table->string('full_name');
-    $table->string('email')->nullable();
-    $table->string('mobile')->nullable();
-    $table->date('date_of_birth')->nullable();
-    $table->string('nationality')->nullable();
-    $table->string('gender')->nullable();
-    $table->string('photo_path')->nullable();
+```graphql
+type User @table {
+  email: String!
+  passwordHash: String!
+  name: String
+  phone: String
+}
 
-    $table->string('passport_number')->unique();
-    $table->date('passport_issue_date')->nullable();
-    $table->date('passport_expiry_date')->nullable();
-    $table->string('nid_number')->unique();
+type Applicant @table {
+  user: User!
+  surname: String!
+  givenName: String!
+  fullName: String!
+  email: String
+  mobile: String
+  dateOfBirth: Date
+  nationality: String
+  gender: String
+  photoPath: String
+  passportNumber: String!
+  passportIssueDate: Date
+  passportExpiryDate: Date
+  nidNumber: String!
+  status: String!
+}
 
-    $table->enum('status', ['active', 'inactive',])->default('active');
-    $table->timestamps();
-});
+type AutomationAccount @table {
+  applicant: Applicant!
+  email: String!
+  mobile: String!
+  ivacPassword: String
+  emailVerifiedAt: Timestamp
+  mobileVerifiedAt: Timestamp
+  lastLoginAt: Timestamp
+  lastLogoutAt: Timestamp
+  accountStatus: String!
+}
 
-Schema::create('automation_accounts', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('applicant_id')->constrained('applicants')->cascadeOnDelete();
-    $table->string('email')->unique();
-    $table->string('mobile')->unique();
-    $table->string('ivac_password')->nullable();
-    $table->timestamp('email_verified_at')->nullable();
-    $table->timestamp('mobile_verified_at')->nullable();
-    $table->timestamp('last_login_at')->nullable();
-    $table->timestamp('last_logout_at')->nullable();
-    $table->enum('account_status', ['pending', 'email_verified',
-    'mobile_verified', 'active', 'locked', 'disabled'])->default('pending')->index();
-    $table->timestamps();
-});
+type IVACApplication @table {
+  applicant: Applicant!
+  mission: String
+  ivacCenter: String
+  status: String!
+  appointmentBookingAvailableAt: Timestamp
+  missionConfirmedAt: Timestamp
+  completedAt: Timestamp
+  errorMessage: String
+}
 
-Schema::create('ivac_applications', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('applicant_id')->constrained('applicants')->cascadeOnDelete();
-    $table->string('mission')->nullable();
-    $table->string('ivac_center')->nullable();
-    $table->enum('status', [
-        'draft',
+type Webfile @table {
+  ivacApplication: IVACApplication!
+  webfileNumber: String!
+  type: String!
+  filePath: String
+  originalName: String
+  status: String!
+  uploadedAt: Timestamp
+  confirmedAt: Timestamp
+  errorMessage: String
+}
 
-        // Signup
-        'signup_pending',
-        'signup_completed',
+type Appointment @table {
+  ivacApplication: IVACApplication!
+  appointmentType: String
+  appointmentDate: Date
+  appointmentTime: String
+  confirmedAt: Timestamp
+  errorMessage: String
+  status: String!
+}
 
-        // Webfile
-        'webfile_pending',
-        'webfile_uploaded',
+type AppointmentAttempt @table {
+  ivacApplication: IVACApplication!
+  ivacCenter: String
+  appointmentDate: Date
+  appointmentTime: String
+  status: String!
+  failureReason: String
+  responseData: String
+  attemptedAt: Timestamp
+}
 
-        // Mission
-        'mission_pending',
-        'mission_confirmed',
+type Payment @table {
+  ivacApplication: IVACApplication!
+  appointment: Appointment
+  gateway: String!
+  transactionId: String
+  paymentMethod: String
+  amount: Float
+  currency: String!
+  status: String!
+  paidAt: Timestamp
+  gatewayResponse: String
+}
 
-        // Appointment
-        'waiting_for_appointment',
-        'appointment_booking',
-        'appointment_selected',
+type Invoice @table {
+  ivacApplication: IVACApplication!
+  payment: Payment
+  invoiceNumber: String
+  filePath: String
+  originalName: String
+  downloadedAt: Timestamp
+}
 
-        // Payment
-        'payment_pending',
-        'payment_processing',
-        'payment_completed',
+type AutomationRun @table {
+  automationAccount: AutomationAccount
+  ivacApplication: IVACApplication
+  type: String!
+  status: String!
+  startedAt: Timestamp
+  completedAt: Timestamp
+  errorMessage: String
+}
 
-        'completed',
-        'failed',
-        'cancelled',
-    ])->default('draft');
-    $table->timestamp('appointment_booking_available_at')->nullable();
-    $table->timestamp('mission_confirmed_at')->nullable();
-    $table->timestamp('completed_at')->nullable();
-    $table->text('error_message')->nullable();
-    $table->timestamps();
-});
-
-Schema::create('webfiles', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('ivac_application_id')->constrained()->cascadeOnDelete();
-    $table->string('webfile_number');
-    $table->enum('type', ['primary', 'other'])->default('other');
-    $table->string('file_path')->nullable();
-    $table->string('original_name')->nullable();
-    $table->enum('status', [ 'pending', 'uploaded', 'confirmed', 'failed'])->default('pending');
-    $table->timestamp('uploaded_at')->nullable();
-    $table->timestamp('confirmed_at')->nullable();
-    $table->text('error_message')->nullable();
-    $table->timestamps();
-});
-
-Schema::create('appointments', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('ivac_application_id')->constrained()->cascadeOnDelete();
-    $table->string('appointment_type')->nullable();
-    $table->date('appointment_date')->nullable();
-    $table->time('appointment_time')->nullable();
-    $table->timestamp('confirmed_at')->nullable();
-    $table->text('error_message')->nullable();
-    $table->enum('status', [ 'pending', 'selected', 'booking', 'confirmed', 'cancelled', 'failed'])->default('pending');
-    $table->timestamps();
-});
-
-Schema::create('appointment_attempts', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('visa_application_id')->constrained('visa_applications')->cascadeOnDelete();
-    $table->string('ivac_center')->nullable();
-    $table->date('appointment_date')->nullable();
-    $table->time('appointment_time')->nullable();
-    $table->string('status')->default('attempted');
-    $table->string('failure_reason')->nullable();
-    $table->json('response_data')->nullable();
-    $table->timestamp('attempted_at')->nullable();
-    $table->timestamps();
-    $table->index(['visa_application_id', 'status']);
-});
-
-Schema::create('payments', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('ivac_application_id')->constrained()->cascadeOnDelete();
-    $table->foreignId('appointment_id')->nullable()->constrained()->nullOnDelete();
-    $table->string('gateway')->default('sslcommerz');
-    $table->string('transaction_id')->nullable()->unique();
-    $table->string('payment_method')->nullable();
-    $table->decimal('amount', 12, 2)->nullable();
-    $table->string('currency', 10)->default('BDT');
-    $table->enum('status', [
-        'pending',
-        'processing',
-        'successful',
-        'failed',
-        'cancelled',
-    ])->default('pending');
-
-    $table->timestamp('paid_at')->nullable();
-    $table->json('gateway_response')->nullable();
-    $table->timestamps();
-});
-
-Schema::create('invoices', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('ivac_application_id')->constrained()->cascadeOnDelete();
-    $table->foreignId('payment_id')->nullable()->constrained()->nullOnDelete();
-    $table->string('invoice_number')->nullable();
-    $table->string('file_path')->nullable();
-    $table->string('original_name')->nullable();
-    $table->timestamp('downloaded_at')->nullable();
-    $table->timestamps();
-});
-
-Schema::create('automation_runs', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-    $table->foreignId('automation_account_id')->nullable()->constrained()->nullOnDelete();
-    $table->foreignId('ivac_application_id')->nullable()->constrained()->nullOnDelete();
-
-    $table->enum('type', [
-        'signup',
-        'signin',
-        'webfile_upload',
-        'mission_confirmation',
-        'appointment_booking',
-        'payment',
-        'signout',
-        'full_process',
-    ]);
-
-    $table->enum('status', [
-        'pending',
-        'running',
-        'waiting',
-        'completed',
-        'failed',
-        'cancelled',
-    ])->default('pending');
-
-    $table->timestamp('started_at')->nullable();
-    $table->timestamp('completed_at')->nullable();
-    $table->text('error_message')->nullable();
-    $table->timestamps();
-});
-
-Schema::create('automation_logs', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('automation_run_id')->constrained()->cascadeOnDelete();
-    $table->unsignedInteger('step_order');
-    $table->string('step');
-
-    $table->enum('status', [
-        'pending',
-        'running',
-        'completed',
-        'failed',
-        'waiting',
-        'skipped',
-    ])->default('pending');
-
-    $table->text('message')->nullable();
-    $table->text('error')->nullable();
-    $table->json('metadata')->nullable();
-    $table->timestamp('started_at')->nullable();
-    $table->timestamp('completed_at')->nullable();
-    $table->timestamps();
-});
+type AutomationLog @table {
+  automationRun: AutomationRun!
+  stepOrder: Int!
+  step: String!
+  status: String!
+  message: String
+  error: String
+  metadata: String
+  startedAt: Timestamp
+  completedAt: Timestamp
+}
 ```
 
 Functions build: npm run build --prefix functions
@@ -326,3 +250,7 @@ For Mobile Banking
 
 1.
 2.
+
+```
+
+```
