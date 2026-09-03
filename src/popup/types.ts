@@ -168,6 +168,7 @@ export type WorkflowPhase =
   | "relogin"
   | "appointment"
   | "payment"
+  | "invoice"
   | "signout";
 
 export type LogEntry = {

@@ -1,4 +1,4 @@
-import { Settings } from "lucide-react";
+import { ClipboardList, LayoutDashboard, Settings } from "lucide-react";
 
 export default function DashboardHeader({
   email,
@@ -16,16 +16,16 @@ export default function DashboardHeader({
           <div className="flex h-8 w-8 items-center justify-center">
             <img
               src="/icons/process-32.png"
-              alt="IVAC Automation"
+              alt="IVAC Visa Assistant"
               className="h-8 w-8"
             />
           </div>
           <div>
             <h1 className="text-sm font-bold text-[var(--app-text)]">
-              IVAC Automation
+              IVAC Visa Assistant
             </h1>
             <p className="text-[9px] text-[var(--app-text-muted)]">
-              Application Assistant
+              Application & Appointment Booking Assistant
             </p>
           </div>
         </div>
@@ -38,7 +38,7 @@ export default function DashboardHeader({
             aria-label="Open records"
             className="ivac-hover rounded-lg px-2 py-1.5 text-[10px] font-semibold ivac-primary"
           >
-            Records
+            <LayoutDashboard size={17} />
           </button>
           <button
             onClick={onSettings}

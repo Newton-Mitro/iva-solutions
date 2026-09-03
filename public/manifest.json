@@ -1,6 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "IVAC Automation",
+  "name": "IVAC Visa Assistant",
+  "description": "Automate visa application workflows including applicant management, document uploads, appointment booking, and payment processing for Indian visa applications through IVAC.",
   "version": "1.0.0",
 
   "icons": {
@@ -20,7 +21,7 @@
   ],
 
   "action": {
-    "default_title": "IVAC Automation",
+    "default_title": "IVAC Visa Assistant",
     "default_icon": {
       "16": "icons/process-16.png",
       "32": "icons/process-32.png",
