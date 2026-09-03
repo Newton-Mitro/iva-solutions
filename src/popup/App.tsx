@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import type { FormEvent } from "react";
 import {
   Activity,
   AlertCircle,
@@ -23,440 +22,137 @@ import {
   User,
   WalletCards,
   X,
-  Zap,
 } from "lucide-react";
-import {
-  configureAuth,
-  signIn,
-  signOutUser,
-  signUp,
-  subscribeToAuth,
-} from "../firebase/auth";
-import { firebaseConfigured } from "../firebase/config";
-import { createRecord } from "../firebase/data";
+import { signOutUser, subscribeToAuth } from "../firebase/auth";
+import { createRecord, subscribeToRecords } from "../firebase/data";
 import type { User as FirebaseUser } from "firebase/auth";
 import ManagementPanel from "./Management";
-
-type Status = "completed" | "running" | "pending" | "failed" | "paused";
-
-type Step = {
-  id: string;
-  title: string;
-  description: string;
-  icon: any;
-  status: Status;
-  progress?: number;
-};
-
-type Applicant = {
-  id: number;
-  name: string;
-  passport: string;
-  mobile: string;
-  email: string;
-  nationality: string;
-  status: "active" | "inactive";
-};
-
-type Application = {
-  id: number;
-  applicantId: number;
-  visaType: string;
-  mission: string;
-  ivacCenter: string;
-  webFileNumber: string;
-  applicationNumber: string;
-  status: string;
-  paymentStatus: string;
-};
-
-type WorkflowPhase =
-  | "signup"
-  | "signin"
-  | "webfile"
-  | "mission"
-  | "relogin"
-  | "appointment"
-  | "payment"
-  | "signout";
-
-const workflowPhases: Array<{
-  id: WorkflowPhase;
-  title: string;
-  description: string;
-  action: string;
-}> = [
-  {
-    id: "signup",
-    title: "Create IVAC account",
-    description:
-      "Email OTP, mobile OTP, applicant details, password and consent",
-    action: "Start sign up",
-  },
-  {
-    id: "signin",
-    title: "Sign in to IVAC",
-    description: "Email, password, human verification and mobile OTP",
-    action: "Open sign in",
-  },
-  {
-    id: "webfile",
-    title: "Upload Webfiles",
-    description:
-      "Upload primary and additional Webfiles, then confirm the form",
-    action: "Prepare Webfiles",
-  },
-  {
-    id: "mission",
-    title: "Confirm mission",
-    description: "Choose Dhaka and IVAC, Dhaka (JFP)",
-    action: "Confirm mission",
-  },
-  {
-    id: "relogin",
-    title: "Re-login at 6:00 PM",
-    description:
-      "The portal requires a fresh sign-in before appointment booking",
-    action: "Mark reminder",
-  },
-  {
-    id: "appointment",
-    title: "Book appointment",
-    description: "Choose date and time, verify human check, continue booking",
-    action: "Find appointment",
-  },
-  {
-    id: "payment",
-    title: "Complete payment",
-    description: "SSLCommerz card or bKash, then download the invoice",
-    action: "Review payment",
-  },
-  {
-    id: "signout",
-    title: "Sign out",
-    description: "End the IVAC portal session after the workflow",
-    action: "Sign out",
-  },
-];
-
-/* =========================================================
-   DEMO DATA
-   ========================================================= */
-
-const applicants: Applicant[] = [
-  {
-    id: 1,
-    name: "John Doe",
-    passport: "A12345678",
-    mobile: "01704687376",
-    email: "john@example.com",
-    nationality: "Bangladeshi",
-    status: "active",
-  },
-  {
-    id: 2,
-    name: "Sarah Ahmed",
-    passport: "B98765432",
-    mobile: "01812345678",
-    email: "sarah@example.com",
-    nationality: "Bangladeshi",
-    status: "active",
-  },
-  {
-    id: 3,
-    name: "Michael Rahman",
-    passport: "C45678912",
-    mobile: "01912345678",
-    email: "michael@example.com",
-    nationality: "Bangladeshi",
-    status: "inactive",
-  },
-  {
-    id: 4,
-    name: "Nusrat Jahan",
-    passport: "D76543210",
-    mobile: "01612345678",
-    email: "nusrat@example.com",
-    nationality: "Bangladeshi",
-    status: "active",
-  },
-  {
-    id: 5,
-    name: "David Karim",
-    passport: "E65432109",
-    mobile: "01512345678",
-    email: "david@example.com",
-    nationality: "Bangladeshi",
-    status: "active",
-  },
-  {
-    id: 6,
-    name: "Ayesha Rahman",
-    passport: "F54321098",
-    mobile: "01312345678",
-    email: "ayesha@example.com",
-    nationality: "Bangladeshi",
-    status: "active",
-  },
-  {
-    id: 7,
-    name: "Tanvir Hasan",
-    passport: "G43210987",
-    mobile: "01412345678",
-    email: "tanvir@example.com",
-    nationality: "Bangladeshi",
-    status: "active",
-  },
-];
-
-const applications: Application[] = [
-  {
-    id: 101,
-    applicantId: 1,
-    visaType: "Tourist Visa",
-    mission: "India",
-    ivacCenter: "IVAC Dhaka",
-    webFileNumber: "WEB-2026-001245",
-    applicationNumber: "APP-2026-000981",
-    status: "draft",
-    paymentStatus: "unpaid",
-  },
-  {
-    id: 102,
-    applicantId: 1,
-    visaType: "Medical Visa",
-    mission: "India",
-    ivacCenter: "IVAC Dhaka",
-    webFileNumber: "WEB-2026-001422",
-    applicationNumber: "APP-2026-001002",
-    status: "processing",
-    paymentStatus: "pending",
-  },
-  {
-    id: 103,
-    applicantId: 2,
-    visaType: "Tourist Visa",
-    mission: "India",
-    ivacCenter: "IVAC Chittagong",
-    webFileNumber: "WEB-2026-002100",
-    applicationNumber: "APP-2026-001200",
-    status: "completed",
-    paymentStatus: "paid",
-  },
-];
-
-/* =========================================================
-   AUTOMATION STEPS
-   ========================================================= */
-
-const initialSteps: Step[] = [
-  {
-    id: "applicant",
-    title: "Applicant",
-    description: "Verify applicant information",
-    icon: User,
-    status: "completed",
-  },
-  {
-    id: "application",
-    title: "Application",
-    description: "Prepare visa application",
-    icon: FileText,
-    status: "completed",
-  },
-  {
-    id: "signin",
-    title: "Sign In",
-    description: "Sign in to IVAC portal",
-    icon: ShieldCheck,
-    status: "completed",
-  },
-  {
-    id: "fill",
-    title: "Fill Application",
-    description: "Fill application form",
-    icon: FileCheck2,
-    status: "running",
-    progress: 72,
-  },
-  {
-    id: "appointment",
-    title: "Appointment",
-    description: "Find appointment slot",
-    icon: CalendarDays,
-    status: "pending",
-  },
-  {
-    id: "payment",
-    title: "Payment",
-    description: "Complete payment",
-    icon: CreditCard,
-    status: "pending",
-  },
-];
-
-/* =========================================================
-   STATUS BADGE
-   ========================================================= */
-
-function StatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    active: "ivac-success-bg ivac-success",
-    inactive: "ivac-surface-2 ivac-text-muted",
-
-    draft: "ivac-warning-bg ivac-warning",
-    processing: "ivac-primary-bg ivac-primary",
-    completed: "ivac-success-bg ivac-success",
-
-    paid: "ivac-success-bg ivac-success",
-    unpaid: "ivac-surface-2 ivac-text-muted",
-
-    pending: "ivac-warning-bg ivac-warning",
-    failed: "ivac-danger-bg ivac-danger",
-  };
-
-  return (
-    <span
-      className={`rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${
-        styles[status] ?? "ivac-surface-2 ivac-text-muted"
-      }`}
-    >
-      {status}
-    </span>
-  );
-}
-
-/* =========================================================
-   STEP ICON
-   ========================================================= */
-
-function StepIcon({ status, icon: Icon }: Step) {
-  if (status === "completed") {
-    return (
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white">
-        <Check size={15} />
-      </div>
-    );
-  }
-
-  if (status === "running") {
-    return (
-      <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white">
-        <Icon size={15} />
-
-        <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 animate-pulse rounded-full bg-amber-400 ring-2 ring-[var(--app-surface)]" />
-      </div>
-    );
-  }
-
-  if (status === "failed") {
-    return (
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-500 text-white">
-        <X size={15} />
-      </div>
-    );
-  }
-
-  if (status === "paused") {
-    return (
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500 text-white">
-        <Pause size={14} />
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text-muted)]">
-      <Icon size={14} />
-    </div>
-  );
-}
-
-/* =========================================================
-   INFO ROW
-   ========================================================= */
-
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-3 py-1.5">
-      <span className="text-[10px] text-[var(--app-text-muted)]">{label}</span>
-
-      <span className="text-right text-[10px] font-medium text-[var(--app-text)]">
-        {value}
-      </span>
-    </div>
-  );
-}
-
-/* =========================================================
-   APP
-   ========================================================= */
+import AuthScreen from "./components/AuthScreen";
+import { InfoRow, StatusBadge, StepIcon } from "./components/Shared";
+import DashboardHeader from "./components/DashboardHeader";
+import ApplicantRelations from "./components/ApplicantRelations";
+import { flowTabs, initialSteps, workflowPhases } from "./constants";
+import type {
+  Applicant,
+  Application,
+  RelatedRecord,
+  WorkflowPhase,
+} from "./types";
 
 function Dashboard({ user }: { user: FirebaseUser }) {
-  const [selectedApplicantId, setSelectedApplicantId] = useState(1);
-
-  const [selectedApplicationId, setSelectedApplicationId] = useState(101);
-
+  const [applicants, setApplicants] = useState<Applicant[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [webfiles, setWebfiles] = useState<RelatedRecord[]>([]);
+  const [appointments, setAppointments] = useState<RelatedRecord[]>([]);
+  const [payments, setPayments] = useState<RelatedRecord[]>([]);
+  const [invoices, setInvoices] = useState<RelatedRecord[]>([]);
+  const [automationRuns, setAutomationRuns] = useState<RelatedRecord[]>([]);
+  const [selectedApplicantId, setSelectedApplicantId] = useState("");
+  const [selectedApplicationId, setSelectedApplicationId] = useState("");
   const [steps, setSteps] = useState(initialSteps);
-
   const [running, setRunning] = useState(true);
   const [paused, setPaused] = useState(false);
-
   const [showApplicants, setShowApplicants] = useState(false);
-
   const [showApplications, setShowApplications] = useState(false);
-
   const [showSettings, setShowSettings] = useState(false);
-
   const [showManagement, setShowManagement] = useState(false);
-
   const [workflowPhase, setWorkflowPhase] = useState<WorkflowPhase>("signup");
+  const [startedFlows, setStartedFlows] = useState<Record<string, boolean>>({});
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"card" | "bkash">("card");
-
+  const [dataError, setDataError] = useState("");
   const [applicantSearch, setApplicantSearch] = useState("");
-
+  const [automationAccounts, setAutomationAccounts] = useState<RelatedRecord[]>(
+    [],
+  );
   const [uploadState, setUploadState] = useState<
     "idle" | "uploading" | "done" | "error"
   >("idle");
 
-  const [logs, setLogs] = useState([
-    {
-      type: "success",
-      message: "Applicant information verified",
-      time: "10:21:04",
-    },
-    {
-      type: "success",
-      message: "Application data prepared",
-      time: "10:21:08",
-    },
-    {
-      type: "success",
-      message: "Signed in successfully",
-      time: "10:21:14",
-    },
-    {
-      type: "info",
-      message: "Filling passport information...",
-      time: "10:21:19",
-    },
-  ]);
+  const [logs, setLogs] = useState<
+    Array<{ type: string; message: string; time: string }>
+  >([]);
 
-  const applicant = applicants.find((item) => item.id === selectedApplicantId)!;
+  useEffect(() => {
+    const unsubscribeApplicants = subscribeToRecords<Applicant>(
+      user.uid,
+      "applicants",
+      (items) => {
+        setApplicants(items);
+        setSelectedApplicantId((current) => current || items[0]?.id || "");
+      },
+      (error) => setDataError(error.message),
+    );
+    const unsubscribeApplications = subscribeToRecords<Application>(
+      user.uid,
+      "ivacApplications",
+      (items) => {
+        setApplications(items);
+        setSelectedApplicationId((current) => current || items[0]?.id || "");
+      },
+      (error) => setDataError(error.message),
+    );
+    const subscriptions = [
+      ["automationAccounts", setAutomationAccounts],
+      ["webfiles", setWebfiles],
+      ["appointments", setAppointments],
+      ["payments", setPayments],
+      ["invoices", setInvoices],
+      ["automationRuns", setAutomationRuns],
+    ] as const;
+    const relatedUnsubscribers = subscriptions.map(([collection, setter]) =>
+      subscribeToRecords<RelatedRecord>(user.uid, collection, setter, (error) =>
+        setDataError(error.message),
+      ),
+    );
+    return () => {
+      unsubscribeApplicants();
+      unsubscribeApplications();
+      relatedUnsubscribers.forEach((unsubscribe) => unsubscribe());
+    };
+  }, [user.uid]);
+
+  const applicant = applicants.find((item) => item.id === selectedApplicantId);
 
   const application = applications.find(
     (item) => item.id === selectedApplicationId,
-  )!;
+  );
+  const applicantApplications = applications.filter(
+    (item) => item.applicantId === applicant?.id,
+  );
+  const relatedAccount = automationAccounts.find(
+    (item) => item.applicantId === applicant?.id,
+  );
+  const relatedWebfiles = webfiles.filter(
+    (item) => item.ivacApplicationId === application?.id,
+  );
+  const relatedAppointment = appointments.find(
+    (item) => item.ivacApplicationId === application?.id,
+  );
+  const relatedPayment = payments.find(
+    (item) =>
+      item.ivacApplicationId === application?.id ||
+      item.appointmentId === relatedAppointment?.id,
+  );
+  const relatedInvoice = invoices.find(
+    (item) =>
+      item.ivacApplicationId === application?.id ||
+      item.paymentId === relatedPayment?.id,
+  );
+  const relatedRuns = automationRuns.filter(
+    (item) =>
+      item.automationAccountId === relatedAccount?.id ||
+      item.ivacApplicationId === application?.id,
+  );
 
   const filteredApplicants = applicants.filter((item) => {
     const search = applicantSearch.toLowerCase();
 
     return (
-      item.name.toLowerCase().includes(search) ||
-      item.passport.toLowerCase().includes(search) ||
-      item.mobile.includes(search)
+      item.fullName.toLowerCase().includes(search) ||
+      item.passportNumber.toLowerCase().includes(search) ||
+      item.mobile?.includes(search)
     );
   });
 
@@ -473,6 +169,76 @@ function Dashboard({ user }: { user: FirebaseUser }) {
   }, [steps]);
 
   const currentStep = steps.find((step) => step.status === "running");
+
+  if (!applicant || !application) {
+    return (
+      <div className="ivac-app">
+        <DashboardHeader
+          email={user.email}
+          onRecords={() => setShowManagement(true)}
+          onSettings={() => setShowSettings(true)}
+        />
+        <main className="flex min-h-[calc(100vh-56px)] items-center justify-center p-6 text-center">
+          <div className="max-w-xs">
+            <User size={28} className="mx-auto ivac-text-muted" />
+            <h2 className="mt-3 text-sm font-bold">
+              Create your first records
+            </h2>
+            <p className="mt-1 text-[10px] leading-4 ivac-text-secondary">
+              Add an Applicant and an IVAC Application in Records to start the
+              workflow.
+            </p>
+            {dataError && (
+              <p className="mt-3 text-[10px] ivac-danger">{dataError}</p>
+            )}
+            <button
+              onClick={() => setShowManagement(true)}
+              className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-[10px] font-bold text-white"
+            >
+              Open Records
+            </button>
+          </div>
+        </main>
+        {showManagement && (
+          <ManagementPanel
+            userId={user.uid}
+            onClose={() => setShowManagement(false)}
+          />
+        )}
+        {showSettings && (
+          <div className="fixed inset-0 z-50 flex items-end bg-[var(--app-overlay)]">
+            <div className="w-full rounded-t-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 shadow-xl">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h2 className="text-sm font-bold">Automation Settings</h2>
+                  <p className="mt-0.5 text-[9px] text-[var(--app-text-muted)]">
+                    Configure automation behavior
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="ivac-hover rounded-lg p-1.5 text-[var(--app-text-muted)]"
+                  aria-label="Close settings"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <p className="rounded-lg bg-[var(--app-surface-2)] p-3 text-[10px] leading-4 text-[var(--app-text-secondary)]">
+                Create an Applicant and an IVAC Application in Records to
+                configure workflow settings.
+              </p>
+              <button
+                onClick={() => void signOutUser()}
+                className="mt-4 w-full rounded-lg border border-red-200 py-2.5 text-xs font-bold text-red-500 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950/20"
+              >
+                Sign out
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   function addLog(
     message: string,
@@ -496,24 +262,9 @@ function Dashboard({ user }: { user: FirebaseUser }) {
     const index = workflowPhases.findIndex(
       (phase) => phase.id === workflowPhase,
     );
-    const next = workflowPhases[index + 1];
-    {
-      workflowPhase === "mission" && (
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          <label className="text-[9px] font-semibold text-blue-900 dark:text-blue-100">
-            Mission
-            <input className="ivac-input mt-1" value="Dhaka" readOnly />
-          </label>
-          <label className="text-[9px] font-semibold text-blue-900 dark:text-blue-100">
-            IVAC center
-            <input
-              className="ivac-input mt-1"
-              value="IVAC, Dhaka (JFP)"
-              readOnly
-            />
-          </label>
-        </div>
-      );
+    let next = workflowPhases[index + 1];
+    while (next && ["mission", "relogin", "signout"].includes(next.id)) {
+      next = workflowPhases[workflowPhases.indexOf(next) + 1];
     }
     if (!next) {
       addLog("IVAC workflow completed", "success");
@@ -525,6 +276,11 @@ function Dashboard({ user }: { user: FirebaseUser }) {
 
   function runPhaseAction() {
     const phase = workflowPhases.find((item) => item.id === workflowPhase)!;
+    if (!startedFlows[workflowPhase]) {
+      setStartedFlows((current) => ({ ...current, [workflowPhase]: true }));
+      addLog(`${phase.title} flow started`, "info");
+      return;
+    }
     if (workflowPhase === "signout") {
       addLog("Signing out of IVAC Workspace", "info");
       void signOutUser();
@@ -548,6 +304,7 @@ function Dashboard({ user }: { user: FirebaseUser }) {
   async function handleWebfileUpload(file: File) {
     setUploadState("uploading");
     try {
+      if (!application) throw new Error("Select an IVAC application first.");
       const record = await createRecord(user.uid, "webfiles", {
         ivacApplicationId: String(application.id),
         webfileNumber: application.webFileNumber,
@@ -703,7 +460,7 @@ function Dashboard({ user }: { user: FirebaseUser }) {
     ]);
   }
 
-  function selectApplicant(id: number) {
+  function selectApplicant(id: string) {
     setSelectedApplicantId(id);
 
     const firstApplication = applications.find(
@@ -719,7 +476,7 @@ function Dashboard({ user }: { user: FirebaseUser }) {
 
     const selected = applicants.find((item) => item.id === id);
 
-    addLog(`Selected applicant: ${selected?.name}`, "info");
+    addLog(`Selected applicant: ${selected?.fullName}`, "info");
   }
 
   function logIcon(type: string) {
@@ -740,49 +497,11 @@ function Dashboard({ user }: { user: FirebaseUser }) {
 
   return (
     <div className="ivac-app">
-      {/* =====================================================
-          HEADER
-          ===================================================== */}
-
-      <header className="sticky top-0 z-40 border-b border-[var(--app-border)] bg-[var(--app-surface)]">
-        <div className="flex h-14 items-center justify-between px-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm">
-              <Zap size={16} />
-            </div>
-
-            <div>
-              <h1 className="text-sm font-bold text-[var(--app-text)]">
-                IVAC Automation
-              </h1>
-
-              <p className="text-[9px] text-[var(--app-text-muted)]">
-                Application Assistant
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <span className="hidden max-w-28 truncate text-[9px] text-[var(--app-text-muted)] sm:block">
-              {user.email}
-            </span>
-            <button
-              onClick={() => setShowManagement(true)}
-              aria-label="Open records"
-              className="ivac-hover rounded-lg px-2 py-1.5 text-[10px] font-semibold ivac-primary"
-            >
-              Records
-            </button>
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              className="ivac-hover rounded-lg p-2 text-[var(--app-text-muted)]"
-              aria-label="Open settings"
-            >
-              <Settings size={17} />
-            </button>
-          </div>
-        </div>
-      </header>
+      <DashboardHeader
+        email={user.email}
+        onRecords={() => setShowManagement(true)}
+        onSettings={() => setShowSettings(!showSettings)}
+      />
 
       {/* =====================================================
           MAIN FULL PAGE
@@ -806,14 +525,14 @@ function Dashboard({ user }: { user: FirebaseUser }) {
               <div className="min-w-0 text-left">
                 <div className="flex items-center gap-2">
                   <h2 className="truncate text-sm font-bold">
-                    {applicant.name}
+                    {applicant.fullName}
                   </h2>
 
                   <StatusBadge status={applicant.status} />
                 </div>
 
                 <p className="mt-0.5 truncate text-[10px] text-[var(--app-text-muted)]">
-                  Passport: {applicant.passport}
+                  Passport: {applicant.passportNumber}
                 </p>
               </div>
             </div>
@@ -877,14 +596,14 @@ function Dashboard({ user }: { user: FirebaseUser }) {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <p className="truncate text-xs font-semibold">
-                              {item.name}
+                              {item.fullName}
                             </p>
 
                             <StatusBadge status={item.status} />
                           </div>
 
                           <p className="mt-0.5 truncate text-[9px] text-[var(--app-text-muted)]">
-                            {item.passport} · {item.mobile}
+                            {item.passportNumber} · {item.mobile}
                           </p>
                         </div>
 
@@ -907,6 +626,15 @@ function Dashboard({ user }: { user: FirebaseUser }) {
             </div>
           )}
         </section>
+
+        <ApplicantRelations
+          account={relatedAccount}
+          webfiles={relatedWebfiles}
+          appointment={relatedAppointment}
+          payment={relatedPayment}
+          invoice={relatedInvoice}
+          runCount={relatedRuns.length}
+        />
 
         {/* ===================================================
             APPLICATION
@@ -946,17 +674,51 @@ function Dashboard({ user }: { user: FirebaseUser }) {
           </button>
 
           {showApplications && (
-            <div className="grid grid-cols-2 gap-x-4 border-t border-[var(--app-border)] px-3 pb-3 pt-2">
-              <InfoRow label="Web File" value={application.webFileNumber} />
-
-              <InfoRow
-                label="Application"
-                value={application.applicationNumber}
-              />
-
-              <InfoRow label="IVAC Center" value={application.ivacCenter} />
-
-              <InfoRow label="Payment" value={application.paymentStatus} />
+            <div className="border-t border-[var(--app-border)] p-2">
+              <div className="space-y-1">
+                {applicantApplications.length === 0 ? (
+                  <p className="p-2 text-[10px] ivac-text-muted">
+                    No IVAC applications for this applicant.
+                  </p>
+                ) : (
+                  applicantApplications.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => setSelectedApplicationId(item.id)}
+                      className={`ivac-hover flex w-full items-center justify-between rounded-lg p-2 text-left ${item.id === application.id ? "bg-blue-50 dark:bg-blue-950/30" : ""}`}
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate text-xs font-semibold">
+                          {item.visaType ?? "IVAC Application"}
+                        </span>
+                        <span className="block truncate text-[9px] ivac-text-muted">
+                          {item.mission ?? "Mission not selected"} ·{" "}
+                          {item.ivacCenter ?? "Center not selected"}
+                        </span>
+                      </span>
+                      <StatusBadge status={item.status} />
+                    </button>
+                  ))
+                )}
+              </div>
+              <div className="mt-2 grid grid-cols-2 gap-x-4 border-t border-[var(--app-border)] px-1 pt-2">
+                <InfoRow
+                  label="Web File"
+                  value={application.webFileNumber ?? "-"}
+                />
+                <InfoRow
+                  label="Application"
+                  value={application.applicationNumber ?? "-"}
+                />
+                <InfoRow
+                  label="IVAC Center"
+                  value={application.ivacCenter ?? "-"}
+                />
+                <InfoRow
+                  label="Payment"
+                  value={application.paymentStatus ?? "pending"}
+                />
+              </div>
             </div>
           )}
         </section>
@@ -1009,26 +771,22 @@ function Dashboard({ user }: { user: FirebaseUser }) {
               <p className="text-[9px] font-semibold uppercase tracking-wide ivac-text-muted">
                 IVAC process
               </p>
-              <h2 className="mt-0.5 text-sm font-bold">
-                Guided application flow
-              </h2>
+              <h2 className="mt-0.5 text-sm font-bold">IVAC flows</h2>
             </div>
             <span className="ivac-primary-bg rounded-full px-2 py-1 text-[9px] font-bold ivac-primary">
-              {workflowPhases.findIndex((phase) => phase.id === workflowPhase) +
-                1}{" "}
-              / {workflowPhases.length}
+              {flowTabs.findIndex((tab) => tab.id === workflowPhase) + 1} /{" "}
+              {flowTabs.length}
             </span>
           </div>
 
           <div className="mb-3 flex gap-1 overflow-x-auto pb-1">
-            {workflowPhases.map((phase, index) => (
+            {flowTabs.map((tab, index) => (
               <button
-                key={phase.id}
-                onClick={() => setWorkflowPhase(phase.id)}
-                aria-label={`Open ${phase.title}`}
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${phase.id === workflowPhase ? "bg-blue-600 text-white" : index < workflowPhases.findIndex((item) => item.id === workflowPhase) ? "bg-emerald-100 text-emerald-700" : "ivac-surface-2 ivac-text-muted"}`}
+                key={tab.id}
+                onClick={() => setWorkflowPhase(tab.id)}
+                className={`shrink-0 rounded-lg px-2.5 py-1.5 text-[9px] font-bold ${tab.id === workflowPhase ? "bg-blue-600 text-white" : index < flowTabs.findIndex((item) => item.id === workflowPhase) ? "bg-emerald-100 text-emerald-700" : "ivac-surface-2 ivac-text-muted"}`}
               >
-                {index + 1}
+                {tab.title}
               </button>
             ))}
           </div>
@@ -1141,10 +899,7 @@ function Dashboard({ user }: { user: FirebaseUser }) {
               onClick={runPhaseAction}
               className="mt-3 w-full rounded-lg bg-blue-600 py-2.5 text-[10px] font-bold text-white hover:bg-blue-700"
             >
-              {
-                workflowPhases.find((phase) => phase.id === workflowPhase)
-                  ?.action
-              }
+              {startedFlows[workflowPhase] ? "Continue flow" : "Start flow"}
               <ArrowRight size={12} className="ml-1 inline" />
             </button>
           </div>
@@ -1479,7 +1234,7 @@ function Dashboard({ user }: { user: FirebaseUser }) {
               </div>
             </div>
 
-            <StatusBadge status={application.paymentStatus} />
+            <StatusBadge status={application.paymentStatus ?? "pending"} />
           </div>
 
           <div className="rounded-lg border border-[var(--app-border)] px-3">
@@ -1632,154 +1387,6 @@ function Dashboard({ user }: { user: FirebaseUser }) {
         />
       )}
     </div>
-  );
-}
-
-function AuthScreen() {
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  function authErrorMessage(authError: unknown) {
-    if (authError && typeof authError === "object" && "code" in authError) {
-      const code = String(authError.code);
-      if (code === "auth/network-request-failed") {
-        return "Firebase cannot be reached. Check your internet connection, extension Firebase host permissions, and API key restrictions.";
-      }
-      if (code === "auth/operation-not-allowed") {
-        return "Email/password sign-in is disabled. Enable it in Firebase Console > Authentication > Sign-in method.";
-      }
-      if (
-        code === "auth/invalid-api-key" ||
-        code === "auth/invalid-credential"
-      ) {
-        return "Firebase credentials are invalid. Check the VITE_FIREBASE_* values in .env.";
-      }
-    }
-    return authError instanceof Error
-      ? authError.message
-      : "Unable to authenticate.";
-  }
-
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setBusy(true);
-    setError("");
-    try {
-      await configureAuth();
-      if (mode === "signin") await signIn(email, password);
-      else await signUp(email, password);
-    } catch (authError) {
-      setError(authErrorMessage(authError));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  if (!firebaseConfigured) {
-    return (
-      <main className="flex min-h-screen items-center justify-center p-6">
-        <section className="ivac-card w-full max-w-sm rounded-2xl p-6 shadow-sm">
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white">
-              <Zap size={20} />
-            </div>
-            <div>
-              <p className="text-sm font-bold">IVAC Workspace</p>
-              <p className="text-[11px] ivac-text-muted">
-                Firebase connection required
-              </p>
-            </div>
-          </div>
-          <h1 className="text-xl font-bold">Connect your project</h1>
-          <p className="mt-2 text-xs leading-5 ivac-text-secondary">
-            Copy <strong>.env.example</strong> to <strong>.env</strong> and add
-            your Firebase Web app values before signing in.
-          </p>
-        </section>
-      </main>
-    );
-  }
-
-  return (
-    <main className="flex min-h-screen items-center justify-center p-6">
-      <form
-        onSubmit={submit}
-        className="ivac-card w-full max-w-sm rounded-2xl p-6 shadow-sm"
-      >
-        <div className="mb-8 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white">
-            <Zap size={20} />
-          </div>
-          <div>
-            <p className="text-sm font-bold">IVAC Workspace</p>
-            <p className="text-[11px] ivac-text-muted">
-              Secure automation console
-            </p>
-          </div>
-        </div>
-        <h1 className="text-xl font-bold">
-          {mode === "signin" ? "Welcome back" : "Create your account"}
-        </h1>
-        <p className="mt-1 text-xs ivac-text-secondary">
-          {mode === "signin"
-            ? "Sign in to access your applicants and runs."
-            : "Your records stay isolated to your account."}
-        </p>
-        <label className="mt-6 block text-[11px] font-semibold">
-          Email
-          <input
-            className="ivac-input mt-1"
-            type="email"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="you@example.com"
-          />
-        </label>
-        <label className="mt-3 block text-[11px] font-semibold">
-          Password
-          <input
-            className="ivac-input mt-1"
-            type="password"
-            required
-            minLength={6}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="At least 6 characters"
-          />
-        </label>
-        {error && (
-          <p className="mt-3 rounded-lg ivac-danger-bg p-2 text-[11px] ivac-danger">
-            {error}
-          </p>
-        )}
-        <button
-          disabled={busy}
-          className="mt-5 w-full rounded-lg bg-blue-600 px-3 py-2.5 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-60"
-        >
-          {busy
-            ? "Please wait..."
-            : mode === "signin"
-              ? "Sign in"
-              : "Create account"}
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setMode(mode === "signin" ? "signup" : "signin");
-            setError("");
-          }}
-          className="mt-4 w-full text-center text-[11px] font-semibold text-blue-600"
-        >
-          {mode === "signin"
-            ? "Create a new account"
-            : "Already have an account? Sign in"}
-        </button>
-      </form>
-    </main>
   );
 }
 

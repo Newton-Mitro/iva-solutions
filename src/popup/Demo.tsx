@@ -22,7 +22,6 @@ import {
   User,
   WalletCards,
   X,
-  Zap,
 } from "lucide-react";
 
 type Status = "completed" | "running" | "pending" | "failed" | "paused";
@@ -577,8 +576,12 @@ export default function App() {
       <header className="sticky top-0 z-40 border-b border-[var(--app-border)] bg-[var(--app-surface)]">
         <div className="flex h-14 items-center justify-between px-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm">
-              <Zap size={16} />
+            <div className="flex h-8 w-8 items-center justify-center">
+              <img
+                src="/icons/process-32.png"
+                alt="IVAC Automation"
+                className="h-8 w-8"
+              />
             </div>
 
             <div>
