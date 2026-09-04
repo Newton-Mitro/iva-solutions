@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Indian Visa Application Assistance",
+  "name": "Indian Visa Assistance",
   "description": "Automate visa application workflows including applicant management, document uploads, appointment booking, and payment processing for Indian visa applications through Indian Visa Application.",
   "version": "1.0.0",
 
@@ -21,7 +21,7 @@
   ],
 
   "action": {
-    "default_title": "Indian Visa Application Assistance",
+    "default_title": "Indian Visa Assistance",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",

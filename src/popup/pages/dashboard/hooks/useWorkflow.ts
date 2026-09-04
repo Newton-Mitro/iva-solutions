@@ -302,7 +302,7 @@ export function useWorkflow() {
    */
 
   async function signOut() {
-    addLog("Signing out of Indian Visa Application Assistance", "info");
+    addLog("Signing out of Indian Visa Assistance", "info");
 
     setRunning(false);
     setPaused(false);
