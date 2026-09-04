@@ -1,9 +1,10 @@
 import { ChevronDown, FileText } from "lucide-react";
+import { useState } from "react";
 import { Application } from "../../../../types/models";
-import { InfoRow, StatusBadge } from "./Shared";
+import { StatusBadge } from "./Shared";
 
 type Props = {
-  application: Application;
+  application: Application | undefined;
   applications: Application[];
   onSelect: (id: string) => void;
 };
@@ -13,9 +14,16 @@ export default function ApplicationSelector({
   applications,
   onSelect,
 }: Props) {
+  const [open, setOpen] = useState(false);
+
   return (
     <section className="ivac-card overflow-hidden rounded-xl shadow-sm">
-      <div className="flex items-center justify-between p-3">
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        aria-expanded={open}
+        className="ivac-hover flex w-full items-center justify-between p-3 text-left"
+      >
         <div className="min-w-0">
           <div className="mb-1 flex items-center gap-2">
             <FileText size={14} className="ivac-primary" />
@@ -24,28 +32,34 @@ export default function ApplicationSelector({
               Application
             </span>
 
-            <StatusBadge status={application.status} />
+            {application && <StatusBadge status={application.status} />}
           </div>
 
-          <h2 className="truncate text-sm font-bold">{application.visaType}</h2>
+          <h2 className="truncate text-sm font-bold">
+            {application?.visaType ?? "No application selected"}
+          </h2>
 
           <p className="truncate text-[10px] ivac-text-muted">
-            {application.mission} · {application.ivacCenter}
+            {application
+              ? `${application.mission ?? "Mission not selected"} · ${application.ivacCenter ?? "Center not selected"}`
+              : "Add an application for this applicant"}
           </p>
         </div>
+        <ChevronDown
+          size={17}
+          className={`transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
 
-        <ChevronDown size={17} />
-      </div>
-
-      {applications.length > 1 && (
-        <div className="border-t border-[var(--app-border)] p-2">
+      {open && applications.length > 0 && (
+        <div className="border-t border-(--app-border) p-2">
           <div className="space-y-1">
             {applications.map((item) => (
               <button
                 key={item.id}
                 onClick={() => onSelect(item.id)}
                 className={`ivac-hover flex w-full items-center justify-between rounded-lg p-2 text-left ${
-                  item.id === application.id
+                  item.id === application?.id
                     ? "bg-blue-50 dark:bg-blue-950/30"
                     : ""
                 }`}
@@ -67,25 +81,6 @@ export default function ApplicationSelector({
           </div>
         </div>
       )}
-
-      <div className="grid grid-cols-2 gap-x-4 border-t border-[var(--app-border)] px-3 py-2">
-        <InfoRow label="Web File" value={application.webFileNumber ?? "-"} />
-
-        <InfoRow
-          label="Application"
-          value={application.applicationNumber ?? "-"}
-        />
-
-        <InfoRow
-          label="Indian Visa Application Center"
-          value={application.ivacCenter ?? "-"}
-        />
-
-        <InfoRow
-          label="Payment"
-          value={application.paymentStatus ?? "pending"}
-        />
-      </div>
     </section>
   );
 }

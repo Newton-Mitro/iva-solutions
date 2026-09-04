@@ -39,6 +39,33 @@ export function WebfileForm({
           required
           defaultValue={text(initialRecord ?? {}, "webfileNumber")}
         />
+        <div className="grid grid-cols-2 gap-2">
+          <label className="block text-[9px] font-semibold">
+            Type
+            <select
+              className="ivac-input mt-0.5"
+              name="type"
+              defaultValue={text(initialRecord ?? {}, "type")}
+            >
+              <option value="primary">Primary</option>
+              <option value="additional">Additional</option>
+            </select>
+          </label>
+          <label className="block text-[9px] font-semibold">
+            Status
+            <select
+              className="ivac-input mt-0.5"
+              name="status"
+              defaultValue={text(initialRecord ?? {}, "status")}
+            >
+              <option value="pending">Pending</option>
+              <option value="uploading">Uploading</option>
+              <option value="uploaded">Uploaded</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="failed">Failed</option>
+            </select>
+          </label>
+        </div>
         <label className="block text-[9px] font-semibold">
           Document
           <input

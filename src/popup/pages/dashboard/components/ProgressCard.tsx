@@ -21,7 +21,7 @@ export default function ProgressCard({
 
   return (
     <section className="ivac-card rounded-xl p-3 shadow-sm">
-      <div className="mb-2 flex items-center justify-between">
+      <div data-card-header className="mb-2 flex items-center justify-between">
         <div>
           <p className="text-[9px] font-semibold uppercase tracking-wide ivac-text-muted">
             Automation Progress
@@ -35,7 +35,7 @@ export default function ProgressCard({
         <span className="text-lg font-bold ivac-primary">{progress}%</span>
       </div>
 
-      <div className="h-2 overflow-hidden rounded-full bg-[var(--app-surface-2)]">
+      <div className="h-2 overflow-hidden rounded-full bg-(--app-surface-2)">
         <div
           className="h-full rounded-full bg-blue-600 transition-all duration-500"
           style={{

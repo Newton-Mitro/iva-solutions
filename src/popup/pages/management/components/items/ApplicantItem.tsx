@@ -20,10 +20,10 @@ export function ApplicantItem({
   onDelete,
 }: ApplicantItemProps) {
   return (
-    <div>
+    <div className="flex items-center gap-1">
       <button
         onClick={onSelect}
-        className={`ivac-hover flex w-full items-center justify-between rounded-lg p-2 text-left ${isSelected ? "bg-blue-50 dark:bg-blue-950/30" : ""}`}
+        className={`ivac-hover flex min-w-0 flex-1 items-center justify-between rounded-lg p-2 text-left ${isSelected ? "bg-blue-50 dark:bg-blue-950/30" : ""}`}
       >
         <span className="min-w-0">
           <span className="block truncate text-xs font-semibold">
@@ -35,6 +35,30 @@ export function ApplicantItem({
         </span>
         {isSelected && <ChevronRight size={14} className="shrink-0" />}
       </button>
+      <div className="flex shrink-0 gap-0.5">
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onEdit();
+          }}
+          aria-label={`Edit ${text(applicant, "fullName")}`}
+          className="ivac-hover rounded p-1 text-(--app-text-muted)"
+        >
+          <Pencil size={11} />
+        </button>
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onDelete();
+          }}
+          aria-label={`Delete ${text(applicant, "fullName")}`}
+          className="ivac-hover rounded p-1 text-red-500"
+        >
+          <Trash2 size={11} />
+        </button>
+      </div>
     </div>
   );
 }

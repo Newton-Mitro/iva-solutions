@@ -33,21 +33,68 @@ export function ApplicationForm({
     >
       <Card>
         <input type="hidden" name="applicantId" value={applicantId} />
-        <Field
-          name="mission"
-          label="Mission"
-          defaultValue={text(initialRecord ?? {}, "mission")}
-        />
-        <Field
-          name="ivacCenter"
-          label="Indian Visa Application center"
-          defaultValue={text(initialRecord ?? {}, "ivacCenter")}
-        />
-        <Field
-          name="status"
-          label="Status"
-          defaultValue={text(initialRecord ?? {}, "status")}
-        />
+        <div className="grid grid-cols-2 gap-2">
+          <label className="block text-[9px] font-semibold">
+            Visa type
+            <select
+              className="ivac-input mt-0.5"
+              name="visaType"
+              defaultValue={text(initialRecord ?? {}, "visaType")}
+            >
+              <option value="">Select visa type</option>
+              <option value="tourist">Tourist</option>
+              <option value="medical">Medical</option>
+              <option value="business">Business</option>
+              <option value="student">Student</option>
+              <option value="employment">Employment</option>
+              <option value="entry">Entry</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+          <label className="block text-[9px] font-semibold">
+            Mission
+            <select
+              className="ivac-input mt-0.5"
+              name="mission"
+              defaultValue={text(initialRecord ?? {}, "mission")}
+            >
+              <option value="India">India</option>
+              <option value="Bangladesh">Bangladesh</option>
+            </select>
+          </label>
+        </div>
+        <label className="block text-[9px] font-semibold">
+          Indian Visa Application center
+          <select
+            className="ivac-input mt-0.5"
+            name="ivacCenter"
+            defaultValue={text(initialRecord ?? {}, "ivacCenter")}
+          >
+            <option value="Dhaka">Dhaka</option>
+            <option value="Chittagong">Chittagong</option>
+            <option value="Rajshahi">Rajshahi</option>
+          </select>
+        </label>
+
+        <label className="block text-[9px] font-semibold">
+          Status
+          <select
+            className="ivac-input mt-0.5"
+            name="status"
+            defaultValue={text(initialRecord ?? {}, "status")}
+          >
+            <option value="draft">Draft</option>
+            <option value="pending">Pending</option>
+            <option value="processing">Processing</option>
+            <option value="webfile">Webfile</option>
+            <option value="mission">Mission</option>
+            <option value="appointment">Appointment</option>
+            <option value="payment">Payment</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="failed">Failed</option>
+          </select>
+        </label>
         {error && <p className="rounded text-[9px] ivac-danger">{error}</p>}
         <div className="flex gap-1 pt-1">
           <Button

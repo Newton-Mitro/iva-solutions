@@ -114,6 +114,20 @@ export const saveLocalFile = async (recordId: string, file: File) => {
   database.close();
 };
 
+export const getLocalFile = async (recordId: string): Promise<File | null> => {
+  const database = await openFilesDb();
+  const file = await new Promise<File | undefined>((resolve, reject) => {
+    const request = database
+      .transaction(filesStore, "readonly")
+      .objectStore(filesStore)
+      .get(recordId);
+    request.onsuccess = () => resolve(request.result as File | undefined);
+    request.onerror = () => reject(request.error);
+  });
+  database.close();
+  return file ?? null;
+};
+
 export const deleteLocalFile = async (recordId: string) => {
   const database = await openFilesDb();
   await new Promise<void>((resolve, reject) => {

@@ -7,12 +7,14 @@ export function Field({
   type = "text",
   required,
   defaultValue,
+  placeholder,
 }: {
   name: string;
   label: string;
   type?: string;
   required?: boolean;
   defaultValue?: string;
+  placeholder?: string;
 }) {
   return (
     <label className="block text-[9px] font-semibold">
@@ -23,6 +25,7 @@ export function Field({
         type={type}
         required={required}
         defaultValue={defaultValue}
+        placeholder={placeholder}
       />
     </label>
   );

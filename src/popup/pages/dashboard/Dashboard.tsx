@@ -10,6 +10,9 @@ import ProgressCard from "./components/ProgressCard";
 import AppointmentCard from "./components/AppointmentCard";
 import PaymentCard from "./components/PaymentCard";
 import ActivityLog from "./components/ActivityLog";
+import AccountInfoCard from "./components/AccountInfoCard";
+import WebfileInfoCard from "./components/WebfileInfoCard";
+import CollapsibleSection from "./components/CollapsibleSection";
 import { useDashboardData } from "./hooks/useDashboardData";
 import { useWorkflow } from "./hooks/useWorkflow";
 import SettingsPage from "../settings/SettingsPage";
@@ -21,15 +24,16 @@ export function Dashboard({ user }: { user: FirebaseUser }) {
     applicant,
     application,
     applicantApplications,
+    account,
+    applicationWebfiles,
+    applicationAppointments,
+    applicationPayments,
     selectApplicant,
     setSelectedApplicationId,
     dataError,
   } = useDashboardData(user);
 
   const workflow = useWorkflow();
-
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedTime, setSelectedTime] = useState("");
   const [showManagement, setShowManagement] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -39,7 +43,7 @@ export function Dashboard({ user }: { user: FirebaseUser }) {
     );
   }
 
-  if (!applicant || !application) {
+  if (!applicant) {
     return (
       <div className="ivac-app">
         <DashboardHeader
@@ -73,7 +77,6 @@ export function Dashboard({ user }: { user: FirebaseUser }) {
       />
 
       <main className="mx-auto w-full max-w-2xl space-y-3 px-3 pb-28 pt-3">
-        {/* Applicant */}
         <ApplicantSelector
           applicant={applicant}
           applicants={applicants}
@@ -89,51 +92,51 @@ export function Dashboard({ user }: { user: FirebaseUser }) {
           }}
         />
 
-        {/* Application */}
+        <AccountInfoCard account={account} />
+
         <ApplicationSelector
           application={application}
           applications={applicantApplications}
           onSelect={setSelectedApplicationId}
         />
 
-        {/* Workflow */}
-        <WorkflowCard
-          phase={workflow.workflowPhase}
-          steps={workflow.steps}
-          started={
-            workflow.workflowPhase === "signup"
-              ? workflow.steps.some((step) => step.status === "running")
-              : true
-          }
-          onPhaseChange={(phase: WorkflowPhase) =>
-            workflow.setWorkflowPhase(phase)
-          }
-          onStart={workflow.startFlow}
-          onReset={workflow.reset}
-        />
+        {application ? (
+          <>
+            <WebfileInfoCard webfiles={applicationWebfiles} />
+            <AppointmentCard appointments={applicationAppointments} />
+            <PaymentCard
+              application={application}
+              payments={applicationPayments}
+            />
+            <WorkflowCard
+              phase={workflow.workflowPhase}
+              steps={workflow.steps}
+              started={
+                workflow.workflowPhase === "signup"
+                  ? workflow.steps.some((step) => step.status === "running")
+                  : true
+              }
+              onPhaseChange={(phase: WorkflowPhase) =>
+                workflow.setWorkflowPhase(phase)
+              }
+              onStart={workflow.startFlow}
+              onReset={workflow.reset}
+            />
+            <ProgressCard
+              progress={workflow.progress}
+              currentStep={workflow.currentStep}
+              steps={workflow.steps}
+              running={workflow.running}
+              paused={workflow.paused}
+            />
+          </>
+        ) : (
+          <div className="ivac-card rounded-xl p-4 text-center text-[10px] ivac-text-muted">
+            Select an application to view webfiles, appointment, and payment
+            information.
+          </div>
+        )}
 
-        {/* Progress */}
-        <ProgressCard
-          progress={workflow.progress}
-          currentStep={workflow.currentStep}
-          steps={workflow.steps}
-          running={workflow.running}
-          paused={workflow.paused}
-        />
-
-        {/* Appointment */}
-        <AppointmentCard
-          selectedDate={selectedDate}
-          selectedTime={selectedTime}
-          onDateChange={setSelectedDate}
-          onTimeChange={setSelectedTime}
-          onLog={(message) => workflow.addLog(message, "success")}
-        />
-
-        {/* Payment */}
-        <PaymentCard application={application} />
-
-        {/* Activity */}
         <ActivityLog logs={workflow.logs} />
       </main>
 

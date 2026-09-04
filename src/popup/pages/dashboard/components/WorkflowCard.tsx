@@ -1,4 +1,5 @@
-import { Pause, Play, RefreshCw, Square } from "lucide-react";
+import { ChevronDown, Pause, Play, RefreshCw, Square } from "lucide-react";
+import { useState } from "react";
 import WorkflowSteps from "./WorkflowSteps";
 import { flowTabs } from "../constants";
 import { WorkflowPhase, WorkflowStep } from "../../../../types/dashboard.types";
@@ -23,6 +24,8 @@ export default function WorkflowCard({
   onReset,
   onStop,
 }: Props) {
+  const [open, setOpen] = useState(false);
+
   /**
    * Current tab information
    */
@@ -40,11 +43,16 @@ export default function WorkflowCard({
   const phaseSteps = steps;
 
   return (
-    <section className="ivac-card rounded-xl p-3 shadow-sm">
+    <section className="ivac-card overflow-hidden rounded-xl shadow-sm">
       {/* =====================================================
           HEADER
       ====================================================== */}
-      <div className="mb-3 flex items-center justify-between">
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        aria-expanded={open}
+        className="ivac-hover flex w-full items-center justify-between p-3 text-left"
+      >
         <div className="min-w-0">
           <p className="ivac-text-muted text-[9px] font-semibold uppercase tracking-wide">
             Indian Visa Application process
@@ -55,25 +63,33 @@ export default function WorkflowCard({
           </h2>
         </div>
 
-        <span className="ivac-primary-bg ivac-primary shrink-0 rounded-full px-2 py-1 text-[9px] font-bold">
-          {phaseIndex + 1} / {flowTabs.length}
-        </span>
-      </div>
+        <div className="flex items-center gap-2">
+          <span className="ivac-primary-bg ivac-primary shrink-0 rounded-full px-2 py-1 text-[9px] font-bold">
+            {phaseIndex + 1} / {flowTabs.length}
+          </span>
+          <ChevronDown
+            size={17}
+            className={`transition-transform ${open ? "rotate-180" : ""}`}
+          />
+        </div>
+      </button>
 
-      {/* =====================================================
+      {open && (
+        <div className="p-3 pt-0">
+          {/* =====================================================
           FLOW TABS
       ====================================================== */}
-      <div className="mb-3 flex gap-1 overflow-x-auto pb-1">
-        {flowTabs.map((tab, index) => {
-          const active = tab.id === phase;
-          const completed = index < phaseIndex;
+          <div className="mb-3 flex gap-1 overflow-x-auto pb-1">
+            {flowTabs.map((tab, index) => {
+              const active = tab.id === phase;
+              const completed = index < phaseIndex;
 
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => onPhaseChange(tab.id)}
-              className={`
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => onPhaseChange(tab.id)}
+                  className={`
                 shrink-0 rounded-lg px-2.5 py-1.5
                 text-[9px] font-bold
                 transition-colors
@@ -85,138 +101,139 @@ export default function WorkflowCard({
                       : "ivac-surface-2 ivac-text-muted"
                 }
               `}
-            >
-              {tab.title}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* =====================================================
-          CURRENT FLOW
-      ====================================================== */}
-      <div className="rounded-lg border border-blue-200 bg-blue-50/70 p-3 dark:border-blue-900 dark:bg-blue-950/20">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-[9px] font-bold uppercase tracking-wide text-blue-600 dark:text-blue-400">
-              Current Automation Flow
-            </p>
-
-            <h3 className="mt-1 text-sm font-bold text-blue-950 dark:text-blue-100">
-              {current?.title}
-            </h3>
-
-            <p className="mt-1 text-[10px] leading-4 text-blue-800 dark:text-blue-200">
-              {getPhaseDescription(phase)}
-            </p>
+                >
+                  {tab.title}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Reset */}
-          <button
-            type="button"
-            onClick={onReset}
-            title="Reset workflow"
-            className="
+          {/* =====================================================
+          CURRENT FLOW
+      ====================================================== */}
+          <div className="rounded-lg border border-blue-200 bg-blue-50/70 p-3 dark:border-blue-900 dark:bg-blue-950/20">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[9px] font-bold uppercase tracking-wide text-blue-600 dark:text-blue-400">
+                  Current Automation Flow
+                </p>
+
+                <h3 className="mt-1 text-sm font-bold text-blue-950 dark:text-blue-100">
+                  {current?.title}
+                </h3>
+
+                <p className="mt-1 text-[10px] leading-4 text-blue-800 dark:text-blue-200">
+                  {getPhaseDescription(phase)}
+                </p>
+              </div>
+
+              {/* Reset */}
+              <button
+                type="button"
+                onClick={onReset}
+                title="Reset workflow"
+                className="
               ivac-hover
               flex shrink-0 items-center gap-1
               rounded-md px-2 py-1
               text-[9px] font-medium
               ivac-text-muted
             "
-          >
-            <RefreshCw size={11} />
-            Reset
-          </button>
-        </div>
+              >
+                <RefreshCw size={11} />
+                Reset
+              </button>
+            </div>
 
-        {/* ===================================================
+            {/* ===================================================
             WORKFLOW STEPS
         ==================================================== */}
-        {phaseSteps.length > 0 && (
-          <div className="mt-3">
-            <WorkflowSteps steps={phaseSteps} />
-          </div>
-        )}
+            {phaseSteps.length > 0 && (
+              <div className="mt-3">
+                <WorkflowSteps steps={phaseSteps} />
+              </div>
+            )}
 
-        {/* ===================================================
+            {/* ===================================================
             SIGN IN NOTICE
         ==================================================== */}
-        {phase === "signin" && (
-          <ManualNotice>
-            Human verification and mobile OTP must be completed manually in the
-            portal.
-          </ManualNotice>
-        )}
+            {phase === "signin" && (
+              <ManualNotice>
+                Human verification and mobile OTP must be completed manually in
+                the portal.
+              </ManualNotice>
+            )}
 
-        {/* ===================================================
+            {/* ===================================================
             MISSION
         ==================================================== */}
-        {phase === "mission" && (
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <ReadOnlyField label="Mission" value="Dhaka" />
+            {phase === "mission" && (
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <ReadOnlyField label="Mission" value="Dhaka" />
 
-            <ReadOnlyField
-              label="Indian Visa Application Center"
-              value="Indian Visa Application, Dhaka (JFP)"
-            />
-          </div>
-        )}
+                <ReadOnlyField
+                  label="Indian Visa Application Center"
+                  value="Indian Visa Application, Dhaka (JFP)"
+                />
+              </div>
+            )}
 
-        {/* ===================================================
+            {/* ===================================================
             WEBFILE
         ==================================================== */}
-        {phase === "webfile" && (
-          <ManualNotice>
-            Upload the primary Webfile and any additional Webfiles, confirm the
-            information, then choose Save & Continue.
-          </ManualNotice>
-        )}
+            {phase === "webfile" && (
+              <ManualNotice>
+                Upload the primary Webfile and any additional Webfiles, confirm
+                the information, then choose Save & Continue.
+              </ManualNotice>
+            )}
 
-        {/* ===================================================
+            {/* ===================================================
             APPOINTMENT
         ==================================================== */}
-        {phase === "appointment" && (
-          <ManualNotice>
-            Appointment date, time selection and human verification may require
-            manual interaction with the portal.
-          </ManualNotice>
-        )}
+            {phase === "appointment" && (
+              <ManualNotice>
+                Appointment date, time selection and human verification may
+                require manual interaction with the portal.
+              </ManualNotice>
+            )}
 
-        {/* ===================================================
+            {/* ===================================================
             PAYMENT
         ==================================================== */}
-        {phase === "payment" && (
-          <ManualNotice>
-            Payment requires explicit user confirmation. Card security
-            information should be entered directly by the user.
-          </ManualNotice>
-        )}
+            {phase === "payment" && (
+              <ManualNotice>
+                Payment requires explicit user confirmation. Card security
+                information should be entered directly by the user.
+              </ManualNotice>
+            )}
 
-        {/* ===================================================
+            {/* ===================================================
             INVOICE
         ==================================================== */}
-        {phase === "invoice" && (
-          <ManualNotice>
-            The invoice will be downloaded after successful payment and
-            appointment confirmation.
-          </ManualNotice>
-        )}
+            {phase === "invoice" && (
+              <ManualNotice>
+                The invoice will be downloaded after successful payment and
+                appointment confirmation.
+              </ManualNotice>
+            )}
 
-        {/* ===================================================
+            {/* ===================================================
             SIGN OUT
         ==================================================== */}
-        {phase === "signout" && (
-          <ManualNotice>
-            Signing out will end the current Indian Visa Application session.
-          </ManualNotice>
-        )}
+            {phase === "signout" && (
+              <ManualNotice>
+                Signing out will end the current Indian Visa Application
+                session.
+              </ManualNotice>
+            )}
 
-        {/* ===================================================
+            {/* ===================================================
             CONTROLS
         ==================================================== */}
-        <div className="mt-4 flex justify-center">
-          <div
-            className="
+            <div className="mt-4 flex justify-center">
+              <div
+                className="
               flex items-center gap-2
               rounded-full
               border border-slate-200/80
@@ -227,15 +244,15 @@ export default function WorkflowCard({
               dark:border-slate-700/60
               dark:bg-slate-800/60
             "
-          >
-            {/* =============================================
+              >
+                {/* =============================================
                 START / PAUSE
             ============================================== */}
-            <button
-              type="button"
-              onClick={onStart}
-              title={started ? "Pause automation" : "Start automation"}
-              className={`
+                <button
+                  type="button"
+                  onClick={onStart}
+                  title={started ? "Pause automation" : "Start automation"}
+                  className={`
                 group
                 flex h-10 w-10
                 items-center justify-center
@@ -251,40 +268,40 @@ export default function WorkflowCard({
                     : "bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/25"
                 }
               `}
-            >
-              {started ? (
-                <Pause
-                  size={15}
-                  fill="currentColor"
-                  strokeWidth={0}
-                  className="
+                >
+                  {started ? (
+                    <Pause
+                      size={15}
+                      fill="currentColor"
+                      strokeWidth={0}
+                      className="
                     transition-transform
                     group-hover:scale-110
                   "
-                />
-              ) : (
-                <Play
-                  size={15}
-                  fill="currentColor"
-                  strokeWidth={0}
-                  className="
+                    />
+                  ) : (
+                    <Play
+                      size={15}
+                      fill="currentColor"
+                      strokeWidth={0}
+                      className="
                     ml-0.5
                     transition-transform
                     group-hover:scale-110
                   "
-                />
-              )}
-            </button>
+                    />
+                  )}
+                </button>
 
-            {/* =============================================
+                {/* =============================================
                 STOP
             ============================================== */}
-            <button
-              type="button"
-              onClick={onStop}
-              disabled={!started}
-              title="Stop automation"
-              className="
+                <button
+                  type="button"
+                  onClick={onStop}
+                  disabled={!started}
+                  title="Stop automation"
+                  className="
                 group
                 flex h-10 w-10
                 items-center justify-center
@@ -302,21 +319,23 @@ export default function WorkflowCard({
                 disabled:opacity-40
                 dark:text-red-400
               "
-            >
-              <Square
-                size={13}
-                fill="currentColor"
-                strokeWidth={0}
-                className="
+                >
+                  <Square
+                    size={13}
+                    fill="currentColor"
+                    strokeWidth={0}
+                    className="
                   transition-transform
                   duration-200
                   group-hover:scale-110
                 "
-              />
-            </button>
+                  />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }

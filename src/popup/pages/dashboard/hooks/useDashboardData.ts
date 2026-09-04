@@ -1,11 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import type { User as FirebaseUser } from "firebase/auth";
-import { Applicant, Application } from "../../../../types/models";
+import {
+  Applicant,
+  Application,
+  Appointment,
+  AutomationAccount,
+  Payment,
+  Webfile,
+} from "../../../../types/models";
 import { subscribeToRecords } from "../../../../firebase/data";
 
 export function useDashboardData(user: FirebaseUser) {
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
+  const [accounts, setAccounts] = useState<AutomationAccount[]>([]);
+  const [webfiles, setWebfiles] = useState<Webfile[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
 
   const [selectedApplicantId, setSelectedApplicantId] = useState("");
   const [selectedApplicationId, setSelectedApplicationId] = useState("");
@@ -46,10 +57,38 @@ export function useDashboardData(user: FirebaseUser) {
       },
       (error) => setDataError(error.message),
     );
+    const unsubscribeAccounts = subscribeToRecords<AutomationAccount>(
+      user.uid,
+      "automationAccounts",
+      setAccounts,
+      (error) => setDataError(error.message),
+    );
+    const unsubscribeWebfiles = subscribeToRecords<Webfile>(
+      user.uid,
+      "webfiles",
+      setWebfiles,
+      (error) => setDataError(error.message),
+    );
+    const unsubscribeAppointments = subscribeToRecords<Appointment>(
+      user.uid,
+      "appointments",
+      setAppointments,
+      (error) => setDataError(error.message),
+    );
+    const unsubscribePayments = subscribeToRecords<Payment>(
+      user.uid,
+      "payments",
+      setPayments,
+      (error) => setDataError(error.message),
+    );
 
     return () => {
       unsubscribeApplicants?.();
       unsubscribeApplications?.();
+      unsubscribeAccounts?.();
+      unsubscribeWebfiles?.();
+      unsubscribeAppointments?.();
+      unsubscribePayments?.();
     };
   }, [user.uid]);
 
@@ -70,6 +109,27 @@ export function useDashboardData(user: FirebaseUser) {
     [applications, selectedApplicationId, applicantApplications],
   );
 
+  const account = useMemo(
+    () => accounts.find((item) => item.applicantId === applicant?.id),
+    [accounts, applicant?.id],
+  );
+
+  const applicationWebfiles = useMemo(
+    () => webfiles.filter((item) => item.ivacApplicationId === application?.id),
+    [webfiles, application?.id],
+  );
+
+  const applicationAppointments = useMemo(
+    () =>
+      appointments.filter((item) => item.ivacApplicationId === application?.id),
+    [appointments, application?.id],
+  );
+
+  const applicationPayments = useMemo(
+    () => payments.filter((item) => item.ivacApplicationId === application?.id),
+    [payments, application?.id],
+  );
+
   function selectApplicant(id: string) {
     setSelectedApplicantId(id);
 
@@ -86,6 +146,10 @@ export function useDashboardData(user: FirebaseUser) {
     applicant,
     application,
     applicantApplications,
+    account,
+    applicationWebfiles,
+    applicationAppointments,
+    applicationPayments,
     selectedApplicantId,
     selectedApplicationId,
     setSelectedApplicationId,

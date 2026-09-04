@@ -7,6 +7,7 @@ import {
   saveRecord,
   subscribeToRecords,
 } from "../../../firebase/data";
+import { deleteLocalFile, saveLocalFile } from "../../../storage/storage";
 import { ApplicantForm } from "./components/forms/ApplicantForm";
 import { AccountForm } from "./components/forms/AccountForm";
 import { ApplicationForm } from "./components/forms/ApplicationForm";
@@ -86,19 +87,27 @@ export default function ManagementPanel({
           webfileNumber: values.get("webfileNumber"),
           ...(file instanceof File
             ? {
-                originalName: file.name,
                 filePath: file.webkitRelativePath || file.name,
-                status: "pending",
+                originalName: file.name,
               }
             : {}),
+          type: values.get("type") || "primary",
+          status: values.get("status") || "pending",
         };
-        if (editing) await saveRecord(userId, "webfiles", editing.id, record);
-        else
-          await createRecord(userId, "webfiles", {
+        if (editing) {
+          await saveRecord(userId, "webfiles", editing.id, record);
+          if (file instanceof File) {
+            await saveLocalFile(editing.id, file);
+          }
+        } else {
+          const created = await createRecord(userId, "webfiles", {
             ...record,
             ivacApplicationId: selectedApplicationId,
-            status: "pending",
           });
+          if (file instanceof File) {
+            await saveLocalFile(created.id, file);
+          }
+        }
       } else {
         const record = Object.fromEntries(values.entries());
         const collection = getCollectionFromMode(formMode);
@@ -126,6 +135,7 @@ export default function ManagementPanel({
     setError("");
     try {
       await deleteRecordWithCascade(userId, collection, id);
+      if (collection === "webfiles") await deleteLocalFile(id);
     } catch (deleteError) {
       setError(
         deleteError instanceof Error
@@ -146,9 +156,9 @@ export default function ManagementPanel({
   }
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-[var(--app-bg)]">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-(--app-bg)">
       {/* Header */}
-      <header className="sticky top-0 z-10 border-b border-[var(--app-border)] bg-[var(--app-surface)]">
+      <header className="sticky top-0 z-10 border-b border-(--app-border) bg-(--app-surface)">
         <div className="flex h-14 items-center justify-between px-4">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center">
@@ -159,7 +169,7 @@ export default function ManagementPanel({
               />
             </div>
             <div>
-              <h1 className="text-sm font-bold text-[var(--app-text)]">
+              <h1 className="text-sm font-bold text-(--app-text)">
                 Management Panel
               </h1>
               <p className="text-[9px] ivac-text-muted">

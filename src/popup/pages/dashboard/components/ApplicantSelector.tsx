@@ -14,7 +14,7 @@ export default function ApplicantSelector({
   applicants,
   onSelect,
 }: Props) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [search, setSearch] = useState("");
 
   const filtered = useMemo(() => {

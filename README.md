@@ -1,31 +1,3 @@
-## Firebase setup
-
-The extension uses Firebase Authentication, user-scoped Firestore collections, Firebase Storage for Webfiles, and a scheduled Cloud Function for queued automation work.
-
-1. Create a Firebase project and register a Web app in the Firebase Console.
-2. Enable Email/Password under Authentication > Sign-in method.
-3. Create a Firestore database and enable Storage.
-4. Copy `.env.example` to `.env` and fill in the Web app configuration values. These `VITE_` values are client configuration, not admin credentials.
-5. Install the Firebase CLI, authenticate, select the project, and deploy the rules/functions:
-
-```sh
-firebase login
-firebase use YOUR_FIREBASE_PROJECT_ID
-firebase deploy --only firestore:rules,firestore:indexes,storage,functions
-```
-
-This repository is already bound to `ivac-automation-26023` in `.firebaserc`. If the app shows `Permission denied`, install the Firebase CLI, authenticate with an account that has access to this project, and run the deployment command above.
-
-The Records management UI stores records in Firestore under `users/{uid}`. Webfiles are metadata-only records: the UI stores the selected file name and browser-provided relative path in Firestore and never uploads the file to Firebase Storage. Browsers do not expose a reliable absolute local filesystem path; users must choose files through the file picker.
-
-The client data API is in `src/firebase/data.ts`. Records are stored below `users/{uid}` in `applicants`, `automationAccounts`, `ivacApplications`, `webfiles`, `appointments`, `payments`, `automationStatus`, and `automationLogs`.
-
-The scheduled function currently moves pending automation status records to `queued`; the actual Indian Visa Application automation worker should be added behind that queue and must run server-side.
-
-### Auth network errors
-
-After changing `public/manifest.json`, rebuild and reload the unpacked `dist` extension in `chrome://extensions`. In Firebase Console, verify that Email/Password is enabled under Authentication > Sign-in method, the project API key has no referrer-only restriction that blocks an extension origin, and the browser can reach `identitytoolkit.googleapis.com` and `securetoken.googleapis.com`.
-
 ## Existing Indian Visa Application workflow
 
 ```graphql
