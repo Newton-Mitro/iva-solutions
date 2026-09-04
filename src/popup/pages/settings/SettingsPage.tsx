@@ -308,7 +308,7 @@ export default function SettingsPage({
               </p>
 
               <p className="text-[9px] ivac-text-muted">
-                Indian Visa Assistant workspace
+                Indian Visa Application Assistance workspace
               </p>
             </div>
           </div>

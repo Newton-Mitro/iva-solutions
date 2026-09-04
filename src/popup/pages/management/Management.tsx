@@ -164,7 +164,7 @@ export default function ManagementPanel({
             <div className="flex h-8 w-8 items-center justify-center">
               <img
                 src="/icons/icon32.png"
-                alt="Indian Visa Assistant"
+                alt="Indian Visa Application Assistance"
                 className="h-8 w-8"
               />
             </div>

@@ -48,13 +48,13 @@ export default function AuthScreen() {
             <div className="flex h-10 w-10 items-center justify-center">
               <img
                 src="/icons/icon48.png"
-                alt="Indian Visa Application Workspace"
+                alt="Indian Visa Application Assistance"
                 className="h-10 w-10"
               />
             </div>
             <div>
               <p className="text-sm font-bold">
-                Indian Visa Application Workspace
+                Indian Visa Application Assistance
               </p>
               <p className="text-[11px] ivac-text-muted">
                 Firebase connection required
@@ -80,13 +80,13 @@ export default function AuthScreen() {
           <div className="flex h-10 w-10 items-center justify-center">
             <img
               src="/icons/icon48.png"
-              alt="Indian Visa Application Workspace"
+              alt="Indian Visa Application Assistance"
               className="h-10 w-10"
             />
           </div>
           <div>
             <p className="text-sm font-bold">
-              Indian Visa Application Workspace
+              Indian Visa Application Assistance
             </p>
             <p className="text-[11px] ivac-text-muted">
               Secure automation console
