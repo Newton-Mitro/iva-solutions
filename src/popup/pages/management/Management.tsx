@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { subscribeToRecords } from "../../../firebase/data";
 import {
-  CollectionName,
-  createRecord,
-  deleteRecordWithCascade,
-  saveRecord,
-  subscribeToRecords,
-} from "../../../firebase/data";
-import { deleteLocalFile, saveLocalFile } from "../../../storage/storage";
+  createLocalRecord,
+  deleteLocalFile,
+  deleteLocalRecord,
+  saveLocalFile,
+  subscribeToLocalRecords,
+  updateLocalRecord,
+  type LocalCollection,
+} from "../../../storage/storage";
 import { ApplicantForm } from "./components/forms/ApplicantForm";
 import { AccountForm } from "./components/forms/AccountForm";
 import { ApplicationForm } from "./components/forms/ApplicationForm";
@@ -26,7 +28,7 @@ export default function ManagementPanel({
   userId: string;
   onClose: () => void;
 }) {
-  // Firestore data state
+  // Editable setup data is local; booking outcomes remain in Firestore.
   const [applicants, setApplicants] = useState<RecordItem[]>([]);
   const [automationAccounts, setAutomationAccounts] = useState<RecordItem[]>(
     [],
@@ -44,23 +46,20 @@ export default function ManagementPanel({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  // Subscribe to Firestore collections
+  // Subscribe to local setup data and remote booking outcomes.
   useEffect(() => {
     const unsubscribers = [
-      subscribeToRecords(userId, "applicants", setApplicants, (err) =>
-        console.error("Applicants subscription error:", err),
+      subscribeToLocalRecords(userId, "applicants", (records) =>
+        setApplicants(records as RecordItem[]),
       ),
-      subscribeToRecords(
-        userId,
-        "automationAccounts",
-        setAutomationAccounts,
-        (err) => console.error("Automation accounts subscription error:", err),
+      subscribeToLocalRecords(userId, "automationAccounts", (records) =>
+        setAutomationAccounts(records as RecordItem[]),
       ),
-      subscribeToRecords(userId, "ivacApplications", setApplications, (err) =>
-        console.error("Applications subscription error:", err),
+      subscribeToLocalRecords(userId, "ivacApplications", (records) =>
+        setApplications(records as RecordItem[]),
       ),
-      subscribeToRecords(userId, "webfiles", setWebfiles, (err) =>
-        console.error("Webfiles subscription error:", err),
+      subscribeToLocalRecords(userId, "webfiles", (records) =>
+        setWebfiles(records as RecordItem[]),
       ),
       subscribeToRecords(userId, "appointments", setAppointments, (err) =>
         console.error("Appointments subscription error:", err),
@@ -95,12 +94,12 @@ export default function ManagementPanel({
           status: values.get("status") || "pending",
         };
         if (editing) {
-          await saveRecord(userId, "webfiles", editing.id, record);
+          await updateLocalRecord(userId, "webfiles", editing.id, record);
           if (file instanceof File) {
             await saveLocalFile(editing.id, file);
           }
         } else {
-          const created = await createRecord(userId, "webfiles", {
+          const created = await createLocalRecord(userId, "webfiles", {
             ...record,
             ivacApplicationId: selectedApplicationId,
           });
@@ -111,8 +110,9 @@ export default function ManagementPanel({
       } else {
         const record = Object.fromEntries(values.entries());
         const collection = getCollectionFromMode(formMode);
-        if (editing) await saveRecord(userId, collection, editing.id, record);
-        else await createRecord(userId, collection, record);
+        if (editing)
+          await updateLocalRecord(userId, collection, editing.id, record);
+        else await createLocalRecord(userId, collection, record);
       }
       setShowForm(false);
       setEditing(null);
@@ -130,11 +130,11 @@ export default function ManagementPanel({
   /**
    * Handle record deletion with confirmation
    */
-  async function handleDelete(collection: CollectionName, id: string) {
+  async function handleDelete(collection: LocalCollection, id: string) {
     if (!window.confirm("Delete this record?")) return;
     setError("");
     try {
-      await deleteRecordWithCascade(userId, collection, id);
+      await deleteLocalRecord(userId, collection, id);
       if (collection === "webfiles") await deleteLocalFile(id);
     } catch (deleteError) {
       setError(

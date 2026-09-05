@@ -5,7 +5,6 @@ import type { LucideIcon } from "lucide-react";
 /* -------------------------------------------------------------------------- */
 
 export type Gender = "male" | "female" | "other";
-export type Nationality = "Bangladeshi" | "Indian" | "Other";
 export type VisaType =
   | "tourist"
   | "medical"
@@ -17,8 +16,7 @@ export type VisaType =
 
 export type Mission = "India" | "Bangladesh";
 export type IvacCenter = "Dhaka" | "Chittagong" | "Rajshahi";
-export type WebfileType = "primary" | "additional";
-export type AppointmentType = "regular" | "urgent";
+export type WebfileType = "primary" | "other";
 export type PaymentMethod = "card" | "mobile_banking" | "bank_transfer";
 export type PaymentGateway = "ivac" | "manual";
 export type Currency = "BDT" | "USD";
@@ -99,18 +97,11 @@ export type UserRecord = {
 export type Applicant = {
   id: string;
   userId?: string;
-  surname: string;
-  givenName: string;
   fullName: string;
   email?: string;
   mobile?: string;
-  dateOfBirth?: string;
-  nationality?: Nationality;
   gender?: Gender;
-  photoPath?: string;
   passportNumber: string;
-  passportIssueDate?: string;
-  passportExpiryDate?: string;
   nidNumber: string;
   status: ApplicantStatus;
 };
@@ -125,14 +116,55 @@ export type Application = {
   visaType?: VisaType;
   mission?: Mission;
   ivacCenter?: IvacCenter;
-  webFileNumber?: string;
-  applicationNumber?: string;
-  status: ApplicationStatus;
+
+  primaryWebfile?: string;
+  otherWebfileOne?: string;
+  otherWebfileTwo?: string;
+  otherWebfileThree?: string;
+
+  gateway: PaymentGateway;
+  transactionId?: string;
+  paymentMethod?: PaymentMethod;
+  amount?: number;
+  currency: Currency;
   paymentStatus?: PaymentStatus;
-  appointmentBookingAvailableAt?: string;
-  missionConfirmedAt?: string;
+
+  appointmentDate?: string;
+  appointmentTime?: string;
+
   completedAt?: string;
   errorMessage?: string;
+  status: ApplicationStatus;
+};
+
+export type Webfile = {
+  id: string;
+  ivacApplicationId: string;
+  webfileNumber?: string;
+  originalName?: string;
+  filePath?: string;
+  type: WebfileType;
+  status?: string;
+  uploadedAt?: string;
+  errorMessage?: string;
+};
+
+export type Appointment = {
+  id: string;
+  ivacApplicationId: string;
+  appointmentDate?: string;
+  appointmentTime?: string;
+  status?: AppointmentAttemptStatus;
+};
+
+export type Payment = {
+  id: string;
+  ivacApplicationId: string;
+  appointmentId?: string;
+  transactionId?: string;
+  amount?: number;
+  currency?: Currency;
+  status: PaymentStatus;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -150,100 +182,6 @@ export type AutomationAccount = {
   lastLoginAt?: string;
   lastLogoutAt?: string;
   accountStatus: AccountStatus;
-};
-
-/* -------------------------------------------------------------------------- */
-/* Webfile                                                                    */
-/* -------------------------------------------------------------------------- */
-
-export type Webfile = {
-  id: string;
-  ivacApplicationId: string;
-  webfileNumber: string;
-  type: WebfileType;
-  filePath?: string;
-  originalName?: string;
-  uploadedAt?: string;
-  confirmedAt?: string;
-  errorMessage?: string;
-};
-
-/* -------------------------------------------------------------------------- */
-/* Appointment                                                                */
-/* -------------------------------------------------------------------------- */
-
-export type Appointment = {
-  id: string;
-  ivacApplicationId: string;
-  appointmentType?: AppointmentType;
-  appointmentDate?: string;
-  appointmentTime?: string;
-  confirmedAt?: string;
-  errorMessage?: string;
-};
-
-/* -------------------------------------------------------------------------- */
-/* Appointment Attempt                                                        */
-/* -------------------------------------------------------------------------- */
-
-export type AppointmentAttempt = {
-  id: string;
-  ivacApplicationId: string;
-  ivacCenter?: IvacCenter;
-  appointmentDate?: string;
-  appointmentTime?: string;
-  status: AppointmentAttemptStatus;
-  failureReason?: string;
-  responseData?: string;
-  attemptedAt?: string;
-};
-
-/* -------------------------------------------------------------------------- */
-/* Payment                                                                    */
-/* -------------------------------------------------------------------------- */
-
-export type Payment = {
-  id: string;
-  ivacApplicationId: string;
-  appointmentId?: string;
-  gateway: PaymentGateway;
-  transactionId?: string;
-  paymentMethod?: PaymentMethod;
-  amount?: number;
-  currency: Currency;
-  status: PaymentStatus;
-  paidAt?: string;
-  gatewayResponse?: string;
-};
-
-/* -------------------------------------------------------------------------- */
-/* Invoice                                                                    */
-/* -------------------------------------------------------------------------- */
-
-export type Invoice = {
-  id: string;
-  ivacApplicationId: string;
-  paymentId?: string;
-  invoiceNumber?: string;
-  filePath?: string;
-  originalName?: string;
-  status: InvoiceStatus;
-  downloadedAt?: string;
-};
-
-/* -------------------------------------------------------------------------- */
-/* Automation Run                                                             */
-/* -------------------------------------------------------------------------- */
-
-export type AutomationRun = {
-  id: string;
-  automationAccountId?: string;
-  ivacApplicationId?: string;
-  type: AutomationType;
-  status: AutomationRunStatus;
-  startedAt?: string;
-  completedAt?: string;
-  errorMessage?: string;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -302,4 +240,180 @@ export type WorkflowLog = {
   type: LogType;
   message: string;
   time: string;
+};
+
+/* -------------------------------------------------------------------------- */
+/* License                                                                     */
+/* -------------------------------------------------------------------------- */
+
+export type LicenseType = "trial" | "monthly" | "yearly" | "lifetime";
+
+export type LicenseStatus =
+  | "pending"
+  | "active"
+  | "expired"
+  | "suspended"
+  | "revoked";
+
+export type ActivationStatus = "active" | "deactivated" | "blocked";
+
+export type License = {
+  id: string;
+
+  /**
+   * Human-readable license key.
+   * Example: IVAC-XXXX-XXXX-XXXX
+   */
+  licenseKey: string;
+
+  type: LicenseType;
+  status: LicenseStatus;
+
+  /**
+   * Customer/account that owns the license.
+   */
+  userId?: string;
+
+  /**
+   * Maximum number of devices that can be activated.
+   */
+  maxActivations: number;
+
+  /**
+   * Current number of active devices.
+   */
+  activeActivations: number;
+
+  startsAt?: string;
+  expiresAt?: string;
+
+  /**
+   * Lifetime licenses may have no expiration date.
+   */
+  isLifetime: boolean;
+
+  createdAt: string;
+  updatedAt: string;
+};
+
+/* -------------------------------------------------------------------------- */
+/* License Activation                                                         */
+/* -------------------------------------------------------------------------- */
+
+export type LicenseActivation = {
+  id: string;
+  licenseId: string;
+
+  /**
+   * User/account associated with this activation.
+   */
+  userId?: string;
+
+  /**
+   * Unique identifier generated by the extension installation.
+   */
+  deviceId: string;
+
+  /**
+   * Optional device information for administration.
+   */
+  deviceName?: string;
+  platform?: string;
+  browser?: string;
+  extensionVersion?: string;
+
+  status: ActivationStatus;
+
+  activatedAt: string;
+  lastSeenAt?: string;
+  deactivatedAt?: string;
+
+  /**
+   * Server-generated token used by the extension
+   * to authenticate an activated installation.
+   */
+  activationToken?: string;
+};
+
+/* -------------------------------------------------------------------------- */
+/* License Validation                                                         */
+/* -------------------------------------------------------------------------- */
+
+export type LicenseValidation = {
+  id: string;
+  licenseId: string;
+  activationId?: string;
+
+  valid: boolean;
+
+  /**
+   * Why validation succeeded/failed.
+   */
+  reason?:
+    | "valid"
+    | "invalid_key"
+    | "expired"
+    | "suspended"
+    | "revoked"
+    | "activation_limit"
+    | "device_blocked";
+
+  deviceId?: string;
+  ipAddress?: string;
+
+  createdAt: string;
+};
+
+/* -------------------------------------------------------------------------- */
+/* License Event / Audit Log                                                  */
+/* -------------------------------------------------------------------------- */
+
+export type LicenseEventType =
+  | "created"
+  | "activated"
+  | "validated"
+  | "deactivated"
+  | "expired"
+  | "suspended"
+  | "revoked"
+  | "renewed"
+  | "activation_blocked";
+
+export type LicenseEvent = {
+  id: string;
+  licenseId: string;
+  activationId?: string;
+
+  type: LicenseEventType;
+
+  message?: string;
+  metadata?: string;
+
+  createdAt: string;
+};
+
+/* -------------------------------------------------------------------------- */
+/* License Settings                                                           */
+/* -------------------------------------------------------------------------- */
+
+export type LicenseSettings = {
+  id: string;
+
+  /**
+   * Default trial period in days.
+   */
+  trialDays: number;
+
+  /**
+   * How often the extension should validate its license.
+   */
+  validationIntervalHours: number;
+
+  /**
+   * Whether the extension can continue working temporarily
+   * when the license server is unavailable.
+   */
+  offlineGracePeriodHours: number;
+
+  updatedAt: string;
 };

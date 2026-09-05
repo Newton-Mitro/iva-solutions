@@ -6,7 +6,7 @@ export type LocalRecord = Record<string, unknown> & {
 
 export type LocalCollection =
   | "applicants"
-  | "ivacAccounts"
+  | "automationAccounts"
   | "ivacApplications"
   | "webfiles";
 

@@ -14,7 +14,13 @@ import { useWorkflow } from "./hooks/useWorkflow";
 import SettingsPage from "../settings/SettingsPage";
 import { WorkflowPhase } from "../../../types/dashboard.types";
 
-export function Dashboard({ user }: { user: FirebaseUser }) {
+export function Dashboard({
+  user,
+  onLicenseDeactivated,
+}: {
+  user: FirebaseUser;
+  onLicenseDeactivated: () => void;
+}) {
   const {
     applicants,
     applicant,
@@ -39,6 +45,7 @@ export function Dashboard({ user }: { user: FirebaseUser }) {
         email={user.email}
         userId={user.uid}
         onBack={() => setShowSettings(false)}
+        onLicenseDeactivated={onLicenseDeactivated}
       />
     );
   }

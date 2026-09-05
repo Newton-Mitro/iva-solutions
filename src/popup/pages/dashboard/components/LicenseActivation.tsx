@@ -1,36 +1,37 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BadgeCheck, KeyRound, LockKeyhole, XCircle } from "lucide-react";
-
-type LicenseRecord = {
-  key: string;
-  activatedAt: string;
-};
+import {
+  activateLicense,
+  deactivateLicense,
+  getLicense,
+  type LicenseRecord,
+} from "../../../../firebase/license";
 
 type Props = {
   userId: string;
+  onActivated?: (license: LicenseRecord) => void;
+  onDeactivated?: () => void;
 };
 
 const keyPattern = /^IVAC-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
 
-function storageKey(userId: string) {
-  return `ivac-license:${userId}`;
-}
-
-function readLicense(userId: string): LicenseRecord | null {
-  try {
-    const stored = localStorage.getItem(storageKey(userId));
-    return stored ? (JSON.parse(stored) as LicenseRecord) : null;
-  } catch {
-    return null;
-  }
-}
-
-export default function LicenseActivation({ userId }: Props) {
-  const [license, setLicense] = useState<LicenseRecord | null>(() =>
-    readLicense(userId),
-  );
+export default function LicenseActivation({
+  userId,
+  onActivated,
+  onDeactivated,
+}: Props) {
+  const [license, setLicense] = useState<LicenseRecord | null>(null);
   const [value, setValue] = useState("");
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(true);
+
+  useEffect(() => {
+    setBusy(true);
+    getLicense(userId)
+      .then(setLicense)
+      .catch(() => setError("Unable to check the license right now."))
+      .finally(() => setBusy(false));
+  }, [userId]);
 
   function activate(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -42,21 +43,28 @@ export default function LicenseActivation({ userId }: Props) {
       return;
     }
 
-    const next: LicenseRecord = {
-      key: normalized,
-      activatedAt: new Date().toISOString(),
-    };
-
-    localStorage.setItem(storageKey(userId), JSON.stringify(next));
-    setLicense(next);
-    setValue("");
-    setError("");
+    setBusy(true);
+    void activateLicense(userId, normalized)
+      .then((activated) => {
+        setLicense(activated);
+        onActivated?.(activated);
+        setValue("");
+        setError("");
+      })
+      .catch(() => setError("Unable to activate this license right now."))
+      .finally(() => setBusy(false));
   }
 
   function deactivate() {
-    localStorage.removeItem(storageKey(userId));
-    setLicense(null);
-    setError("");
+    setBusy(true);
+    void deactivateLicense(userId)
+      .then(() => {
+        setLicense(null);
+        onDeactivated?.();
+        setError("");
+      })
+      .catch(() => setError("Unable to deactivate this license right now."))
+      .finally(() => setBusy(false));
   }
 
   return (
@@ -73,7 +81,9 @@ export default function LicenseActivation({ userId }: Props) {
         </div>
       </div>
 
-      {license ? (
+      {busy ? (
+        <p className="mt-4 text-xs ivac-text-muted">Checking license...</p>
+      ) : license ? (
         <div className="mt-4 rounded-lg border border-emerald-300 bg-emerald-500/10 p-3 dark:border-emerald-800">
           <div className="flex items-start gap-2">
             <BadgeCheck
@@ -95,6 +105,7 @@ export default function LicenseActivation({ userId }: Props) {
           <button
             type="button"
             onClick={deactivate}
+            disabled={busy}
             className="ivac-hover mt-3 flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[10px] font-semibold text-red-500"
           >
             <XCircle size={13} />

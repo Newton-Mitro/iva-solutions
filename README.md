@@ -10,18 +10,11 @@ type User @table {
 
 type Applicant @table {
   user: User!
-  surname: String!
-  givenName: String!
   fullName: String!
   email: String
   mobile: String
-  dateOfBirth: Date
-  nationality: String
   gender: String
-  photoPath: String
   passportNumber: String!
-  passportIssueDate: Date
-  passportExpiryDate: Date
   nidNumber: String!
   status: String!
 }

@@ -9,6 +9,7 @@ import {
   Webfile,
 } from "../../../../types/models";
 import { subscribeToRecords } from "../../../../firebase/data";
+import { subscribeToLocalRecords } from "../../../../storage/storage";
 
 export function useDashboardData(user: FirebaseUser) {
   const [applicants, setApplicants] = useState<Applicant[]>([]);
@@ -24,10 +25,11 @@ export function useDashboardData(user: FirebaseUser) {
   const [dataError, setDataError] = useState("");
 
   useEffect(() => {
-    const unsubscribeApplicants = subscribeToRecords<Applicant>(
+    const unsubscribeApplicants = subscribeToLocalRecords(
       user.uid,
       "applicants",
-      (items) => {
+      (records) => {
+        const items = records as Applicant[];
         setApplicants(items);
 
         setSelectedApplicantId((current) => {
@@ -38,13 +40,13 @@ export function useDashboardData(user: FirebaseUser) {
           return items[0]?.id || "";
         });
       },
-      (error) => setDataError(error.message),
     );
 
-    const unsubscribeApplications = subscribeToRecords<Application>(
+    const unsubscribeApplications = subscribeToLocalRecords(
       user.uid,
       "ivacApplications",
-      (items) => {
+      (records) => {
+        const items = records as Application[];
         setApplications(items);
 
         setSelectedApplicationId((current) => {
@@ -55,21 +57,18 @@ export function useDashboardData(user: FirebaseUser) {
           return items[0]?.id || "";
         });
       },
-      (error) => setDataError(error.message),
     );
 
-    const unsubscribeAccounts = subscribeToRecords<AutomationAccount>(
+    const unsubscribeAccounts = subscribeToLocalRecords(
       user.uid,
       "automationAccounts",
-      setAccounts,
-      (error) => setDataError(error.message),
+      (records) => setAccounts(records as AutomationAccount[]),
     );
 
-    const unsubscribeWebfiles = subscribeToRecords<Webfile>(
+    const unsubscribeWebfiles = subscribeToLocalRecords(
       user.uid,
       "webfiles",
-      setWebfiles,
-      (error) => setDataError(error.message),
+      (records) => setWebfiles(records as Webfile[]),
     );
 
     const unsubscribeAppointments = subscribeToRecords<Appointment>(

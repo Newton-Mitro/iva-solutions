@@ -209,10 +209,12 @@ export default function SettingsPage({
   email,
   userId,
   onBack,
+  onLicenseDeactivated,
 }: {
   email: string | null;
   userId: string;
   onBack: () => void;
+  onLicenseDeactivated: () => void;
 }) {
   const [settings, setSettings] = useState<Settings>(readSettings);
 
@@ -319,7 +321,10 @@ export default function SettingsPage({
 
         <section>
           <SectionTitle icon={ShieldCheck}>License</SectionTitle>
-          <LicenseActivation userId={userId} />
+          <LicenseActivation
+            userId={userId}
+            onDeactivated={onLicenseDeactivated}
+          />
         </section>
 
         {/* General */}
