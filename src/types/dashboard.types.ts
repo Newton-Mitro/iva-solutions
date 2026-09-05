@@ -20,15 +20,7 @@ export type RelatedRecord = {
   [key: string]: unknown;
 };
 
-export type WorkflowPhase =
-  | "signup"
-  | "signin"
-  | "webfile"
-  | "mission"
-  | "appointment"
-  | "payment"
-  | "invoice"
-  | "signout";
+export type WorkflowPhase = "run_phase_one" | "run_phase_two";
 
 export type LogEntry = {
   type: "success" | "info" | "warning" | "error";

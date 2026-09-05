@@ -33,8 +33,8 @@ export default function WebfileInfoCard({ webfiles }: { webfiles: Webfile[] }) {
           transition-colors
         "
       >
+        {/* Left */}
         <div className="flex min-w-0 items-center gap-3">
-          {/* Icon */}
           <div
             className="
               flex h-8 w-8
@@ -48,37 +48,7 @@ export default function WebfileInfoCard({ webfiles }: { webfiles: Webfile[] }) {
             <FileText size={15} />
           </div>
 
-          {/* Title */}
           <div className="min-w-0">
-            <div className="mb-1 flex items-center gap-2">
-              <span
-                className="
-                  text-[8px]
-                  font-bold
-                  uppercase
-                  tracking-wider
-                  ivac-text-muted
-                "
-              >
-                Documents
-              </span>
-
-              {webfiles.length > 0 && (
-                <span
-                  className="
-                    rounded-full
-                    bg-(--app-surface-2)
-                    px-1.5 py-0.5
-                    text-[8px]
-                    font-semibold
-                    ivac-text-muted
-                  "
-                >
-                  {webfiles.length}
-                </span>
-              )}
-            </div>
-
             <h2 className="truncate text-xs font-bold">Webfiles</h2>
 
             <p className="mt-0.5 truncate text-[9px] ivac-text-muted">
@@ -86,26 +56,32 @@ export default function WebfileInfoCard({ webfiles }: { webfiles: Webfile[] }) {
             </p>
           </div>
         </div>
-
-        {/* Chevron */}
-        <div
-          className="
-            flex h-7 w-7
-            shrink-0
-            items-center justify-center
-            rounded-full
-            ivac-surface-2
-            ivac-text-muted
-          "
-        >
-          <ChevronDown
-            size={15}
+        <div className="flex shrink-0 items-center gap-1.5">
+          <span
             className={`
-              transition-transform
-              duration-200
-              ${open ? "rotate-180" : ""}
-            `}
-          />
+    inline-flex items-center rounded-full
+    px-2 py-0.5 text-[9px] font-semibold
+    ${
+      webfiles.length === 0
+        ? "ivac-warning-bg ivac-warning"
+        : "ivac-primary-bg ivac-primary"
+    }
+  `}
+          >
+            {webfiles.length} {webfiles.length === 1 ? "file" : "files"}
+          </span>
+          <div
+            className={`flex h-6 w-6 items-center justify-center rounded-md transition-colors ${
+              open ? "bg-(--app-muted)" : ""
+            }`}
+          >
+            <ChevronDown
+              size={15}
+              className={`ivac-text-muted transition-transform duration-200 ${
+                open ? "rotate-180" : ""
+              }`}
+            />
+          </div>
         </div>
       </button>
 

@@ -57,24 +57,28 @@ export function useDashboardData(user: FirebaseUser) {
       },
       (error) => setDataError(error.message),
     );
+
     const unsubscribeAccounts = subscribeToRecords<AutomationAccount>(
       user.uid,
       "automationAccounts",
       setAccounts,
       (error) => setDataError(error.message),
     );
+
     const unsubscribeWebfiles = subscribeToRecords<Webfile>(
       user.uid,
       "webfiles",
       setWebfiles,
       (error) => setDataError(error.message),
     );
+
     const unsubscribeAppointments = subscribeToRecords<Appointment>(
       user.uid,
       "appointments",
       setAppointments,
       (error) => setDataError(error.message),
     );
+
     const unsubscribePayments = subscribeToRecords<Payment>(
       user.uid,
       "payments",
@@ -92,16 +96,19 @@ export function useDashboardData(user: FirebaseUser) {
     };
   }, [user.uid]);
 
+  // Selected applicant
   const applicant = useMemo(
     () => applicants.find((item) => item.id === selectedApplicantId),
     [applicants, selectedApplicantId],
   );
 
+  // Applications belonging to selected applicant
   const applicantApplications = useMemo(
     () => applications.filter((item) => item.applicantId === applicant?.id),
     [applications, applicant?.id],
   );
 
+  // Selected application
   const application = useMemo(
     () =>
       applications.find((item) => item.id === selectedApplicationId) ||
@@ -109,24 +116,28 @@ export function useDashboardData(user: FirebaseUser) {
     [applications, selectedApplicationId, applicantApplications],
   );
 
+  // Automation account belonging to applicant
   const account = useMemo(
     () => accounts.find((item) => item.applicantId === applicant?.id),
     [accounts, applicant?.id],
   );
 
+  // Webfiles belonging to application
   const applicationWebfiles = useMemo(
     () => webfiles.filter((item) => item.ivacApplicationId === application?.id),
     [webfiles, application?.id],
   );
 
-  const applicationAppointments = useMemo(
+  // One appointment per application
+  const applicationAppointment = useMemo(
     () =>
-      appointments.filter((item) => item.ivacApplicationId === application?.id),
+      appointments.find((item) => item.ivacApplicationId === application?.id),
     [appointments, application?.id],
   );
 
-  const applicationPayments = useMemo(
-    () => payments.filter((item) => item.ivacApplicationId === application?.id),
+  // One payment per application
+  const applicationPayment = useMemo(
+    () => payments.find((item) => item.ivacApplicationId === application?.id),
     [payments, application?.id],
   );
 
@@ -148,8 +159,8 @@ export function useDashboardData(user: FirebaseUser) {
     applicantApplications,
     account,
     applicationWebfiles,
-    applicationAppointments,
-    applicationPayments,
+    applicationAppointment,
+    applicationPayment,
     selectedApplicantId,
     selectedApplicationId,
     setSelectedApplicationId,

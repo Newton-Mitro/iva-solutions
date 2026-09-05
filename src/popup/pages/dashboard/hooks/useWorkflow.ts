@@ -18,10 +18,11 @@ export function useWorkflow() {
    * ============================================================
    */
 
-  const [workflowPhase, setWorkflowPhase] = useState<WorkflowPhase>("signup");
+  const [workflowPhase, setWorkflowPhase] =
+    useState<WorkflowPhase>("run_phase_one");
 
   const [steps, setSteps] = useState<WorkflowStep[]>(() =>
-    createWorkflowSteps("signup"),
+    createWorkflowSteps("run_phase_one"),
   );
 
   /**
@@ -317,7 +318,7 @@ export function useWorkflow() {
    */
 
   function reset() {
-    const initialPhase: WorkflowPhase = "signup";
+    const initialPhase: WorkflowPhase = "run_phase_one";
 
     setWorkflowPhase(initialPhase);
 

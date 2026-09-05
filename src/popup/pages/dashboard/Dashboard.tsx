@@ -6,13 +6,11 @@ import DashboardEmpty from "./components/DashboardEmpty";
 import ApplicantSelector from "./components/ApplicantSelector";
 import ApplicationSelector from "./components/ApplicationSelector";
 import WorkflowCard from "./components/WorkflowCard";
-import ProgressCard from "./components/ProgressCard";
 import AppointmentCard from "./components/AppointmentCard";
 import PaymentCard from "./components/PaymentCard";
 import ActivityLog from "./components/ActivityLog";
 import AccountInfoCard from "./components/AccountInfoCard";
 import WebfileInfoCard from "./components/WebfileInfoCard";
-import CollapsibleSection from "./components/CollapsibleSection";
 import { useDashboardData } from "./hooks/useDashboardData";
 import { useWorkflow } from "./hooks/useWorkflow";
 import SettingsPage from "../settings/SettingsPage";
@@ -26,8 +24,8 @@ export function Dashboard({ user }: { user: FirebaseUser }) {
     applicantApplications,
     account,
     applicationWebfiles,
-    applicationAppointments,
-    applicationPayments,
+    applicationAppointment,
+    applicationPayment,
     selectApplicant,
     setSelectedApplicationId,
     dataError,
@@ -39,7 +37,11 @@ export function Dashboard({ user }: { user: FirebaseUser }) {
 
   if (showSettings) {
     return (
-      <SettingsPage email={user.email} onBack={() => setShowSettings(false)} />
+      <SettingsPage
+        email={user.email}
+        userId={user.uid}
+        onBack={() => setShowSettings(false)}
+      />
     );
   }
 
@@ -103,16 +105,11 @@ export function Dashboard({ user }: { user: FirebaseUser }) {
         {application ? (
           <>
             <WebfileInfoCard webfiles={applicationWebfiles} />
-            <AppointmentCard appointments={applicationAppointments} />
-            <PaymentCard
-              application={application}
-              payments={applicationPayments}
-            />
             <WorkflowCard
               phase={workflow.workflowPhase}
               steps={workflow.steps}
               started={
-                workflow.workflowPhase === "signup"
+                workflow.workflowPhase === "run_phase_one"
                   ? workflow.steps.some((step) => step.status === "running")
                   : true
               }
@@ -122,12 +119,10 @@ export function Dashboard({ user }: { user: FirebaseUser }) {
               onStart={workflow.startFlow}
               onReset={workflow.reset}
             />
-            <ProgressCard
-              progress={workflow.progress}
-              currentStep={workflow.currentStep}
-              steps={workflow.steps}
-              running={workflow.running}
-              paused={workflow.paused}
+            <AppointmentCard appointment={applicationAppointment} />
+            <PaymentCard
+              application={application}
+              payment={applicationPayment}
             />
           </>
         ) : (

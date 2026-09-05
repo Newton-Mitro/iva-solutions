@@ -11,7 +11,14 @@
     "128": "icons/icon128.png"
   },
 
-  "permissions": ["storage", "activeTab", "scripting", "tabs", "windows"],
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs",
+    "windows",
+    "system.display"
+  ],
 
   "host_permissions": [
     "https://appointment.ivacbd.com/*",

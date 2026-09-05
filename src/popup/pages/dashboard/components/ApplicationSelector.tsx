@@ -61,39 +61,43 @@ export default function ApplicationSelector({
           {/* Application info */}
           <div className="min-w-0">
             <div className="mb-1 flex items-center gap-2">
-              <span
-                className="
-                  text-[8px]
-                  font-bold
-                  uppercase
-                  tracking-wider
-                  ivac-text-muted
-                "
-              >
-                Application
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[8px] font-bold uppercase tracking-wider ivac-text-muted">
+                  Applications
+                </span>
 
-              {application && <StatusBadge status={application.status} />}
+                <span className="ivac-primary-bg ivac-primary rounded-full px-1.5 py-0.5 text-[8px] font-bold leading-none">
+                  {applications.length}
+                </span>
+              </div>
             </div>
 
             <h2 className="truncate text-xs font-bold">
               {application?.visaType ?? "No application selected"}
             </h2>
 
-            <div className="mt-0.5 flex min-w-0 items-center gap-1 text-[9px] ivac-text-muted">
+            <div className="mt-0.5 flex min-w-0 items-center gap-2 text-[9px] ivac-text-muted">
               {application ? (
                 <>
-                  <MapPin size={9} className="shrink-0" />
+                  {/* Location */}
+                  <div className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
+                    <MapPin size={9} className="shrink-0" />
 
-                  <span className="truncate">
-                    {application.mission ?? "Mission not selected"}
-                  </span>
+                    <span className="truncate">
+                      {application.mission ?? "Mission not selected"}
+                    </span>
 
-                  <span>·</span>
+                    <span className="shrink-0">·</span>
 
-                  <span className="truncate">
-                    {application.ivacCenter ?? "Center not selected"}
-                  </span>
+                    <span className="truncate">
+                      {application.ivacCenter ?? "Center not selected"}
+                    </span>
+                  </div>
+
+                  {/* Status - far right */}
+                  <div className="ml-auto shrink-0">
+                    <StatusBadge status={application.status} />
+                  </div>
                 </>
               ) : (
                 <span>Add an application for this applicant</span>

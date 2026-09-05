@@ -33,7 +33,7 @@ export default function WorkflowCard({
   onReset,
   onStop,
 }: Props) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
 
   const current = flowTabs.find((item) => item.id === phase);
   const phaseIndex = flowTabs.findIndex((item) => item.id === phase);
@@ -242,7 +242,7 @@ export default function WorkflowCard({
                 {/* =================================================
                     SIGN IN
                 ================================================== */}
-                {phase === "signin" && (
+                {phase === "run_phase_one" && (
                   <ManualNotice>
                     Human verification and mobile OTP must be completed manually
                     in the portal.
@@ -252,7 +252,7 @@ export default function WorkflowCard({
                 {/* =================================================
                     MISSION
                 ================================================== */}
-                {phase === "mission" && (
+                {phase === "run_phase_two" && (
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     <ReadOnlyField label="Mission" value="Dhaka" />
 
@@ -261,56 +261,6 @@ export default function WorkflowCard({
                       value="Indian Visa Application, Dhaka (JFP)"
                     />
                   </div>
-                )}
-
-                {/* =================================================
-                    WEBFILE
-                ================================================== */}
-                {phase === "webfile" && (
-                  <ManualNotice>
-                    Upload the primary Webfile and any additional Webfiles,
-                    confirm the information, then choose Save & Continue.
-                  </ManualNotice>
-                )}
-
-                {/* =================================================
-                    APPOINTMENT
-                ================================================== */}
-                {phase === "appointment" && (
-                  <ManualNotice>
-                    Appointment date, time selection and human verification may
-                    require manual interaction with the portal.
-                  </ManualNotice>
-                )}
-
-                {/* =================================================
-                    PAYMENT
-                ================================================== */}
-                {phase === "payment" && (
-                  <ManualNotice>
-                    Payment requires explicit user confirmation. Card security
-                    information should be entered directly by the user.
-                  </ManualNotice>
-                )}
-
-                {/* =================================================
-                    INVOICE
-                ================================================== */}
-                {phase === "invoice" && (
-                  <ManualNotice>
-                    The invoice will be downloaded after successful payment and
-                    appointment confirmation.
-                  </ManualNotice>
-                )}
-
-                {/* =================================================
-                    SIGN OUT
-                ================================================== */}
-                {phase === "signout" && (
-                  <ManualNotice>
-                    Signing out will end the current Indian Visa Application
-                    session.
-                  </ManualNotice>
                 )}
 
                 {/* =================================================
@@ -415,29 +365,11 @@ export default function WorkflowCard({
 
 function getPhaseDescription(phase: WorkflowPhase): string {
   switch (phase) {
-    case "signup":
+    case "run_phase_one":
       return "Create and configure the Indian Visa Application account.";
 
-    case "signin":
+    case "run_phase_two":
       return "Sign in to the registered Indian Visa Application account.";
-
-    case "webfile":
-      return "Upload and confirm applicant Webfile information.";
-
-    case "mission":
-      return "Select the mission and Indian Visa Application center.";
-
-    case "appointment":
-      return "Select the appointment date and available time.";
-
-    case "payment":
-      return "Complete the appointment payment process.";
-
-    case "invoice":
-      return "Download the appointment/payment invoice.";
-
-    case "signout":
-      return "Sign out from the Indian Visa Application account.";
 
     default:
       return "Manage the current automation workflow.";

@@ -42,7 +42,6 @@ export default function AccountInfoCard({
         "
       >
         <div className="flex min-w-0 items-center gap-3">
-          {/* Icon */}
           <div
             className="
               flex h-8 w-8 shrink-0
@@ -55,29 +54,11 @@ export default function AccountInfoCard({
             <KeyRound size={15} />
           </div>
 
-          {/* Title */}
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="text-xs font-bold">IVAC account</h2>
-
-              {account && (
-                <span
-                  className="
-                    flex items-center gap-1
-                    rounded-full
-                    bg-emerald-50
-                    px-1.5 py-0.5
-                    text-[8px]
-                    font-semibold
-                    text-emerald-600
-                    dark:bg-emerald-950/30
-                    dark:text-emerald-400
-                  "
-                >
-                  <CheckCircle2 size={9} />
-                  Added
-                </span>
-              )}
+              <h2 className="text-xs font-bold">
+                Indian Visa Application Account
+              </h2>
             </div>
 
             <p className="mt-0.5 truncate text-[9px] ivac-text-muted">
@@ -86,24 +67,21 @@ export default function AccountInfoCard({
           </div>
         </div>
 
-        {/* Chevron */}
-        <div
-          className="
-            ml-3 flex h-7 w-7 shrink-0
-            items-center justify-center
-            rounded-full
-            ivac-surface-2
-            ivac-text-muted
-          "
-        >
-          <ChevronDown
-            size={15}
-            className={`
-              transition-transform
-              duration-200
-              ${open ? "rotate-180" : ""}
-            `}
-          />
+        <div className="flex shrink-0 items-center gap-2">
+          <StatusBadge status={account?.accountStatus || "Unknown"} />
+
+          <div
+            className={`flex h-6 w-6 items-center justify-center rounded-md transition-colors ${
+              open ? "bg-(--app-muted)" : ""
+            }`}
+          >
+            <ChevronDown
+              size={15}
+              className={`ivac-text-muted transition-transform duration-200 ${
+                open ? "rotate-180" : ""
+              }`}
+            />
+          </div>
         </div>
       </button>
 
@@ -190,90 +168,6 @@ export default function AccountInfoCard({
                     </p>
                   </div>
                 </div>
-
-                {/* Status */}
-                <div
-                  className="
-                    mt-2
-                    flex items-center
-                    justify-between
-                    rounded-lg
-                    border
-                    border-(--app-border-light)
-                    px-2.5 py-2
-                  "
-                >
-                  <div>
-                    <p className="text-[9px] font-semibold">Account status</p>
-
-                    <p className="mt-0.5 text-[8px] ivac-text-muted">
-                      Current IVAC account state
-                    </p>
-                  </div>
-
-                  <StatusBadge status={account.accountStatus} />
-                </div>
-
-                {/* Verification */}
-                <div
-                  className="
-                    mt-2
-                    grid grid-cols-2
-                    gap-2
-                  "
-                >
-                  <VerificationItem
-                    label="Email verification"
-                    verified={Boolean(account.emailVerifiedAt)}
-                  />
-
-                  <VerificationItem
-                    label="Mobile verification"
-                    verified={Boolean(account.mobileVerifiedAt)}
-                  />
-                </div>
-
-                {/* Login information */}
-                {(account.lastLoginAt || account.lastLogoutAt) && (
-                  <div className="mt-2">
-                    <div
-                      className="
-                        border-t
-                        border-(--app-border-light)
-                        pt-2
-                      "
-                    >
-                      <p
-                        className="
-                          mb-1
-                          text-[8px]
-                          font-semibold
-                          uppercase
-                          tracking-wide
-                          ivac-text-muted
-                        "
-                      >
-                        Activity
-                      </p>
-
-                      <div className="grid grid-cols-2 gap-x-4">
-                        {account.lastLoginAt && (
-                          <InfoRow
-                            label="Last login"
-                            value={formatDate(account.lastLoginAt)}
-                          />
-                        )}
-
-                        {account.lastLogoutAt && (
-                          <InfoRow
-                            label="Last logout"
-                            value={formatDate(account.lastLogoutAt)}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
               </>
             ) : (
               <div
@@ -302,7 +196,7 @@ export default function AccountInfoCard({
                 </div>
 
                 <p className="mt-2 text-[10px] font-semibold">
-                  No IVAC account
+                  No Indian Visa Application account
                 </p>
 
                 <p
@@ -314,7 +208,8 @@ export default function AccountInfoCard({
                     ivac-text-muted
                   "
                 >
-                  No IVAC account has been added for this applicant.
+                  No Indian Visa Application account has been added for this
+                  applicant.
                 </p>
               </div>
             )}

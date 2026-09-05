@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { signOutUser } from "../../../firebase/auth";
+import LicenseActivation from "../dashboard/components/LicenseActivation";
 
 type Settings = {
   demoMode: boolean;
@@ -206,9 +207,11 @@ function Field({
 
 export default function SettingsPage({
   email,
+  userId,
   onBack,
 }: {
   email: string | null;
+  userId: string;
   onBack: () => void;
 }) {
   const [settings, setSettings] = useState<Settings>(readSettings);
@@ -313,6 +316,11 @@ export default function SettingsPage({
             </div>
           </div>
         </div>
+
+        <section>
+          <SectionTitle icon={ShieldCheck}>License</SectionTitle>
+          <LicenseActivation userId={userId} />
+        </section>
 
         {/* General */}
         <section>
