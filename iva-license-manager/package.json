@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "build:watch": "vite build --watch"
   },
   "dependencies": {
     "firebase": "^12.2.1",

@@ -7,6 +7,7 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces",
+    "build:watch": "npm run build:watch --workspaces",
     "build:license": "npm run build --workspace=iva-license-manager",
     "build:assistance": "npm run build --workspace=iva-assistance",
     "dev:license": "npm run dev --workspace=iva-license-manager",
