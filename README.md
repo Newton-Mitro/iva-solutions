@@ -68,19 +68,7 @@ The production output is written to each project's `dist/` directory.
 3. Enable **Developer mode**.
 4. Select **Load unpacked**.
 5. Choose `iva-assistance/dist`.
-
-## Firebase deployment
-
-Each project has its own Firebase configuration, rules, and indexes. From the relevant project directory:
-
-```bash
-npm install -g firebase-tools
-firebase login
-firebase use YOUR_PROJECT_ID
-firebase deploy --only firestore,storage
-```
-
-The license manager uses Firestore only. The customer extension also defines Firebase Storage rules and Cloud Functions configuration.
+   `
 
 ## Repository structure
 
@@ -88,5 +76,3 @@ The license manager uses Firestore only. The customer extension also defines Fir
 iva-assistance/       Customer Chrome extension
 iva-license-manager/  License administration dashboard
 ```
-
-...

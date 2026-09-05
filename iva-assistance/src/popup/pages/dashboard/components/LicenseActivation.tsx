@@ -13,7 +13,8 @@ type Props = {
   onDeactivated?: () => void;
 };
 
-const keyPattern = /^IVAC-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+const keyPattern =
+  /^IVAC-[A-HJ-NP-Z2-9]{5}-[A-HJ-NP-Z2-9]{5}-[A-HJ-NP-Z2-9]{5}-[A-HJ-NP-Z2-9]{5}$/;
 
 export default function LicenseActivation({
   userId,
@@ -39,7 +40,7 @@ export default function LicenseActivation({
     const normalized = value.trim().toUpperCase();
 
     if (!keyPattern.test(normalized)) {
-      setError("Use the format IVAC-XXXX-XXXX-XXXX.");
+      setError("Use the format IVAC-XXXXX-XXXXX-XXXXX-XXXXX.");
       return;
     }
 
@@ -51,7 +52,13 @@ export default function LicenseActivation({
         setValue("");
         setError("");
       })
-      .catch(() => setError("Unable to activate this license right now."))
+      .catch((activationError: unknown) =>
+        setError(
+          activationError instanceof Error
+            ? activationError.message
+            : "Unable to activate this license right now.",
+        ),
+      )
       .finally(() => setBusy(false));
   }
 
@@ -122,7 +129,7 @@ export default function LicenseActivation({
                 setValue(event.target.value.toUpperCase());
                 setError("");
               }}
-              placeholder="IVAC-AB12-CD34-EF56"
+              placeholder="IVAC-AB234-CDEF5-GH678-JKLMN"
               autoComplete="off"
               spellCheck={false}
               className="ivac-input mt-1 font-mono uppercase"

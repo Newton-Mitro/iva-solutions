@@ -4,10 +4,13 @@
   "version": "1.0.0",
   "description": "Firebase-backed IVAC license manager.",
   "action": {
-    "default_title": "IVAC License Manager",
-    "default_popup": "index.html"
+    "default_title": "IVAC License Manager"
   },
-  "permissions": ["storage"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": ["storage", "windows", "system.display"],
   "icons": {
     "16": "icons/icon.svg",
     "48": "icons/icon.svg",

@@ -1,0 +1,15 @@
+{
+  "name": "iva-solutions",
+  "private": true,
+  "workspaces": [
+    "iva-license-manager",
+    "iva-assistance"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "build:license": "npm run build --workspace=iva-license-manager",
+    "build:assistance": "npm run build --workspace=iva-assistance",
+    "dev:license": "npm run dev --workspace=iva-license-manager",
+    "dev:assistance": "npm run dev --workspace=iva-assistance"
+  }
+}

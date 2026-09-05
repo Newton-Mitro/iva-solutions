@@ -1,4 +1,6 @@
 import type { User as FirebaseUser } from "firebase/auth";
+import { LogOut } from "lucide-react";
+import { signOutUser } from "../../firebase/auth";
 import type { LicenseRecord } from "../../firebase/license";
 import LicenseActivation from "./dashboard/components/LicenseActivation";
 
@@ -24,6 +26,14 @@ export default function ActivationPage({
           </p>
         </div>
         <LicenseActivation userId={user.uid} onActivated={onActivated} />
+        <button
+          type="button"
+          onClick={() => void signOutUser()}
+          className="ivac-hover mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2.5 text-xs font-semibold ivac-text-secondary dark:border-slate-700"
+        >
+          <LogOut size={14} />
+          Sign out
+        </button>
       </div>
     </main>
   );
