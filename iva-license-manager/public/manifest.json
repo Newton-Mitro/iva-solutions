@@ -1,19 +1,40 @@
 {
   "manifest_version": 3,
-  "name": "IVAC License Manager",
+  "name": "IVA License Manager",
   "version": "1.0.0",
-  "description": "Firebase-backed IVAC license manager.",
+  "description": "Firebase-backed IVA License Manager.",
   "action": {
-    "default_title": "IVAC License Manager"
+    "default_title": "IVA License Manager",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
   },
   "background": {
     "service_worker": "background.js",
     "type": "module"
   },
-  "permissions": ["storage", "windows", "system.display"],
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs",
+    "windows",
+    "system.display"
+  ],
+  "host_permissions": [
+    "<all_urls>",
+    "https://*.googleapis.com/*",
+    "https://*.firebaseapp.com/*",
+    "https://*.firebasestorage.app/*"
+  ],
+
   "icons": {
-    "16": "icons/icon.svg",
-    "48": "icons/icon.svg",
-    "128": "icons/icon.svg"
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   }
 }

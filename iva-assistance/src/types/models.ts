@@ -79,24 +79,6 @@ export type AutomationLogStatus =
   | "skipped";
 
 /* -------------------------------------------------------------------------- */
-/* User                                                                       */
-/* -------------------------------------------------------------------------- */
-
-export type UserRecord = {
-  id: string;
-  email: string;
-  name?: string;
-  phone?: string;
-  role: UserRole;
-  status: UserStatus;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type UserRole = "admin" | "customer";
-
-export type UserStatus = "active" | "suspended" | "blocked";
-/* -------------------------------------------------------------------------- */
 /* Applicant                                                                  */
 /* -------------------------------------------------------------------------- */
 
@@ -122,22 +104,6 @@ export type Application = {
   visaType?: VisaType;
   mission?: Mission;
   ivacCenter?: IvacCenter;
-
-  primaryWebfile?: string;
-  otherWebfileOne?: string;
-  otherWebfileTwo?: string;
-  otherWebfileThree?: string;
-
-  gateway: PaymentGateway;
-  transactionId?: string;
-  paymentMethod?: PaymentMethod;
-  amount?: number;
-  currency: Currency;
-  paymentStatus?: PaymentStatus;
-
-  appointmentDate?: string;
-  appointmentTime?: string;
-
   completedAt?: string;
   errorMessage?: string;
   status: ApplicationStatus;

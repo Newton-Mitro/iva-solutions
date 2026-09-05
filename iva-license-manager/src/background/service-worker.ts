@@ -29,6 +29,6 @@ chrome.action.onClicked.addListener(async () => {
       });
     }
   } catch (error) {
-    console.error("Failed to open IVAC License Manager:", error);
+    console.error("Failed to open IVA License Manager:", error);
   }
 });

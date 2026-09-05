@@ -1,4 +1,4 @@
-# IVAC License Manager — Firebase Auth + Firestore
+# IVA License Manager — Firebase Auth + Firestore
 
 This version uses:
 
