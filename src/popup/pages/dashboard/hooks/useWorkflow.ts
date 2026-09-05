@@ -1,9 +1,60 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createWorkflowSteps, workflowStepsByPhase } from "../constants";
 import { signOutUser } from "../../../../firebase/auth";
 import { WorkflowPhase, WorkflowStep } from "../../../../types/dashboard.types";
 
 type LogType = "success" | "info" | "warning" | "error";
+
+function logInBrowserContent(message: string, type: LogType) {
+  if (typeof chrome === "undefined" || !chrome.tabs) {
+    return;
+  }
+
+  void chrome.tabs
+    .query({ active: true })
+    .then((tabs) => {
+      const pageTabs = tabs.filter(
+        (tab) =>
+          typeof tab.id === "number" &&
+          typeof tab.url === "string" &&
+          /^https?:\/\//.test(tab.url),
+      );
+      const target =
+        pageTabs.find((tab) => tab.url?.includes("ivacbd.com")) ?? pageTabs[0];
+
+      if (typeof target?.id !== "number") {
+        return;
+      }
+
+      const payload = {
+        type: "IVAC_WORKFLOW_LOG",
+        message,
+        level: type,
+        time: new Date().toISOString(),
+      } as const;
+
+      return chrome.scripting
+        .executeScript({
+          target: { tabId: target.id },
+          world: "MAIN",
+          func: (event: typeof payload) => {
+            const prefix = `[IVAC automation] ${event.time}`;
+
+            if (event.level === "error") {
+              console.error(prefix, event.message);
+            } else if (event.level === "warning") {
+              console.warn(prefix, event.message);
+            } else {
+              console.log(prefix, event.message);
+            }
+          },
+          args: [payload],
+        })
+        .catch(() => chrome.tabs.sendMessage(target.id as number, payload))
+        .catch(() => undefined);
+    })
+    .catch(() => undefined);
+}
 
 export type WorkflowLog = {
   type: LogType;
@@ -98,6 +149,15 @@ export function useWorkflow() {
    */
 
   function addLog(message: string, type: LogType = "info") {
+    const consoleMethod =
+      type === "error"
+        ? console.error
+        : type === "warning"
+          ? console.warn
+          : console.info;
+    consoleMethod(`[IVAC automation] ${message}`);
+    logInBrowserContent(message, type);
+
     setLogs((previous) => [
       ...previous,
       {
@@ -130,9 +190,61 @@ export function useWorkflow() {
       return;
     }
 
-    /**
-     * First start.
-     */
+    const activeIndex = steps.findIndex((step) => step.status === "running");
+
+    if (activeIndex !== -1) {
+      const activeStep = steps[activeIndex];
+
+      if (!activeStep.manual) {
+        setRunning(true);
+        setPaused(false);
+        addLog(`Step resumed: ${activeStep.title}`, "info");
+        return;
+      }
+
+      const nextIndex = activeIndex + 1;
+      const nextStep = steps[nextIndex];
+
+      setSteps((current) =>
+        current.map((step, index) => {
+          if (index === activeIndex) {
+            return { ...step, status: "completed", progress: 100 };
+          }
+
+          if (index === nextIndex && nextStep) {
+            return { ...step, status: "running", progress: 0 };
+          }
+
+          return step;
+        }),
+      );
+
+      addLog(`Manual step completed: ${activeStep.title}`, "success");
+
+      if (!nextStep) {
+        setRunning(false);
+        addLog(`${workflowPhase} flow completed`, "success");
+      } else if (nextStep.manual) {
+        setRunning(false);
+        addLog(`Manual action required: ${nextStep.title}`, "warning");
+      } else {
+        setRunning(true);
+        setPaused(false);
+        addLog(`Step started: ${nextStep.title}`, "info");
+      }
+
+      return;
+    }
+
+    const firstPendingIndex = steps.findIndex(
+      (step) => step.status === "pending",
+    );
+
+    if (firstPendingIndex === -1) {
+      addLog(`${workflowPhase} flow is already complete.`, "success");
+      return;
+    }
+
     if (!startedFlows[workflowPhase]) {
       setStartedFlows((current) => ({
         ...current,
@@ -142,12 +254,9 @@ export function useWorkflow() {
       setRunning(true);
       setPaused(false);
 
-      /**
-       * Start the first pending step.
-       */
       setSteps((current) =>
         current.map((step, index) =>
-          index === 0
+          index === firstPendingIndex
             ? {
                 ...step,
                 status: "running",
@@ -158,6 +267,7 @@ export function useWorkflow() {
       );
 
       addLog(`${workflowPhase} flow started`, "info");
+      addLog(`Step started: ${steps[firstPendingIndex].title}`, "info");
 
       return;
     }
@@ -168,8 +278,78 @@ export function useWorkflow() {
     setRunning(true);
     setPaused(false);
 
-    addLog(`${workflowPhase} checkpoint opened`, "info");
+    addLog(`${workflowPhase} flow resumed`, "info");
   }
+
+  function stopFlow() {
+    setRunning(false);
+    setPaused(false);
+    addLog(`${workflowPhase} flow stopped`, "warning");
+  }
+
+  useEffect(() => {
+    if (!running || paused) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setSteps((current) => {
+        const activeIndex = current.findIndex(
+          (step) => step.status === "running",
+        );
+
+        if (activeIndex === -1) {
+          setRunning(false);
+          return current;
+        }
+
+        const activeStep = current[activeIndex];
+        const nextProgress = Math.min(activeStep.progress + 25, 100);
+
+        if (nextProgress < 100) {
+          return current.map((step, index) =>
+            index === activeIndex ? { ...step, progress: nextProgress } : step,
+          );
+        }
+
+        addLog(`Step completed: ${activeStep.title}`, "success");
+
+        const nextIndex = activeIndex + 1;
+        const nextStep = current[nextIndex];
+
+        if (!nextStep) {
+          setRunning(false);
+          addLog(`${workflowPhase} flow completed`, "success");
+          return current.map((step, index) =>
+            index === activeIndex
+              ? { ...step, status: "completed", progress: 100 }
+              : step,
+          );
+        }
+
+        if (nextStep.manual) {
+          setRunning(false);
+          addLog(`Manual action required: ${nextStep.title}`, "warning");
+        } else {
+          addLog(`Step started: ${nextStep.title}`, "info");
+        }
+
+        return current.map((step, index) => {
+          if (index === activeIndex) {
+            return { ...step, status: "completed", progress: 100 };
+          }
+
+          if (index === nextIndex) {
+            return { ...step, status: "running", progress: 0 };
+          }
+
+          return step;
+        });
+      });
+    }, 700);
+
+    return () => window.clearInterval(timer);
+  }, [paused, running, workflowPhase]);
 
   /**
    * ============================================================
@@ -402,6 +582,7 @@ export function useWorkflow() {
      * Actions
      */
     startFlow,
+    stopFlow,
     togglePause,
     reset,
     signOut,

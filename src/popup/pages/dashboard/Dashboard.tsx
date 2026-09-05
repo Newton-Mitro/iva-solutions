@@ -106,15 +106,12 @@ export function Dashboard({ user }: { user: FirebaseUser }) {
             <WorkflowCard
               phase={workflow.workflowPhase}
               steps={workflow.steps}
-              started={
-                workflow.workflowPhase === "run_phase_one"
-                  ? workflow.steps.some((step) => step.status === "running")
-                  : true
-              }
+              started={workflow.running}
               onPhaseChange={(phase: WorkflowPhase) =>
                 workflow.setWorkflowPhase(phase)
               }
               onStart={workflow.startFlow}
+              onStop={workflow.stopFlow}
               onReset={workflow.reset}
             />
           </>
