@@ -84,7 +84,6 @@ export type AutomationLogStatus =
 
 export type Applicant = {
   id: string;
-  userId?: string;
   fullName: string;
   email?: string;
   mobile?: string;
@@ -92,21 +91,6 @@ export type Applicant = {
   passportNumber: string;
   nidNumber: string;
   status: ApplicantStatus;
-};
-
-/* -------------------------------------------------------------------------- */
-/* IVAC Application                                                           */
-/* -------------------------------------------------------------------------- */
-
-export type Application = {
-  id: string;
-  applicantId: string;
-  visaType?: VisaType;
-  mission?: Mission;
-  ivacCenter?: IvacCenter;
-  completedAt?: string;
-  errorMessage?: string;
-  status: ApplicationStatus;
 };
 
 export type Webfile = {
@@ -139,10 +123,6 @@ export type Payment = {
   status: PaymentStatus;
 };
 
-/* -------------------------------------------------------------------------- */
-/* Automation Account                                                         */
-/* -------------------------------------------------------------------------- */
-
 export type AutomationAccount = {
   id: string;
   applicantId: string;
@@ -154,6 +134,25 @@ export type AutomationAccount = {
   lastLoginAt?: string;
   lastLogoutAt?: string;
   accountStatus: AccountStatus;
+};
+
+/* -------------------------------------------------------------------------- */
+/* IVAC Application                                                           */
+/* -------------------------------------------------------------------------- */
+
+export type Application = {
+  id: string;
+
+  applicant: Applicant;
+  webfiles: Webfile[];
+  appointment: Appointment;
+  payment: Payment;
+  automationAccount?: AutomationAccount;
+
+  visaType?: VisaType;
+  mission?: Mission;
+  ivacCenter?: IvacCenter;
+  status: ApplicationStatus;
 };
 
 /* -------------------------------------------------------------------------- */
