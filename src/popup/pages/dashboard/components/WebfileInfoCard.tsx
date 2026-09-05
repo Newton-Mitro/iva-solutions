@@ -156,8 +156,6 @@ export default function WebfileInfoCard({ webfiles }: { webfiles: Webfile[] }) {
                             {webfile.type}
                           </p>
                         </div>
-
-                        <StatusBadge status={webfile.status} />
                       </div>
 
                       {/* Uploaded state */}

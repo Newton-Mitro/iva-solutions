@@ -18,150 +18,90 @@ export default function ApplicationSelector({
   const [open, setOpen] = useState(false);
 
   return (
-    <section
-      className="
-        ivac-card
-        overflow-hidden
-        rounded-xl
-        border border-(--app-border)
-        shadow-sm
-      "
-    >
+    <section className="ivac-card overflow-hidden rounded-xl border border-(--app-border) shadow-sm">
       {/* Header */}
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
         aria-expanded={open}
-        className="
-          ivac-hover
-          flex w-full
-          items-center
-          justify-between
-          gap-3
-          px-3.5 py-3
-          text-left
-          transition-colors
-        "
+        className="ivac-hover flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition-colors"
       >
-        <div className="flex min-w-0 items-center gap-3">
-          {/* Icon */}
-          <div
-            className="
-              flex h-8 w-8
-              shrink-0
-              items-center justify-center
-              rounded-lg
-              ivac-primary-bg
-              ivac-primary
-            "
-          >
-            <FileText size={15} />
+        {/* Icon */}
+        <div className="ivac-primary-bg ivac-primary flex h-7 w-7 shrink-0 items-center justify-center rounded-lg">
+          <FileText size={14} />
+        </div>
+
+        {/* Application info */}
+        <div className="min-w-0 flex-1">
+          {/* Label + count */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[8px] font-bold uppercase tracking-wider ivac-text-muted">
+              Applications
+            </span>
+
+            <span className="ivac-primary-bg ivac-primary rounded-full px-1.5 py-0.5 text-[7px] font-bold leading-none">
+              {applications.length}
+            </span>
           </div>
 
-          {/* Application info */}
-          <div className="min-w-0">
-            <div className="mb-1 flex items-center gap-2">
-              <div className="flex items-center gap-1.5">
-                <span className="text-[8px] font-bold uppercase tracking-wider ivac-text-muted">
-                  Applications
-                </span>
+          {/* Application */}
+          <div className="mt-0.5 flex min-w-0 items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <h2 className="truncate text-[11px] font-bold leading-tight">
+                {application?.visaType ?? "No application selected"}
+              </h2>
 
-                <span className="ivac-primary-bg ivac-primary rounded-full px-1.5 py-0.5 text-[8px] font-bold leading-none">
-                  {applications.length}
-                </span>
-              </div>
-            </div>
-
-            <h2 className="truncate text-xs font-bold">
-              {application?.visaType ?? "No application selected"}
-            </h2>
-
-            <div className="mt-0.5 flex min-w-0 items-center gap-2 text-[9px] ivac-text-muted">
               {application ? (
-                <>
-                  {/* Location */}
-                  <div className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
-                    <MapPin size={9} className="shrink-0" />
+                <div className="mt-0.5 flex min-w-0 items-center gap-1 text-[8px] leading-tight ivac-text-muted">
+                  <MapPin size={8} className="shrink-0" />
 
-                    <span className="truncate">
-                      {application.mission ?? "Mission not selected"}
-                    </span>
+                  <span className="truncate">
+                    {application.mission ?? "Mission not selected"}
+                  </span>
 
-                    <span className="shrink-0">·</span>
+                  <span className="shrink-0">·</span>
 
-                    <span className="truncate">
-                      {application.ivacCenter ?? "Center not selected"}
-                    </span>
-                  </div>
-
-                  {/* Status - far right */}
-                  <div className="ml-auto shrink-0">
-                    <StatusBadge status={application.status} />
-                  </div>
-                </>
+                  <span className="truncate">
+                    {application.ivacCenter ?? "Center not selected"}
+                  </span>
+                </div>
               ) : (
-                <span>Add an application for this applicant</span>
+                <p className="mt-0.5 truncate text-[8px] leading-tight ivac-text-muted">
+                  Add an application for this applicant
+                </p>
               )}
             </div>
+
+            {/* Status */}
+            {application && (
+              <div className="ml-auto shrink-0">
+                <StatusBadge status={application.status} />
+              </div>
+            )}
           </div>
         </div>
 
         {/* Chevron */}
-        <div
-          className="
-            flex h-7 w-7
-            shrink-0
-            items-center justify-center
-            rounded-full
-            ivac-surface-2
-            ivac-text-muted
-          "
-        >
+        <div className="ivac-surface-2 ivac-text-muted flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
           <ChevronDown
-            size={15}
-            className={`
-              transition-transform
-              duration-200
-              ${open ? "rotate-180" : ""}
-            `}
+            size={13}
+            className={`transition-transform duration-200 ${
+              open ? "rotate-180" : ""
+            }`}
           />
         </div>
       </button>
 
       {/* Dropdown */}
       <div
-        className={`
-          grid
-          transition-[grid-template-rows,opacity]
-          duration-200
-          ease-out
-          ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}
-        `}
+        className={`grid transition-[grid-template-rows,opacity] duration-200 ease-out ${
+          open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        }`}
       >
-        <div className="min-h-0 overflow-hidden">
-          <div
-            className="
-              border-t
-              border-(--app-border)
-              p-2
-            "
-          >
+        <div className="min-h-0 overflow-hidden border-t border-(--app-border)">
+          <div className="p-2">
             {applications.length > 0 ? (
-              <>
-                <div className="mb-1.5 px-1">
-                  <p
-                    className="
-                      text-[8px]
-                      font-bold
-                      uppercase
-                      tracking-wider
-                      ivac-text-muted
-                    "
-                  >
-                    Available applications
-                  </p>
-                </div>
-
+              <div className="max-h-48 overflow-y-auto">
                 <div className="space-y-1">
                   {applications.map((item) => {
                     const selected = item.id === application?.id;
@@ -175,16 +115,9 @@ export default function ApplicationSelector({
                           setOpen(false);
                         }}
                         className={`
-                          group
-                          flex w-full
-                          items-center
-                          justify-between
-                          gap-3
-                          rounded-lg
-                          border
-                          p-2.5
-                          text-left
-                          transition-all
+                          group flex w-full items-center gap-2
+                          rounded-lg border px-2 py-1.5
+                          text-left transition-all
                           ${
                             selected
                               ? `
@@ -200,114 +133,101 @@ export default function ApplicationSelector({
                           }
                         `}
                       >
-                        <div className="flex min-w-0 items-center gap-2.5">
-                          {/* Selection / document icon */}
-                          <div
+                        {/* Icon */}
+                        <div
+                          className={`
+                            flex h-6 w-6 shrink-0
+                            items-center justify-center
+                            rounded-md
+                            ${
+                              selected
+                                ? `
+                                  bg-blue-100
+                                  text-blue-600
+                                  dark:bg-blue-900/40
+                                  dark:text-blue-400
+                                `
+                                : `
+                                  ivac-surface-2
+                                  ivac-text-muted
+                                `
+                            }
+                          `}
+                        >
+                          {selected ? (
+                            <Check size={12} />
+                          ) : (
+                            <FileText size={12} />
+                          )}
+                        </div>
+
+                        {/* Details */}
+                        <div className="min-w-0 flex-1">
+                          {/* Visa type */}
+                          <p
                             className={`
-                              flex h-7 w-7
-                              shrink-0
-                              items-center justify-center
-                              rounded-md
+                              truncate text-[9px] font-bold leading-tight
                               ${
                                 selected
-                                  ? "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400"
-                                  : "ivac-surface-2 ivac-text-muted"
+                                  ? "text-blue-700 dark:text-blue-300"
+                                  : ""
                               }
                             `}
                           >
-                            {selected ? (
-                              <Check size={13} />
-                            ) : (
-                              <FileText size={13} />
-                            )}
-                          </div>
+                            {item.visaType ?? "Indian Visa Application"}
+                          </p>
 
-                          {/* Details */}
-                          <div className="min-w-0">
-                            <span
-                              className={`
-                                block
-                                truncate
-                                text-[10px]
-                                font-bold
-                                ${
-                                  selected
-                                    ? "text-blue-700 dark:text-blue-300"
-                                    : ""
-                                }
-                              `}
-                            >
-                              {item.visaType ?? "Indian Visa Application"}
+                          {/* Location */}
+                          <div className="mt-0.5 flex min-w-0 items-center gap-1 text-[7px] leading-tight ivac-text-muted">
+                            <MapPin size={7} className="shrink-0" />
+
+                            <span className="truncate">
+                              {item.mission ?? "Mission not selected"}
                             </span>
 
-                            <span className="mt-0.5 flex items-center gap-1 truncate text-[8px] ivac-text-muted">
-                              <span className="truncate">
-                                {item.mission ?? "Mission not selected"}
-                              </span>
+                            <span className="shrink-0">·</span>
 
-                              <span>·</span>
-
-                              <span className="truncate">
-                                {item.ivacCenter ?? "Center not selected"}
-                              </span>
+                            <span className="truncate">
+                              {item.ivacCenter ?? "Center not selected"}
                             </span>
                           </div>
                         </div>
 
                         {/* Status */}
-                        <div className="shrink-0">
+                        <div className="ml-auto shrink-0">
                           <StatusBadge status={item.status} />
                         </div>
                       </button>
                     );
                   })}
                 </div>
-              </>
+              </div>
             ) : (
-              <div
-                className="
-                  flex
-                  flex-col
-                  items-center
-                  justify-center
-                  rounded-lg
-                  border
-                  border-dashed
-                  border-(--app-border)
-                  px-4 py-6
-                  text-center
-                "
-              >
-                <div
-                  className="
-                    flex h-9 w-9
-                    items-center justify-center
-                    rounded-full
-                    ivac-surface-2
-                    ivac-text-muted
-                  "
-                >
-                  <FileText size={16} />
+              <div className="flex min-h-28 flex-col items-center justify-center rounded-lg border border-dashed border-(--app-border) px-4 text-center">
+                <div className="ivac-surface-2 ivac-text-muted flex h-8 w-8 items-center justify-center rounded-full">
+                  <FileText size={13} />
                 </div>
 
-                <p className="mt-2 text-[10px] font-semibold">
+                <p className="mt-1.5 text-[9px] font-semibold">
                   No applications
                 </p>
 
-                <p
-                  className="
-                    mt-1
-                    max-w-xs
-                    text-[9px]
-                    leading-4
-                    ivac-text-muted
-                  "
-                >
-                  No visa application has been added for this applicant yet.
+                <p className="mt-0.5 text-[8px] ivac-text-muted">
+                  No visa application has been added yet.
                 </p>
               </div>
             )}
           </div>
+
+          {/* Compact count */}
+          {applications.length > 0 && (
+            <div className="border-t border-(--app-border) px-3 py-1.5">
+              <p className="text-[7px] ivac-text-muted">
+                {applications.length} application
+                {applications.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </section>

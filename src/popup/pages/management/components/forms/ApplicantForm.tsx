@@ -21,129 +21,129 @@ export function ApplicantForm({
   onCancel,
   onSubmit,
 }: ApplicantFormProps) {
+  const record = initialRecord ?? {};
+
   return (
     <form
       onSubmit={(event) => {
         event.preventDefault();
         void onSubmit(event.currentTarget);
       }}
-      className="mb-2 space-y-2"
+      className="mb-2"
     >
-      <Card>
-        <Field
-          name="surname"
-          label="Surname"
-          required
-          defaultValue={text(initialRecord ?? {}, "surname")}
-        />
-        <Field
-          name="givenName"
-          label="Given name"
-          required
-          defaultValue={text(initialRecord ?? {}, "givenName")}
-        />
-        <Field
-          name="fullName"
-          label="Full name"
-          required
-          defaultValue={text(initialRecord ?? {}, "fullName")}
-        />
-        <Field
-          name="passportNumber"
-          label="Passport number"
-          required
-          defaultValue={text(initialRecord ?? {}, "passportNumber")}
-        />
-        <Field
-          name="nidNumber"
-          label="NID number"
-          required
-          defaultValue={text(initialRecord ?? {}, "nidNumber")}
-        />
-        <Field
-          name="email"
-          label="Email"
-          type="email"
-          defaultValue={text(initialRecord ?? {}, "email")}
-        />
-        <Field
-          name="mobile"
-          label="Mobile"
-          defaultValue={text(initialRecord ?? {}, "mobile")}
-        />
-        <Field
-          name="dateOfBirth"
-          label="Date of birth"
-          type="date"
-          defaultValue={text(initialRecord ?? {}, "dateOfBirth")}
-        />
-        <div className="grid grid-cols-2 gap-2">
-          <label className="block text-[9px] font-semibold">
-            Nationality
-            <select
-              className="ivac-input mt-0.5"
-              name="nationality"
-              defaultValue={text(initialRecord ?? {}, "nationality")}
-            >
-              <option value="">Select nationality</option>
-              <option value="Bangladeshi">Bangladeshi</option>
-              <option value="Indian">Indian</option>
-              <option value="Other">Other</option>
-            </select>
-          </label>
-          <label className="block text-[9px] font-semibold">
-            Gender
-            <select
-              className="ivac-input mt-0.5"
-              name="gender"
-              defaultValue={text(initialRecord ?? {}, "gender")}
-            >
-              <option value="">Select gender</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
-          </label>
+      <Card className="space-y-2.5">
+        {/* Personal Information */}
+        <div>
+          <p className="text-[8px] font-bold uppercase tracking-wider ivac-text-muted">
+            Personal information
+          </p>
+
+          <div className="mt-1.5 space-y-2">
+            <Field
+              name="fullName"
+              label="Full name"
+              required
+              defaultValue={text(record, "fullName")}
+            />
+
+            <label className="block text-[9px] font-semibold">
+              Gender
+              <select
+                className="ivac-input mt-0.5"
+                name="gender"
+                defaultValue={text(record, "gender")}
+              >
+                <option value="">Select</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+          </div>
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <Field
-            name="passportIssueDate"
-            label="Passport issue date"
-            type="date"
-            defaultValue={text(initialRecord ?? {}, "passportIssueDate")}
-          />
-          <Field
-            name="passportExpiryDate"
-            label="Passport expiry date"
-            type="date"
-            defaultValue={text(initialRecord ?? {}, "passportExpiryDate")}
-          />
+
+        {/* Identification */}
+        <div>
+          <p className="text-[8px] font-bold uppercase tracking-wider ivac-text-muted">
+            Identification
+          </p>
+
+          <div className="mt-1.5 grid grid-cols-2 gap-2">
+            <Field
+              name="passportNumber"
+              label="Passport number"
+              required
+              defaultValue={text(record, "passportNumber")}
+            />
+
+            <Field
+              name="nidNumber"
+              label="NID number"
+              required
+              defaultValue={text(record, "nidNumber")}
+            />
+          </div>
         </div>
+
+        {/* Contact */}
+        <div>
+          <p className="text-[8px] font-bold uppercase tracking-wider ivac-text-muted">
+            Contact information
+          </p>
+
+          <div className="mt-1.5 space-y-2">
+            <Field
+              name="email"
+              label="Email"
+              type="email"
+              defaultValue={text(record, "email")}
+            />
+
+            <Field
+              name="mobile"
+              label="Mobile"
+              defaultValue={text(record, "mobile")}
+            />
+          </div>
+        </div>
+
+        {/* Status */}
         <label className="block text-[9px] font-semibold">
           Status
           <select
             className="ivac-input mt-0.5"
             name="status"
-            defaultValue={text(initialRecord ?? {}, "status")}
+            defaultValue={text(record, "status")}
           >
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
-            <option value="completed">Completed</option>
-            <option value="blocked">Blocked</option>
           </select>
         </label>
-        {error && <p className="rounded text-[9px] ivac-danger">{error}</p>}
-        <div className="flex gap-1 pt-1">
+
+        {/* Error */}
+        {error && (
+          <div className="ivac-danger-bg rounded-lg px-2.5 py-2">
+            <p className="text-[9px] font-medium ivac-danger">{error}</p>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex gap-2 border-t border-(--app-border) pt-2">
           <Button
             type="button"
             onClick={onCancel}
             variant="secondary"
-            className="flex-1"
+            className="h-8 flex-1 text-[9px]"
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={busy} className="flex-1">
-            {busy ? "Saving..." : "Save"}
+
+          <Button
+            type="submit"
+            disabled={busy}
+            className="h-8 flex-1 text-[9px]"
+          >
+            {busy ? "Saving..." : initialRecord ? "Update" : "Save applicant"}
           </Button>
         </div>
       </Card>

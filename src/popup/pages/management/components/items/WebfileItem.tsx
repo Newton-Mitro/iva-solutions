@@ -38,9 +38,6 @@ export function WebfileItem({ webfile, onEdit, onDelete }: WebfileItemProps) {
   return (
     <div className="flex items-start justify-between gap-2 rounded-lg bg-(--app-surface-2) px-2 py-1.5 text-[8px]">
       <div className="min-w-0">
-        <p className="truncate font-semibold">
-          {text(webfile, "webfileNumber")}
-        </p>
         <div className="mt-1 flex items-center gap-1">
           {localFile ? (
             <FileCheck size={10} className="ivac-success shrink-0" />

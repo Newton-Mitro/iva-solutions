@@ -1,7 +1,6 @@
 import { RecordItem, text } from "../../../../../types/management.types";
 import { Button } from "../../../../components/ui/Button";
 import { Card } from "../../../../components/ui/Card";
-import { Field } from "../../../../components/ui/Field";
 
 interface WebfileFormProps {
   applicationId: string;
@@ -23,71 +22,86 @@ export function WebfileForm({
   onCancel,
   onSubmit,
 }: WebfileFormProps) {
+  const record = initialRecord ?? {};
+
   return (
     <form
       onSubmit={(event) => {
         event.preventDefault();
         void onSubmit(event.currentTarget);
       }}
-      className="mb-2 space-y-2"
+      className="mb-2"
     >
-      <Card>
+      <Card className="space-y-2.5">
         <input type="hidden" name="ivacApplicationId" value={applicationId} />
-        <Field
-          name="webfileNumber"
-          label="Webfile number"
-          required
-          defaultValue={text(initialRecord ?? {}, "webfileNumber")}
-        />
-        <div className="grid grid-cols-2 gap-2">
-          <label className="block text-[9px] font-semibold">
+
+        {/* Webfile Information */}
+        <div>
+          <p className="text-[8px] font-bold uppercase tracking-wider ivac-text-muted">
+            Webfile information
+          </p>
+
+          <label className="mt-1.5 block text-[9px] font-semibold">
             Type
             <select
               className="ivac-input mt-0.5"
               name="type"
-              defaultValue={text(initialRecord ?? {}, "type")}
+              defaultValue={text(record, "type") || "primary"}
             >
               <option value="primary">Primary</option>
               <option value="additional">Additional</option>
             </select>
           </label>
-          <label className="block text-[9px] font-semibold">
-            Status
-            <select
-              className="ivac-input mt-0.5"
-              name="status"
-              defaultValue={text(initialRecord ?? {}, "status")}
-            >
-              <option value="pending">Pending</option>
-              <option value="uploading">Uploading</option>
-              <option value="uploaded">Uploaded</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="failed">Failed</option>
-            </select>
-          </label>
         </div>
-        <label className="block text-[9px] font-semibold">
-          Document
-          <input
-            className="ivac-input mt-1"
-            name="file"
-            type="file"
-            accept="application/pdf,image/*"
-            required={!initialRecord}
-          />
-        </label>
-        {error && <p className="rounded text-[9px] ivac-danger">{error}</p>}
-        <div className="flex gap-1 pt-1">
+
+        {/* Document */}
+        <div>
+          <p className="text-[8px] font-bold uppercase tracking-wider ivac-text-muted">
+            Document
+          </p>
+
+          <label className="mt-1.5 block text-[9px] font-semibold">
+            Webfile document
+            <input
+              className="ivac-input mt-0.5"
+              name="file"
+              type="file"
+              accept="application/pdf,image/*"
+              required={!initialRecord}
+            />
+          </label>
+
+          {initialRecord && (
+            <p className="mt-1 text-[7px] ivac-text-muted">
+              Leave empty to keep the existing document.
+            </p>
+          )}
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div className="ivac-danger-bg rounded-lg px-2.5 py-2">
+            <p className="text-[9px] font-medium ivac-danger">{error}</p>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex gap-2 border-t border-(--app-border) pt-2">
           <Button
             type="button"
             onClick={onCancel}
             variant="secondary"
-            className="flex-1"
+            className="h-8 flex-1 text-[9px]"
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={busy} className="flex-1">
-            {busy ? "Saving..." : "Save"}
+
+          <Button
+            type="submit"
+            disabled={busy}
+            className="h-8 flex-1 text-[9px]"
+          >
+            {busy ? "Saving..." : initialRecord ? "Update" : "Save webfile"}
           </Button>
         </div>
       </Card>

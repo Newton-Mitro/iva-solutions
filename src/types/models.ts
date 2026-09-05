@@ -39,42 +39,18 @@ export type LogType = "success" | "info" | "warning" | "error";
 /* Status Types                                                               */
 /* -------------------------------------------------------------------------- */
 
-export type ApplicantStatus = "active" | "inactive" | "completed" | "blocked";
+export type ApplicantStatus = "active" | "inactive" | "blocked";
 
 export type ApplicationStatus =
-  | "draft"
   | "pending"
-  | "processing"
   | "webfile"
-  | "mission"
   | "appointment"
   | "payment"
   | "completed"
   | "cancelled"
   | "failed";
 
-export type AccountStatus =
-  | "pending"
-  | "active"
-  | "suspended"
-  | "blocked"
-  | "logged_out";
-
-export type WebfileStatus =
-  | "pending"
-  | "uploading"
-  | "uploaded"
-  | "confirmed"
-  | "failed";
-
-export type AppointmentStatus =
-  | "pending"
-  | "searching"
-  | "available"
-  | "booking"
-  | "confirmed"
-  | "cancelled"
-  | "failed";
+export type AccountStatus = "active" | "suspended" | "blocked";
 
 export type AppointmentAttemptStatus = "pending" | "success" | "failed";
 
@@ -187,7 +163,6 @@ export type Webfile = {
   type: WebfileType;
   filePath?: string;
   originalName?: string;
-  status: WebfileStatus;
   uploadedAt?: string;
   confirmedAt?: string;
   errorMessage?: string;
@@ -205,7 +180,6 @@ export type Appointment = {
   appointmentTime?: string;
   confirmedAt?: string;
   errorMessage?: string;
-  status: AppointmentStatus;
 };
 
 /* -------------------------------------------------------------------------- */

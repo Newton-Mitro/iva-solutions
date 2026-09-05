@@ -6,8 +6,6 @@ import DashboardEmpty from "./components/DashboardEmpty";
 import ApplicantSelector from "./components/ApplicantSelector";
 import ApplicationSelector from "./components/ApplicationSelector";
 import WorkflowCard from "./components/WorkflowCard";
-import AppointmentCard from "./components/AppointmentCard";
-import PaymentCard from "./components/PaymentCard";
 import ActivityLog from "./components/ActivityLog";
 import AccountInfoCard from "./components/AccountInfoCard";
 import WebfileInfoCard from "./components/WebfileInfoCard";
@@ -118,11 +116,6 @@ export function Dashboard({ user }: { user: FirebaseUser }) {
               }
               onStart={workflow.startFlow}
               onReset={workflow.reset}
-            />
-            <AppointmentCard appointment={applicationAppointment} />
-            <PaymentCard
-              application={application}
-              payment={applicationPayment}
             />
           </>
         ) : (

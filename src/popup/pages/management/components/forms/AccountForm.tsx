@@ -23,65 +23,92 @@ export function AccountForm({
   onCancel,
   onSubmit,
 }: AccountFormProps) {
+  const record = initialRecord ?? {};
+
   return (
     <form
       onSubmit={(event) => {
         event.preventDefault();
         void onSubmit(event.currentTarget);
       }}
-      className="mt-1 space-y-2"
+      className="mb-2"
     >
-      <Card>
+      <Card className="space-y-2.5">
         <input type="hidden" name="applicantId" value={applicantId} />
-        <Field
-          name="email"
-          label="Indian Visa Application email"
-          type="email"
-          required
-          defaultValue={text(initialRecord ?? {}, "email")}
-        />
-        <Field
-          name="mobile"
-          label="Mobile"
-          required
-          defaultValue={text(initialRecord ?? {}, "mobile")}
-        />
-        <Field
-          name="ivacPassword"
-          label="IVAC password"
-          type="password"
-          defaultValue={
-            initialRecord?.ivacPassword
-              ? String(initialRecord.ivacPassword)
-              : ""
-          }
-        />
+
+        {/* Account Information */}
+        <div>
+          <p className="text-[8px] font-bold uppercase tracking-wider ivac-text-muted">
+            Account information
+          </p>
+
+          <div className="mt-1.5 space-y-2">
+            <Field
+              name="email"
+              label="Indian Visa Application email"
+              type="email"
+              required
+              defaultValue={text(record, "email")}
+            />
+
+            <Field
+              name="mobile"
+              label="Mobile"
+              required
+              defaultValue={text(record, "mobile")}
+            />
+
+            <Field
+              name="ivacPassword"
+              label="IVAC password"
+              type="password"
+              defaultValue={
+                initialRecord?.ivacPassword
+                  ? String(initialRecord.ivacPassword)
+                  : ""
+              }
+            />
+          </div>
+        </div>
+
+        {/* Account Status */}
         <label className="block text-[9px] font-semibold">
           Status
           <select
             className="ivac-input mt-0.5"
             name="accountStatus"
-            defaultValue={text(initialRecord ?? {}, "accountStatus")}
+            defaultValue={text(record, "accountStatus") || "pending"}
           >
-            <option value="pending">Pending</option>
             <option value="active">Active</option>
             <option value="suspended">Suspended</option>
             <option value="blocked">Blocked</option>
-            <option value="logged_out">Logged out</option>
           </select>
         </label>
-        {error && <p className="rounded text-[9px] ivac-danger">{error}</p>}
-        <div className="flex gap-1 pt-1">
+
+        {/* Error */}
+        {error && (
+          <div className="ivac-danger-bg rounded-lg px-2.5 py-2">
+            <p className="text-[9px] font-medium ivac-danger">{error}</p>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex gap-2 border-t border-(--app-border) pt-2">
           <Button
             type="button"
             onClick={onCancel}
             variant="secondary"
-            className="flex-1"
+            className="h-8 flex-1 text-[9px]"
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={busy} className="flex-1">
-            {busy ? "Saving..." : "Save"}
+
+          <Button
+            type="submit"
+            disabled={busy}
+            className="h-8 flex-1 text-[9px]"
+          >
+            {busy ? "Saving..." : initialRecord ? "Update" : "Save account"}
           </Button>
         </div>
       </Card>

@@ -68,14 +68,7 @@ export default function WorkflowCard({
           {/* Heading */}
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="text-xs font-bold">Application Flow</h2>
-
-              {started && (
-                <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[8px] font-bold text-emerald-600 dark:text-emerald-400">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
-                  Running
-                </span>
-              )}
+              <h2 className="text-xs font-bold">Automation RUN</h2>
             </div>
 
             <p className="mt-0.5 truncate text-[9px] ivac-text-muted">
@@ -120,28 +113,17 @@ export default function WorkflowCard({
             {/* =====================================================
                 PHASE NAVIGATION
             ====================================================== */}
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-[8px] font-bold uppercase tracking-wider ivac-text-muted">
-                  Application stages
-                </span>
+            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
+              {flowTabs.map((tab, index) => {
+                const active = tab.id === phase;
+                const completed = index < phaseIndex;
 
-                <span className="text-[8px] font-medium ivac-text-muted">
-                  {phaseIndex + 1} of {flowTabs.length}
-                </span>
-              </div>
-
-              <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
-                {flowTabs.map((tab, index) => {
-                  const active = tab.id === phase;
-                  const completed = index < phaseIndex;
-
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => onPhaseChange(tab.id)}
-                      className={`
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => onPhaseChange(tab.id)}
+                    className={`
                         group flex shrink-0 items-center gap-1.5
                         rounded-lg px-2.5 py-1.5
                         text-[9px] font-bold
@@ -155,20 +137,19 @@ export default function WorkflowCard({
                               : "ivac-surface-2 ivac-text-muted hover:opacity-80"
                         }
                       `}
-                    >
-                      {completed ? (
-                        <Check size={10} strokeWidth={3} />
-                      ) : active ? (
-                        <Circle size={8} fill="currentColor" strokeWidth={0} />
-                      ) : (
-                        <Circle size={8} />
-                      )}
+                  >
+                    {completed ? (
+                      <Check size={10} strokeWidth={3} />
+                    ) : active ? (
+                      <Circle size={8} fill="currentColor" strokeWidth={0} />
+                    ) : (
+                      <Circle size={8} />
+                    )}
 
-                      {tab.title}
-                    </button>
-                  );
-                })}
-              </div>
+                    {tab.title}
+                  </button>
+                );
+              })}
             </div>
 
             {/* =====================================================
@@ -236,30 +217,6 @@ export default function WorkflowCard({
                 {phaseSteps.length > 0 && (
                   <div className="mt-3 rounded-lg border border-(--app-border) bg-(--app-background)/40 p-2.5">
                     <WorkflowSteps steps={phaseSteps} />
-                  </div>
-                )}
-
-                {/* =================================================
-                    SIGN IN
-                ================================================== */}
-                {phase === "run_phase_one" && (
-                  <ManualNotice>
-                    Human verification and mobile OTP must be completed manually
-                    in the portal.
-                  </ManualNotice>
-                )}
-
-                {/* =================================================
-                    MISSION
-                ================================================== */}
-                {phase === "run_phase_two" && (
-                  <div className="mt-3 grid grid-cols-2 gap-2">
-                    <ReadOnlyField label="Mission" value="Dhaka" />
-
-                    <ReadOnlyField
-                      label="Indian Visa Application Center"
-                      value="Indian Visa Application, Dhaka (JFP)"
-                    />
                   </div>
                 )}
 
