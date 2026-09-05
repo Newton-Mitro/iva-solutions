@@ -1,0 +1,38 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    /*
+     * This simple version treats every authenticated Firebase user as an
+     * administrator. For a single-owner license manager this is convenient.
+     * If you add more users later, change this to a custom admin claim or
+     * a users/{uid} role check.
+     */
+
+    match /users/{userId} {
+      allow read, write: if signedIn() && request.auth.uid == userId;
+    }
+
+    match /licenses/{licenseId} {
+      allow read, create, update, delete: if signedIn();
+    }
+
+    match /licenseActivations/{activationId} {
+      allow read, create, update, delete: if signedIn();
+    }
+
+    match /licenseEvents/{eventId} {
+      allow read, create: if signedIn();
+      allow update, delete: if false;
+    }
+
+    match /settings/{settingId} {
+      allow read, write: if signedIn();
+    }
+  }
+}

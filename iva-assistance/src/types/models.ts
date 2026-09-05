@@ -85,11 +85,17 @@ export type AutomationLogStatus =
 export type UserRecord = {
   id: string;
   email: string;
-  passwordHash: string;
   name?: string;
   phone?: string;
+  role: UserRole;
+  status: UserStatus;
+  createdAt: string;
+  updatedAt: string;
 };
 
+export type UserRole = "admin" | "customer";
+
+export type UserStatus = "active" | "suspended" | "blocked";
 /* -------------------------------------------------------------------------- */
 /* Applicant                                                                  */
 /* -------------------------------------------------------------------------- */

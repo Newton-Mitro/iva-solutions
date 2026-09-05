@@ -1,0 +1,26 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "licenses",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "createdAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "licenseActivations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "activatedAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "licenseEvents",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "createdAt", "order": "DESCENDING"}
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
