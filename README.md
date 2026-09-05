@@ -88,3 +88,5 @@ The license manager uses Firestore only. The customer extension also defines Fir
 iva-assistance/       Customer Chrome extension
 iva-license-manager/  License administration dashboard
 ```
+
+...
