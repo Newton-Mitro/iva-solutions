@@ -1,5 +1,5 @@
 {
-  "name": "ivac-license-manager-firebase",
+  "name": "iva-license-manager",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -19,6 +19,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "rollup": "^4.63.1",
     "typescript": "^5.7.2",
     "vite": "^6.0.0"
   }
