@@ -55,7 +55,7 @@ export default function AccountInfoCard({
             </div>
 
             <p className="mt-0.5 truncate text-[9px] ivac-text-muted">
-              Applicant login information
+              Automation account for this application
             </p>
           </div>
         </div>
@@ -202,7 +202,7 @@ export default function AccountInfoCard({
                   "
                 >
                   No Indian Visa Application account has been added for this
-                  applicant.
+                  application.
                 </p>
               </div>
             )}

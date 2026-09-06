@@ -4,7 +4,7 @@ import { Field } from "../../../../components/ui/Field";
 import { RecordItem, text } from "../../../../types/management.types";
 
 interface AccountFormProps {
-  applicantId: string;
+  applicationId: string;
   busy: boolean;
   error: string;
   initialRecord: RecordItem | null;
@@ -16,7 +16,7 @@ interface AccountFormProps {
  * Form for creating/editing automation accounts
  */
 export function AccountForm({
-  applicantId,
+  applicationId,
   busy,
   error,
   initialRecord,
@@ -34,7 +34,7 @@ export function AccountForm({
       className="mb-2"
     >
       <Card className="space-y-2.5">
-        <input type="hidden" name="applicantId" value={applicantId} />
+        <input type="hidden" name="applicationId" value={applicationId} />
 
         {/* Account Information */}
         <div>
@@ -77,7 +77,7 @@ export function AccountForm({
           <select
             className="ivac-input mt-0.5"
             name="accountStatus"
-            defaultValue={text(record, "accountStatus") || "pending"}
+            defaultValue={text(record, "accountStatus") || "active"}
           >
             <option value="active">Active</option>
             <option value="suspended">Suspended</option>

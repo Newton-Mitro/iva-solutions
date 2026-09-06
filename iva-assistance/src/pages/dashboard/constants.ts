@@ -21,10 +21,10 @@ import {
  * ============================================================
  */
 
-export const phaseOneWorkflow: WorkflowStepDefinition[] = [
+export const signupWorkflow: WorkflowStepDefinition[] = [
   {
     id: "signup-email",
-    phase: "run_phase_one",
+    phase: "signup",
     title: "Enter email address",
     description:
       "Enter the email address that will be used to create the Indian Visa Application account.",
@@ -32,7 +32,7 @@ export const phaseOneWorkflow: WorkflowStepDefinition[] = [
   },
   {
     id: "signup-send-email-otp",
-    phase: "run_phase_one",
+    phase: "signup",
     title: "Send email OTP",
     description:
       "Click the button to send the verification OTP to the email address.",
@@ -40,22 +40,22 @@ export const phaseOneWorkflow: WorkflowStepDefinition[] = [
   },
   {
     id: "signup-email-otp",
-    phase: "run_phase_one",
+    phase: "signup",
     title: "Enter email OTP",
-    description: "Enter the OTP received in the applicant's email.",
+    description: "Enter the OTP received in the application account email.",
     icon: MessageSquare,
     manual: true,
   },
   {
     id: "signup-passport",
-    phase: "run_phase_one",
+    phase: "signup",
     title: "Enter passport number",
-    description: "Enter the applicant's passport number.",
+    description: "Enter the passport number for this application.",
     icon: FileText,
   },
   {
     id: "signup-complete",
-    phase: "run_phase_one",
+    phase: "signup",
     title: "Complete Sign Up",
     description: "Click Sign Up to complete the account registration.",
     icon: CheckCircle,
@@ -68,10 +68,10 @@ export const phaseOneWorkflow: WorkflowStepDefinition[] = [
  * ============================================================
  */
 
-export const phaseTwoWorkFlow: WorkflowStepDefinition[] = [
+export const signinWorkflow: WorkflowStepDefinition[] = [
   {
     id: "signin-email",
-    phase: "run_phase_two",
+    phase: "signin",
     title: "Enter email address",
     description:
       "Enter the registered Indian Visa Application account email address.",
@@ -79,7 +79,7 @@ export const phaseTwoWorkFlow: WorkflowStepDefinition[] = [
   },
   {
     id: "signin-password",
-    phase: "run_phase_two",
+    phase: "signin",
     title: "Enter password",
     description:
       "Enter the registered Indian Visa Application account password.",
@@ -87,7 +87,7 @@ export const phaseTwoWorkFlow: WorkflowStepDefinition[] = [
   },
   {
     id: "signin-human-verification",
-    phase: "run_phase_two",
+    phase: "signin",
     title: "Human verification",
     description: "Complete the 'I am not a robot' verification.",
     icon: ShieldCheck,
@@ -95,14 +95,14 @@ export const phaseTwoWorkFlow: WorkflowStepDefinition[] = [
   },
   {
     id: "signin-submit",
-    phase: "run_phase_two",
+    phase: "signin",
     title: "Sign In Now",
     description: "Click the Sign In Now button.",
     icon: LogIn,
   },
   {
     id: "signin-mobile-otp",
-    phase: "run_phase_two",
+    phase: "signin",
     title: "Enter mobile OTP",
     description: "Enter the OTP received on the registered mobile number.",
     icon: Smartphone,
@@ -118,27 +118,36 @@ export const phaseTwoWorkFlow: WorkflowStepDefinition[] = [
 
 export const flowTabs = [
   {
-    id: "run_phase_one" as const,
-    title: "Run Phase 1",
+    id: "signup" as const,
+    title: "Sign Up",
   },
   {
-    id: "run_phase_two" as const,
-    title: "Run Phase 2",
+    id: "signin" as const,
+    title: "Sign In",
   },
 ];
 
 export function createWorkflowSteps(phase: WorkflowPhase): WorkflowStep[] {
-  return workflowStepsByPhase[phase].map((step) => ({
-    ...step,
-    status: "pending",
-    progress: 0,
-  }));
+  return (
+    workflowStepsByPhase[phase]?.map((step) => ({
+      ...step,
+      status: "pending",
+      progress: 0,
+    })) ?? []
+  );
 }
 
 export const workflowStepsByPhase: Record<
   WorkflowPhase,
   WorkflowStepDefinition[]
 > = {
-  run_phase_one: phaseOneWorkflow,
-  run_phase_two: phaseTwoWorkFlow,
+  signup: signupWorkflow,
+  signin: signinWorkflow,
+  webfile: [],
+  mission: [],
+  relogin: [],
+  appointment: [],
+  payment: [],
+  invoice: [],
+  signout: [],
 };

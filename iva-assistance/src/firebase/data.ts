@@ -16,7 +16,6 @@ import {
 import { db } from "./firestore";
 
 export type CollectionName =
-  | "applicants"
   | "automationAccounts"
   | "webfiles"
   | "ivacApplications"
@@ -68,14 +67,11 @@ export const deleteRecord = (
 type Relation = { collection: CollectionName; field: string };
 
 const relations: Partial<Record<CollectionName, Relation[]>> = {
-  applicants: [
-    { collection: "automationAccounts", field: "applicantId" },
-    { collection: "ivacApplications", field: "applicantId" },
-  ],
   automationAccounts: [
     { collection: "automationRuns", field: "automationAccountId" },
   ],
   ivacApplications: [
+    { collection: "automationAccounts", field: "applicationId" },
     { collection: "webfiles", field: "ivacApplicationId" },
     { collection: "appointments", field: "ivacApplicationId" },
     { collection: "appointmentAttempts", field: "ivacApplicationId" },

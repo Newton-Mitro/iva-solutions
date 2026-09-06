@@ -94,7 +94,7 @@ export default function AuthScreen() {
         </h1>
         <p className="mt-1 text-xs ivac-text-secondary">
           {mode === "signin"
-            ? "Sign in to access your applicants and runs."
+            ? "Sign in to access your applications and runs."
             : "Your records stay isolated to your account."}
         </p>
         <label className="mt-6 block text-[11px] font-semibold">

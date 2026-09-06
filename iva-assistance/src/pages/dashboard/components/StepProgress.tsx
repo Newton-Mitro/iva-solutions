@@ -2,8 +2,15 @@ import { CheckCircle2, Circle, PlayCircle } from "lucide-react";
 import { WorkflowPhase, WorkflowStep } from "../../../types/dashboard.types";
 
 const phaseLabels: Record<WorkflowPhase, string> = {
-  run_phase_one: "Run Phase 1",
-  run_phase_two: "Run Phase 2",
+  signup: "Sign Up",
+  signin: "Sign In",
+  webfile: "Webfile",
+  mission: "Mission",
+  relogin: "Re-login",
+  appointment: "Appointment",
+  payment: "Payment",
+  invoice: "Invoice",
+  signout: "Sign Out",
 };
 
 type Props = {

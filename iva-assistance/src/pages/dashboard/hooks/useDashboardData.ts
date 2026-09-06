@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { User as FirebaseUser } from "firebase/auth";
 import {
-  Applicant,
   Application,
   Appointment,
   AutomationAccount,
@@ -12,36 +11,17 @@ import { subscribeToLocalRecords } from "../../../storage/storage";
 import { subscribeToRecords } from "../../../firebase/data";
 
 export function useDashboardData(user: FirebaseUser) {
-  const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
   const [accounts, setAccounts] = useState<AutomationAccount[]>([]);
   const [webfiles, setWebfiles] = useState<Webfile[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
 
-  const [selectedApplicantId, setSelectedApplicantId] = useState("");
   const [selectedApplicationId, setSelectedApplicationId] = useState("");
 
   const [dataError, setDataError] = useState("");
 
   useEffect(() => {
-    const unsubscribeApplicants = subscribeToLocalRecords(
-      user.uid,
-      "applicants",
-      (records) => {
-        const items = records as Applicant[];
-        setApplicants(items);
-
-        setSelectedApplicantId((current) => {
-          if (current && items.some((item) => item.id === current)) {
-            return current;
-          }
-
-          return items[0]?.id || "";
-        });
-      },
-    );
-
     const unsubscribeApplications = subscribeToLocalRecords(
       user.uid,
       "ivacApplications",
@@ -86,7 +66,6 @@ export function useDashboardData(user: FirebaseUser) {
     );
 
     return () => {
-      unsubscribeApplicants?.();
       unsubscribeApplications?.();
       unsubscribeAccounts?.();
       unsubscribeWebfiles?.();
@@ -95,30 +74,18 @@ export function useDashboardData(user: FirebaseUser) {
     };
   }, [user.uid]);
 
-  // Selected applicant
-  const applicant = useMemo(
-    () => applicants.find((item) => item.id === selectedApplicantId),
-    [applicants, selectedApplicantId],
-  );
-
-  // Applications belonging to selected applicant
-  const applicantApplications = useMemo(
-    () => applications.filter((item) => item.applicantId === applicant?.id),
-    [applications, applicant?.id],
-  );
-
   // Selected application
   const application = useMemo(
     () =>
       applications.find((item) => item.id === selectedApplicationId) ||
-      applicantApplications[0],
-    [applications, selectedApplicationId, applicantApplications],
+      applications[0],
+    [applications, selectedApplicationId],
   );
 
-  // Automation account belonging to applicant
+  // One automation account per application
   const account = useMemo(
-    () => accounts.find((item) => item.applicantId === applicant?.id),
-    [accounts, applicant?.id],
+    () => accounts.find((item) => item.applicationId === application?.id),
+    [accounts, application?.id],
   );
 
   // Webfiles belonging to application
@@ -140,30 +107,15 @@ export function useDashboardData(user: FirebaseUser) {
     [payments, application?.id],
   );
 
-  function selectApplicant(id: string) {
-    setSelectedApplicantId(id);
-
-    const firstApplication = applications.find(
-      (item) => item.applicantId === id,
-    );
-
-    setSelectedApplicationId(firstApplication?.id || "");
-  }
-
   return {
-    applicants,
     applications,
-    applicant,
     application,
-    applicantApplications,
     account,
     applicationWebfiles,
     applicationAppointment,
     applicationPayment,
-    selectedApplicantId,
     selectedApplicationId,
     setSelectedApplicationId,
-    selectApplicant,
     dataError,
   };
 }

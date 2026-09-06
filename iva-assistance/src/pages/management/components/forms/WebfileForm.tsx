@@ -49,7 +49,7 @@ export function WebfileForm({
               defaultValue={text(record, "type") || "primary"}
             >
               <option value="primary">Primary</option>
-              <option value="additional">Additional</option>
+              <option value="other">Other</option>
             </select>
           </label>
         </div>

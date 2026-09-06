@@ -3,16 +3,15 @@ import type { User as FirebaseUser } from "firebase/auth";
 import ManagementPanel from "../management/Management";
 import DashboardHeader from "./components/DashboardHeader";
 import DashboardEmpty from "./components/DashboardEmpty";
-import ApplicantSelector from "./components/ApplicantSelector";
 import ApplicationSelector from "./components/ApplicationSelector";
 import WorkflowCard from "./components/WorkflowCard";
 import ActivityLog from "./components/ActivityLog";
-import AccountInfoCard from "./components/AccountInfoCard";
 import WebfileInfoCard from "./components/WebfileInfoCard";
 import { useDashboardData } from "./hooks/useDashboardData";
 import { useWorkflow } from "./hooks/useWorkflow";
 import SettingsPage from "../settings/SettingsPage";
 import { WorkflowPhase } from "../../types/dashboard.types";
+import ApplicationDetailsCard from "./components/ApplicationDetailsCard";
 
 export function Dashboard({
   user,
@@ -22,15 +21,11 @@ export function Dashboard({
   onLicenseDeactivated: () => void;
 }) {
   const {
-    applicants,
-    applicant,
     application,
-    applicantApplications,
+    applications,
     account,
     applicationWebfiles,
     applicationAppointment,
-    applicationPayment,
-    selectApplicant,
     setSelectedApplicationId,
     dataError,
   } = useDashboardData(user);
@@ -50,31 +45,6 @@ export function Dashboard({
     );
   }
 
-  if (!applicant) {
-    return (
-      <div className="ivac-app">
-        <DashboardHeader
-          email={user.email}
-          onRecords={() => setShowManagement(true)}
-          onSettings={() => setShowSettings(true)}
-        />
-
-        <DashboardEmpty
-          userId={user.uid}
-          error={dataError}
-          onClose={() => setShowManagement(true)}
-        />
-
-        {showManagement && (
-          <ManagementPanel
-            userId={user.uid}
-            onClose={() => setShowManagement(false)}
-          />
-        )}
-      </div>
-    );
-  }
-
   return (
     <div className="ivac-app">
       <DashboardHeader
@@ -84,31 +54,19 @@ export function Dashboard({
       />
 
       <main className="mx-auto w-full max-w-2xl space-y-3 px-3 pb-28 pt-3">
-        <ApplicantSelector
-          applicant={applicant}
-          applicants={applicants}
-          onSelect={(id) => {
-            selectApplicant(id);
-
-            const selected = applicants.find((item) => item.id === id);
-
-            workflow.addLog(
-              `Selected applicant: ${selected?.fullName}`,
-              "info",
-            );
-          }}
-        />
-
-        <AccountInfoCard account={account} />
-
         <ApplicationSelector
           application={application}
-          applications={applicantApplications}
+          applications={applications}
           onSelect={setSelectedApplicationId}
         />
 
         {application ? (
           <>
+            <ApplicationDetailsCard
+              application={application}
+              account={account}
+              appointment={applicationAppointment}
+            />
             <WebfileInfoCard webfiles={applicationWebfiles} />
             <WorkflowCard
               phase={workflow.workflowPhase}
@@ -124,8 +82,10 @@ export function Dashboard({
           </>
         ) : (
           <div className="ivac-card rounded-xl p-4 text-center text-[10px] ivac-text-muted">
-            Select an application to view webfiles, appointment, and payment
-            information.
+            <DashboardEmpty
+              error={dataError}
+              onClose={() => setShowManagement(true)}
+            />
           </div>
         )}
 

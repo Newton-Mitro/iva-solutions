@@ -13,14 +13,22 @@ export type Step = {
 
 export type RelatedRecord = {
   id: string;
-  applicantId?: string;
   ivacApplicationId?: string;
   automationAccountId?: string;
   status?: string;
   [key: string]: unknown;
 };
 
-export type WorkflowPhase = "run_phase_one" | "run_phase_two";
+export type WorkflowPhase =
+  | "signup"
+  | "signin"
+  | "webfile"
+  | "mission"
+  | "relogin"
+  | "appointment"
+  | "payment"
+  | "invoice"
+  | "signout";
 
 export type LogEntry = {
   type: "success" | "info" | "warning" | "error";

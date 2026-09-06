@@ -4,7 +4,6 @@ import { Field } from "../../../../components/ui/Field";
 import { RecordItem, text } from "../../../../types/management.types";
 
 interface ApplicationFormProps {
-  applicantId: string;
   busy: boolean;
   error: string;
   initialRecord: RecordItem | null;
@@ -16,7 +15,6 @@ interface ApplicationFormProps {
  * Form for creating/editing applications
  */
 export function ApplicationForm({
-  applicantId,
   busy,
   error,
   initialRecord,
@@ -24,6 +22,8 @@ export function ApplicationForm({
   onSubmit,
 }: ApplicationFormProps) {
   const record = initialRecord ?? {};
+  const value = (key: string) =>
+    initialRecord?.[key] === undefined ? "" : text(record, key);
 
   return (
     <form
@@ -34,8 +34,6 @@ export function ApplicationForm({
       className="mb-2"
     >
       <Card className="space-y-2.5">
-        <input type="hidden" name="applicantId" value={applicantId} />
-
         {/* Application Information */}
         <div>
           <p className="text-[8px] font-bold uppercase tracking-wider ivac-text-muted">
@@ -43,6 +41,49 @@ export function ApplicationForm({
           </p>
 
           <div className="mt-1.5 space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <Field
+                name="fullName"
+                label="Full name"
+                required
+                defaultValue={value("fullName")}
+              />
+              <Field
+                name="passportNumber"
+                label="Passport number"
+                required
+                defaultValue={value("passportNumber")}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <Field
+                name="email"
+                label="Email"
+                type="email"
+                defaultValue={value("email")}
+              />
+              <Field
+                name="mobile"
+                label="Mobile"
+                defaultValue={value("mobile")}
+              />
+            </div>
+
+            <label className="block text-[9px] font-semibold">
+              Gender
+              <select
+                className="ivac-input mt-0.5"
+                name="gender"
+                defaultValue={value("gender")}
+              >
+                <option value="">Select gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+
             {/* Visa Type + Mission */}
             <div className="grid grid-cols-2 gap-2">
               <label className="block text-[9px] font-semibold">

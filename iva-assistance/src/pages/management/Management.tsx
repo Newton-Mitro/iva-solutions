@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import { ApplicantForm } from "./components/forms/ApplicantForm";
 import { AccountForm } from "./components/forms/AccountForm";
 import { ApplicationForm } from "./components/forms/ApplicationForm";
 import { WebfileForm } from "./components/forms/WebfileForm";
-import { ApplicantsList } from "./components/ApplicantsList";
+import { ApplicationsList } from "./components/ApplicationsList";
 import {
   FormMode,
   getCollectionFromMode,
@@ -29,19 +28,18 @@ export default function ManagementPanel({
   onClose: () => void;
 }) {
   // Editable setup data is local; booking outcomes remain in Firestore.
-  const [applicants, setApplicants] = useState<RecordItem[]>([]);
   const [automationAccounts, setAutomationAccounts] = useState<RecordItem[]>(
     [],
   );
   const [applications, setApplications] = useState<RecordItem[]>([]);
   const [webfiles, setWebfiles] = useState<RecordItem[]>([]);
   const [appointments, setAppointments] = useState<RecordItem[]>([]);
+  const [payments, setPayments] = useState<RecordItem[]>([]);
 
   // UI state
-  const [selectedApplicantId, setSelectedApplicantId] = useState("");
   const [selectedApplicationId, setSelectedApplicationId] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [formMode, setFormMode] = useState<FormMode>("applicant");
+  const [formMode, setFormMode] = useState<FormMode>("application");
   const [editing, setEditing] = useState<RecordItem | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -49,9 +47,6 @@ export default function ManagementPanel({
   // Subscribe to local setup data and remote booking outcomes.
   useEffect(() => {
     const unsubscribers = [
-      subscribeToLocalRecords(userId, "applicants", (records) =>
-        setApplicants(records as RecordItem[]),
-      ),
       subscribeToLocalRecords(userId, "automationAccounts", (records) =>
         setAutomationAccounts(records as RecordItem[]),
       ),
@@ -63,6 +58,9 @@ export default function ManagementPanel({
       ),
       subscribeToRecords(userId, "appointments", setAppointments, (err) =>
         console.error("Appointments subscription error:", err),
+      ),
+      subscribeToRecords(userId, "payments", setPayments, (err) =>
+        console.error("Payments subscription error:", err),
       ),
     ];
     return () => unsubscribers.forEach((unsub) => unsub());
@@ -173,7 +171,8 @@ export default function ManagementPanel({
                 Management Panel
               </h1>
               <p className="text-[9px] ivac-text-muted">
-                Manage applicants, ivac accounts, applications and webfiles.
+                Manage applications, webfiles, appointments, payments and
+                automation accounts.
               </p>
             </div>
           </div>
@@ -189,21 +188,10 @@ export default function ManagementPanel({
 
       {/* Main content */}
       <main className="mx-auto w-full max-w-2xl space-y-3 p-3">
-        {/* Applicant form overlay */}
-        {showForm && formMode === "applicant" && (
-          <ApplicantForm
-            busy={busy}
-            error={error}
-            initialRecord={editing}
-            onCancel={() => setShowForm(false)}
-            onSubmit={handleSave}
-          />
-        )}
-
         {/* Account form overlay */}
-        {showForm && formMode === "account" && selectedApplicantId && (
+        {showForm && formMode === "account" && selectedApplicationId && (
           <AccountForm
-            applicantId={selectedApplicantId}
+            applicationId={selectedApplicationId}
             busy={busy}
             error={error}
             initialRecord={editing}
@@ -213,9 +201,8 @@ export default function ManagementPanel({
         )}
 
         {/* Application form overlay */}
-        {showForm && formMode === "application" && selectedApplicantId && (
+        {showForm && formMode === "application" && (
           <ApplicationForm
-            applicantId={selectedApplicantId}
             busy={busy}
             error={error}
             initialRecord={editing}
@@ -236,20 +223,15 @@ export default function ManagementPanel({
           />
         )}
 
-        {/* Applicants tree */}
-        <ApplicantsList
-          applicants={applicants}
+        {/* Application workspace */}
+        <ApplicationsList
           automationAccounts={automationAccounts}
           applications={applications}
           webfiles={webfiles}
           appointments={appointments}
-          selectedApplicantId={selectedApplicantId}
+          payments={payments}
           selectedApplicationId={selectedApplicationId}
-          onSelectApplicant={setSelectedApplicantId}
           onSelectApplication={setSelectedApplicationId}
-          onAddApplicant={() => openForm("applicant")}
-          onEditApplicant={(applicant) => openForm("applicant", applicant)}
-          onDeleteApplicant={(id) => void handleDelete("applicants", id)}
           onEditAccount={(account) => openForm("account", account)}
           onCreateAccount={() => openForm("account")}
           onDeleteAccount={(id) => void handleDelete("automationAccounts", id)}

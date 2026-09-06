@@ -37,8 +37,6 @@ export type LogType = "success" | "info" | "warning" | "error";
 /* Status Types                                                               */
 /* -------------------------------------------------------------------------- */
 
-export type ApplicantStatus = "active" | "inactive" | "blocked";
-
 export type ApplicationStatus =
   | "pending"
   | "webfile"
@@ -78,21 +76,6 @@ export type AutomationLogStatus =
   | "error"
   | "skipped";
 
-/* -------------------------------------------------------------------------- */
-/* Applicant                                                                  */
-/* -------------------------------------------------------------------------- */
-
-export type Applicant = {
-  id: string;
-  fullName: string;
-  email?: string;
-  mobile?: string;
-  gender?: Gender;
-  passportNumber: string;
-  nidNumber: string;
-  status: ApplicantStatus;
-};
-
 export type Webfile = {
   id: string;
   ivacApplicationId: string;
@@ -125,7 +108,7 @@ export type Payment = {
 
 export type AutomationAccount = {
   id: string;
-  applicantId: string;
+  applicationId: string;
   email: string;
   mobile: string;
   ivacPassword?: string;
@@ -142,11 +125,15 @@ export type AutomationAccount = {
 
 export type Application = {
   id: string;
+  fullName: string;
+  email?: string;
+  mobile?: string;
+  gender?: Gender;
+  passportNumber: string;
 
-  applicant: Applicant;
   webfiles: Webfile[];
-  appointment: Appointment;
-  payment: Payment;
+  appointment?: Appointment;
+  payment?: Payment;
   automationAccount?: AutomationAccount;
 
   visaType?: VisaType;

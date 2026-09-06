@@ -5,13 +5,32 @@ export function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     active: "ivac-success-bg ivac-success",
     inactive: "ivac-surface-2 ivac-text-muted",
-    draft: "ivac-warning-bg ivac-warning",
-    processing: "ivac-primary-bg ivac-primary",
-    completed: "ivac-success-bg ivac-success",
-    paid: "ivac-success-bg ivac-success",
-    unpaid: "ivac-surface-2 ivac-text-muted",
+    blocked: "ivac-danger-bg ivac-danger",
+    // Application Status
     pending: "ivac-warning-bg ivac-warning",
+    webfile: "ivac-primary-bg ivac-primary",
+    appointment: "ivac-primary-bg ivac-primary",
+    payment: "ivac-primary-bg ivac-primary",
+    completed: "ivac-success-bg ivac-success",
+    cancelled: "ivac-danger-bg ivac-danger",
     failed: "ivac-danger-bg ivac-danger",
+    // Account Status
+    suspended: "ivac-warning-bg ivac-warning",
+    // Appointment Status
+    success: "ivac-success-bg ivac-success",
+    // Payment Status
+    processing: "ivac-primary-bg ivac-primary",
+    paid: "ivac-success-bg ivac-success",
+    refunded: "ivac-surface-2 ivac-text-muted",
+    // Automation Run Status
+    running: "ivac-primary-bg ivac-primary",
+    paused: "ivac-warning-bg ivac-warning",
+    // Automation Log Status
+    warning: "ivac-warning-bg ivac-warning",
+    error: "ivac-danger-bg ivac-danger",
+    skipped: "ivac-surface-2 ivac-text-muted",
+    // Invoice Status
+    downloaded: "ivac-success-bg ivac-success",
   };
 
   return (
