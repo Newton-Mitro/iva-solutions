@@ -9,17 +9,59 @@ import {
   signInWithEmailAndPassword,
   signOut,
   updatePassword,
+  updateProfile,
   type User,
 } from "firebase/auth";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { firebaseApp } from "./config";
+import { db } from "./firestore";
+
+export type UserRole = "Admin" | "Client";
+
+export type CreateUserProfileInput = {
+  email: string;
+  password: string;
+  user_name: string;
+  phone: string;
+  role?: UserRole;
+};
 
 export const auth = getAuth(firebaseApp);
 export const configureAuth = () =>
   setPersistence(auth, browserLocalPersistence);
 export const signIn = (email: string, password: string) =>
   signInWithEmailAndPassword(auth, email, password);
-export const signUp = (email: string, password: string) =>
-  createUserWithEmailAndPassword(auth, email, password);
+export const signUp = async ({
+  email,
+  password,
+  user_name,
+  phone,
+  role = "Client",
+}: CreateUserProfileInput) => {
+  const credentials = await createUserWithEmailAndPassword(
+    auth,
+    email,
+    password,
+  );
+  const { user } = credentials;
+
+  await updateProfile(user, { displayName: user_name });
+  await setDoc(
+    doc(db, "users", user.uid),
+    {
+      uid: user.uid,
+      user_name,
+      email,
+      phone,
+      role,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+
+  return user;
+};
 export const changePassword = async (
   currentPassword: string,
   newPassword: string,

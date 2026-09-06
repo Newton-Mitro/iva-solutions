@@ -5,7 +5,9 @@ import { firebaseConfigured } from "../firebase/config";
 
 export default function AuthScreen() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -31,8 +33,17 @@ export default function AuthScreen() {
     setError("");
     try {
       await configureAuth();
-      if (mode === "signin") await signIn(email, password);
-      else await signUp(email, password);
+      if (mode === "signin") {
+        await signIn(email, password);
+      } else {
+        await signUp({
+          email,
+          password,
+          user_name: userName,
+          phone,
+          role: "Client",
+        });
+      }
     } catch (authError) {
       setError(authErrorMessage(authError));
     } finally {
@@ -97,7 +108,39 @@ export default function AuthScreen() {
             ? "Sign in to access your applications and runs."
             : "Your records stay isolated to your account."}
         </p>
-        <label className="mt-6 block text-[11px] font-semibold">
+        {mode === "signup" && (
+          <>
+            <label className="mt-6 block text-[11px] font-semibold">
+              User name
+              <input
+                className="ivac-input mt-1"
+                type="text"
+                required
+                value={userName}
+                onChange={(event) => setUserName(event.target.value)}
+                placeholder="Your full name"
+              />
+            </label>
+            <label className="mt-3 block text-[11px] font-semibold">
+              Phone
+              <input
+                className="ivac-input mt-1"
+                type="tel"
+                required
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
+                placeholder="+1234567890"
+              />
+            </label>
+          </>
+        )}
+        <label
+          className={
+            mode === "signup"
+              ? "mt-3 block text-[11px] font-semibold"
+              : "mt-6 block text-[11px] font-semibold"
+          }
+        >
           Email
           <input
             className="ivac-input mt-1"
