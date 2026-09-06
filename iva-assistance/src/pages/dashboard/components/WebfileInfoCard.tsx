@@ -1,6 +1,6 @@
 import { ChevronDown, CheckCircle2, FileText, Upload } from "lucide-react";
 import { useState } from "react";
-import { Webfile } from "../../../types/models";
+import { Webfile } from "../../../types/application.type";
 
 export default function WebfileInfoCard({ webfiles }: { webfiles: Webfile[] }) {
   const [open, setOpen] = useState(false);

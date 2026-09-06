@@ -1,6 +1,6 @@
 import { Button } from "../../../../components/ui/Button";
 import { Card } from "../../../../components/ui/Card";
-import { RecordItem, text } from "../../../../types/management.types";
+import { RecordItem, text } from "../../../../types/management.type";
 
 interface WebfileFormProps {
   applicationId: string;

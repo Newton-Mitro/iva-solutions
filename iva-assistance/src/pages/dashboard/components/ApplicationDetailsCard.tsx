@@ -4,7 +4,7 @@ import {
   Application,
   Appointment,
   AutomationAccount,
-} from "../../../types/models";
+} from "../../../types/application.type";
 import { InfoRow, StatusBadge } from "./Shared";
 
 type Props = {

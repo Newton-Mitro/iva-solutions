@@ -1,5 +1,5 @@
 import { KeyRound, Pencil, Trash2 } from "lucide-react";
-import { RecordItem, text } from "../../../../types/management.types";
+import { RecordItem, text } from "../../../../types/management.type";
 
 interface AccountSectionProps {
   account: RecordItem | undefined;

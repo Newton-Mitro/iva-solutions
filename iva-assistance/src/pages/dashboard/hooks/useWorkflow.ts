@@ -6,8 +6,17 @@ import {
   WorkflowStep,
   WorkflowValueKey,
   workflowStepsByPhase,
-} from "../../../types/dashboard.types";
+} from "../../../types/workflow.type";
 import { signOutUser } from "../../../firebase/auth";
+import {
+  deleteWorkflowLogs,
+  deleteWorkflowPhase,
+  getLocalFile,
+  getWorkflowLogs,
+  getWorkflowPhase,
+  saveWorkflowLogs,
+  saveWorkflowPhase,
+} from "../../../storage/storage";
 
 type HumanPrompt = {
   stepId: string;
@@ -25,6 +34,15 @@ function getWorkflowValue(
   key: WorkflowValueKey,
 ): string | undefined {
   switch (key) {
+    case "application.email":
+      return (
+        context.account?.email ?? context.application?.automationAccount?.email
+      );
+    case "application.mobile":
+      return (
+        context.account?.mobile ??
+        context.application?.automationAccount?.mobile
+      );
     case "application.passportNumber":
       return context.application?.passportNumber;
     case "account.email":
@@ -33,6 +51,31 @@ function getWorkflowValue(
       return context.account?.mobile;
     case "account.ivacPassword":
       return context.account?.ivacPassword;
+    case "webfile.primary.fileId":
+    case "appointment.primaryWebfile":
+      return context.webfiles.find((webfile) => webfile.type === "primary")?.id;
+    case "webfile.other.fileIds":
+    case "appointment.otherWebfiles":
+      return context.webfiles
+        .filter((webfile) => webfile.type === "other")
+        .map((webfile) => webfile.id)
+        .join(",");
+    case "appointment.mission":
+    case "appointment.missionId":
+      return context.application?.mission;
+    case "appointment.ivacCenter":
+    case "appointment.ivacCenterId":
+      return context.application?.ivacCenter;
+    case "appointment.date":
+      return context.application?.appointment?.appointmentDate;
+    case "appointment.time":
+      return context.application?.appointment?.appointmentTime;
+    case "appointment.details":
+      return context.application?.appointment?.id;
+    case "appointment.confirmationNumber":
+      return context.application?.appointment?.id;
+    default:
+      return undefined;
   }
 }
 
@@ -95,7 +138,10 @@ export type WorkflowLog = {
   time: string;
 };
 
-export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
+export function useWorkflow(
+  context: WorkflowContext = { webfiles: [] },
+  persistence?: { userId?: string; applicationId?: string },
+) {
   /**
    * ============================================================
    * WORKFLOW STATE
@@ -111,6 +157,136 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
     phase_one: createWorkflowSteps("phase_one"),
     phase_two: createWorkflowSteps("phase_two"),
   }));
+  const [logs, setLogs] = useState<WorkflowLog[]>([]);
+
+  const persistenceKey =
+    persistence?.userId && persistence.applicationId
+      ? `${persistence.userId}:${persistence.applicationId}`
+      : null;
+  const hydratedPersistenceKey = useRef<string | null>(null);
+  const skipPersistence = useRef(new Set<string>());
+  const skipLogsPersistence = useRef(new Set<string>());
+
+  useEffect(() => {
+    let cancelled = false;
+
+    hydratedPersistenceKey.current = null;
+    setLogs([]);
+    if (!persistenceKey || !persistence?.userId || !persistence.applicationId) {
+      setStepsByPhase({
+        phase_one: createWorkflowSteps("phase_one"),
+        phase_two: createWorkflowSteps("phase_two"),
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const phases: WorkflowPhase[] = ["phase_one", "phase_two"];
+    void Promise.all([
+      Promise.all(
+        phases.map((phase) =>
+          getWorkflowPhase(
+            persistence.userId as string,
+            persistence.applicationId as string,
+            phase,
+          ),
+        ),
+      ),
+      getWorkflowLogs(
+        persistence.userId as string,
+        persistence.applicationId as string,
+      ),
+    ])
+      .then(([storedPhases, storedLogs]) => {
+        if (cancelled) {
+          return;
+        }
+
+        const next = Object.fromEntries(
+          phases.map((phase, index) => {
+            const stored = storedPhases[index];
+            const storedById = new Map(stored?.map((step) => [step.id, step]));
+            return [
+              phase,
+              createWorkflowSteps(phase).map((step) => ({
+                ...step,
+                ...storedById.get(step.id),
+              })),
+            ];
+          }),
+        ) as Record<WorkflowPhase, WorkflowStep[]>;
+
+        setStepsByPhase(next);
+        setLogs(storedLogs ?? []);
+        hydratedPersistenceKey.current = persistenceKey;
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          console.error("Unable to load workflow progress.", error);
+          hydratedPersistenceKey.current = persistenceKey;
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [persistence?.applicationId, persistence?.userId, persistenceKey]);
+
+  useEffect(() => {
+    if (
+      !persistenceKey ||
+      hydratedPersistenceKey.current !== persistenceKey ||
+      !persistence?.userId ||
+      !persistence.applicationId
+    ) {
+      return;
+    }
+
+    (Object.keys(stepsByPhase) as WorkflowPhase[]).forEach((phase) => {
+      const phaseKey = `${persistenceKey}:${phase}`;
+      if (skipPersistence.current.delete(phaseKey)) {
+        return;
+      }
+
+      void saveWorkflowPhase(
+        persistence.userId as string,
+        persistence.applicationId as string,
+        phase,
+        stepsByPhase[phase],
+      ).catch((error: unknown) =>
+        console.error("Unable to save workflow progress.", error),
+      );
+    });
+  }, [
+    persistence?.applicationId,
+    persistence?.userId,
+    persistenceKey,
+    stepsByPhase,
+  ]);
+
+  useEffect(() => {
+    if (
+      !persistenceKey ||
+      hydratedPersistenceKey.current !== persistenceKey ||
+      !persistence?.userId ||
+      !persistence.applicationId
+    ) {
+      return;
+    }
+
+    if (skipLogsPersistence.current.delete(persistenceKey)) {
+      return;
+    }
+
+    void saveWorkflowLogs(
+      persistence.userId,
+      persistence.applicationId,
+      logs,
+    ).catch((error: unknown) =>
+      console.error("Unable to save workflow logs.", error),
+    );
+  }, [persistence?.applicationId, persistence?.userId, persistenceKey, logs]);
 
   const steps = stepsByPhase[workflowPhase];
 
@@ -154,8 +330,6 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
    * LOGS
    * ============================================================
    */
-
-  const [logs, setLogs] = useState<WorkflowLog[]>([]);
 
   /**
    * ============================================================
@@ -222,6 +396,15 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
     ]);
   }
 
+  async function clearLogs() {
+    if (persistenceKey && persistence?.userId && persistence.applicationId) {
+      skipLogsPersistence.current.add(persistenceKey);
+      await deleteWorkflowLogs(persistence.userId, persistence.applicationId);
+    }
+
+    setLogs([]);
+  }
+
   async function executeDomAction(
     step: WorkflowStep,
     value?: string,
@@ -275,6 +458,33 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
       return { found: true };
     }
 
+    let file: { name: string; type: string; data: string } | undefined;
+    if (step.action === "upload-file") {
+      if (!value) {
+        return {
+          found: false,
+          message: `No file configured for ${step.title}.`,
+        };
+      }
+
+      const localFile = await getLocalFile(value);
+      if (!localFile) {
+        return { found: false, message: `File not found for ${step.title}.` };
+      }
+
+      const bytes = new Uint8Array(await localFile.arrayBuffer());
+      let binary = "";
+      for (const byte of bytes) {
+        binary += String.fromCharCode(byte);
+      }
+
+      file = {
+        name: localFile.name,
+        type: localFile.type,
+        data: btoa(binary),
+      };
+    }
+
     const [result] = await chrome.scripting.executeScript({
       target: { tabId: target.id },
       world: "MAIN",
@@ -285,9 +495,17 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
           | "focus"
           | "fill"
           | "click"
+          | "upload-file"
+          | "select"
+          | "select-option"
+          | "check"
+          | "uncheck"
           | "replace-text"
-          | "replace-html";
+          | "replace-html"
+          | "wait"
+          | "capture";
         value?: string;
+        file?: { name: string; type: string; data: string };
         manual: boolean;
         waitForMs: number;
       }): Promise<DomActionResult> => {
@@ -329,6 +547,90 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
         }
 
         element.scrollIntoView({ block: "center", behavior: "smooth" });
+
+        if (config.action === "wait" || config.action === "capture") {
+          return { found: true };
+        }
+
+        if (config.action === "upload-file") {
+          const input = element as HTMLInputElement;
+          if (input.type !== "file" || !config.file) {
+            return { found: false, message: "Target is not a file input." };
+          }
+
+          const binary = atob(config.file.data);
+          const bytes = Uint8Array.from(binary, (character) =>
+            character.charCodeAt(0),
+          );
+          const uploadedFile = new File([bytes], config.file.name, {
+            type: config.file.type,
+          });
+          const transfer = new DataTransfer();
+          transfer.items.add(uploadedFile);
+          input.files = transfer.files;
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+          input.dispatchEvent(new Event("change", { bubbles: true }));
+          return { found: true };
+        }
+
+        if (config.action === "select" || config.action === "select-option") {
+          if (element instanceof HTMLSelectElement) {
+            const option = Array.from(element.options).find(
+              (candidate) =>
+                candidate.value === config.value ||
+                candidate.text.trim() === config.value?.trim(),
+            );
+            if (!option) {
+              return {
+                found: false,
+                message: `Option not found for ${config.value ?? "select"}.`,
+              };
+            }
+
+            element.value = option.value;
+            element.dispatchEvent(new Event("input", { bubbles: true }));
+            element.dispatchEvent(new Event("change", { bubbles: true }));
+            return { found: true };
+          }
+
+          if (
+            element instanceof HTMLInputElement &&
+            (element.type === "radio" || element.type === "checkbox")
+          ) {
+            const optionMatches =
+              element.value === config.value ||
+              element.getAttribute("aria-label") === config.value;
+            if (!optionMatches) {
+              return {
+                found: false,
+                message: `Option not found for ${config.value ?? "select"}.`,
+              };
+            }
+
+            if (!element.checked) {
+              element.click();
+            }
+            return { found: true };
+          }
+
+          return {
+            found: false,
+            message: "Target is not a selectable option.",
+          };
+        }
+
+        if (config.action === "check" || config.action === "uncheck") {
+          const input = element as HTMLInputElement;
+          if (input.type !== "checkbox") {
+            return { found: false, message: "Target is not a checkbox." };
+          }
+
+          const shouldBeChecked = config.action === "check";
+          if (input.checked !== shouldBeChecked) {
+            input.click();
+          }
+          return { found: true };
+        }
 
         if (config.value !== undefined && config.action === "replace-html") {
           element.innerHTML = config.value;
@@ -375,6 +677,7 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
           selectors: step.selectors,
           action: step.action,
           value,
+          file,
           manual: Boolean(step.manual),
           waitForMs: 20000,
         },
@@ -573,7 +876,13 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
       ? getWorkflowValue(context, currentStep.valueKey)
       : undefined;
 
-    if (currentStep.action === "fill" && !mappedValue) {
+    if (
+      (currentStep.action === "fill" ||
+        currentStep.action === "upload-file" ||
+        currentStep.action === "select" ||
+        currentStep.action === "select-option") &&
+      !mappedValue
+    ) {
       const reason = `No data available for ${currentStep.title} (${currentStep.valueKey ?? "value"}).`;
       addLog(reason, "error");
       failStep(currentStep.id, reason);
@@ -781,8 +1090,18 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
    * ============================================================
    */
 
-  function reset() {
+  async function reset() {
     const selectedPhase = workflowPhase;
+
+    if (persistenceKey && persistence?.userId && persistence.applicationId) {
+      const phaseKey = `${persistenceKey}:${selectedPhase}`;
+      skipPersistence.current.add(phaseKey);
+      await deleteWorkflowPhase(
+        persistence.userId,
+        persistence.applicationId,
+        selectedPhase,
+      );
+    }
 
     setSteps(createWorkflowSteps(selectedPhase));
 
@@ -859,6 +1178,7 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
      */
     logs,
     addLog,
+    clearLogs,
 
     /**
      * Actions

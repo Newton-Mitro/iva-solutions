@@ -5,15 +5,17 @@ import {
   ChevronDown,
   Clock3,
   Info,
+  Trash2,
 } from "lucide-react";
 import { useState } from "react";
 import { WorkflowLog } from "../hooks/useWorkflow";
 
 type Props = {
   logs: WorkflowLog[];
+  onClearLogs: () => void;
 };
 
-export default function ActivityLog({ logs }: Props) {
+export default function ActivityLog({ logs, onClearLogs }: Props) {
   const [open, setOpen] = useState(false);
 
   function getIcon(type: string) {
@@ -66,10 +68,7 @@ export default function ActivityLog({ logs }: Props) {
   return (
     <section className="ivac-card overflow-hidden rounded-xl shadow-sm">
       {/* Header */}
-      <button
-        type="button"
-        onClick={() => setOpen((current) => !current)}
-        aria-expanded={open}
+      <div
         className="
           ivac-hover flex w-full items-center justify-between
           border-b border-(--app-border)
@@ -77,7 +76,12 @@ export default function ActivityLog({ logs }: Props) {
           transition-colors
         "
       >
-        <div className="flex min-w-0 items-center gap-2.5">
+        <button
+          type="button"
+          onClick={() => setOpen((current) => !current)}
+          aria-expanded={open}
+          className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
+        >
           <div
             className="
               flex h-7 w-7 shrink-0 items-center justify-center
@@ -112,21 +116,37 @@ export default function ActivityLog({ logs }: Props) {
               Live automation events
             </p>
           </div>
-        </div>
+        </button>
 
         <div className="flex items-center gap-1.5">
           <Clock3 size={12} className="ivac-text-muted" />
 
-          <ChevronDown
-            size={15}
-            className={`
-              ivac-text-muted
-              transition-transform duration-200
-              ${open ? "rotate-180" : ""}
-            `}
-          />
+          {logs.length > 0 && (
+            <button
+              type="button"
+              onClick={onClearLogs}
+              aria-label="Clear activity logs"
+              title="Clear activity logs"
+              className="ivac-hover rounded p-1 ivac-text-muted"
+            >
+              <Trash2 size={12} />
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setOpen((current) => !current)}
+            aria-expanded={open}
+            aria-label={open ? "Collapse activity log" : "Expand activity log"}
+            className="ivac-hover rounded p-1 ivac-text-muted"
+          >
+            <ChevronDown
+              size={15}
+              className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+            />
+          </button>
         </div>
-      </button>
+      </div>
 
       {/* Content */}
       {open && (
@@ -153,7 +173,7 @@ export default function ActivityLog({ logs }: Props) {
                       {!isLast && (
                         <span
                           className="
-                            absolute top-7 bottom-[-10px]
+                            absolute top-7 -bottom-2.5
                             w-px bg-(--app-border)
                           "
                         />

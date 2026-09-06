@@ -14,7 +14,7 @@ import {
   flowTabs,
   WorkflowPhase,
   WorkflowStep,
-} from "../../../types/dashboard.types";
+} from "../../../types/workflow.type";
 
 type Props = {
   phase: WorkflowPhase;

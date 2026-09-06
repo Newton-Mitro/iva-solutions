@@ -8,7 +8,7 @@ import {
   FormMode,
   getCollectionFromMode,
   RecordItem,
-} from "../../types/management.types";
+} from "../../types/management.type";
 import {
   createLocalRecord,
   deleteLocalFile,

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { WorkflowStep } from "../../../types/dashboard.types";
+import { WorkflowStep } from "../../../types/workflow.type";
 import { StepIcon } from "./Shared";
 
 type Props = {

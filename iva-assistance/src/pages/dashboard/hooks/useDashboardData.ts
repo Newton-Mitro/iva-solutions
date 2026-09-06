@@ -5,7 +5,7 @@ import {
   Appointment,
   AutomationAccount,
   Webfile,
-} from "../../../types/models";
+} from "../../../types/application.type";
 import { subscribeToLocalRecords } from "../../../storage/storage";
 import { subscribeToRecords } from "../../../firebase/data";
 

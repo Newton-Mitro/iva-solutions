@@ -9,6 +9,12 @@ export type LocalCollection =
   | "ivacApplications"
   | "webfiles";
 
+import type {
+  WorkflowLog,
+  WorkflowPhase,
+  WorkflowStep,
+} from "../types/workflow.type";
+
 type StoredRecords = Record<string, LocalRecord>;
 
 const storageKey = (userId: string, collection: LocalCollection) =>
@@ -134,6 +140,144 @@ export const deleteLocalFile = async (recordId: string) => {
       .transaction(filesStore, "readwrite")
       .objectStore(filesStore)
       .delete(recordId);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+  database.close();
+};
+
+type StoredWorkflowStep = Pick<WorkflowStep, "id" | "status" | "progress">;
+
+const workflowDb = "ivac-workflow";
+const workflowStore = "phases";
+
+const openWorkflowDb = () =>
+  new Promise<IDBDatabase>((resolve, reject) => {
+    const request = indexedDB.open(workflowDb, 1);
+    request.onupgradeneeded = () =>
+      request.result.createObjectStore(workflowStore);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+
+const workflowRecordId = (
+  userId: string,
+  applicationId: string,
+  phase: WorkflowPhase,
+) => `${userId}:${applicationId}:${phase}`;
+
+const workflowLogsRecordId = (userId: string, applicationId: string) =>
+  `${userId}:${applicationId}:logs`;
+
+export const saveWorkflowPhase = async (
+  userId: string,
+  applicationId: string,
+  phase: WorkflowPhase,
+  steps: WorkflowStep[],
+) => {
+  const database = await openWorkflowDb();
+  const record: StoredWorkflowStep[] = steps.map(
+    ({ id, status, progress }) => ({
+      id,
+      status,
+      progress,
+    }),
+  );
+
+  await new Promise<void>((resolve, reject) => {
+    const request = database
+      .transaction(workflowStore, "readwrite")
+      .objectStore(workflowStore)
+      .put(record, workflowRecordId(userId, applicationId, phase));
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+  database.close();
+};
+
+export const getWorkflowPhase = async (
+  userId: string,
+  applicationId: string,
+  phase: WorkflowPhase,
+): Promise<StoredWorkflowStep[] | null> => {
+  const database = await openWorkflowDb();
+  const record = await new Promise<StoredWorkflowStep[] | undefined>(
+    (resolve, reject) => {
+      const request = database
+        .transaction(workflowStore, "readonly")
+        .objectStore(workflowStore)
+        .get(workflowRecordId(userId, applicationId, phase));
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    },
+  );
+  database.close();
+  return record ?? null;
+};
+
+export const deleteWorkflowPhase = async (
+  userId: string,
+  applicationId: string,
+  phase: WorkflowPhase,
+) => {
+  const database = await openWorkflowDb();
+  await new Promise<void>((resolve, reject) => {
+    const request = database
+      .transaction(workflowStore, "readwrite")
+      .objectStore(workflowStore)
+      .delete(workflowRecordId(userId, applicationId, phase));
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+  database.close();
+};
+
+export const saveWorkflowLogs = async (
+  userId: string,
+  applicationId: string,
+  logs: WorkflowLog[],
+) => {
+  const database = await openWorkflowDb();
+  await new Promise<void>((resolve, reject) => {
+    const request = database
+      .transaction(workflowStore, "readwrite")
+      .objectStore(workflowStore)
+      .put(logs, workflowLogsRecordId(userId, applicationId));
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+  database.close();
+};
+
+export const getWorkflowLogs = async (
+  userId: string,
+  applicationId: string,
+): Promise<WorkflowLog[] | null> => {
+  const database = await openWorkflowDb();
+  const logs = await new Promise<WorkflowLog[] | undefined>(
+    (resolve, reject) => {
+      const request = database
+        .transaction(workflowStore, "readonly")
+        .objectStore(workflowStore)
+        .get(workflowLogsRecordId(userId, applicationId));
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    },
+  );
+  database.close();
+  return logs ?? null;
+};
+
+export const deleteWorkflowLogs = async (
+  userId: string,
+  applicationId: string,
+) => {
+  const database = await openWorkflowDb();
+  await new Promise<void>((resolve, reject) => {
+    const request = database
+      .transaction(workflowStore, "readwrite")
+      .objectStore(workflowStore)
+      .delete(workflowLogsRecordId(userId, applicationId));
     request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
   });

@@ -10,7 +10,7 @@ import WebfileInfoCard from "./components/WebfileInfoCard";
 import { useDashboardData } from "./hooks/useDashboardData";
 import { useWorkflow } from "./hooks/useWorkflow";
 import SettingsPage from "../settings/SettingsPage";
-import { WorkflowPhase } from "../../types/dashboard.types";
+import { WorkflowPhase } from "../../types/workflow.type";
 import ApplicationDetailsCard from "./components/ApplicationDetailsCard";
 
 export function Dashboard({
@@ -30,12 +30,18 @@ export function Dashboard({
     dataError,
   } = useDashboardData(user);
 
-  const workflow = useWorkflow({
-    application,
-    account,
-    webfiles: applicationWebfiles,
-    appointment: applicationAppointment,
-  });
+  const workflow = useWorkflow(
+    {
+      application,
+      account,
+      webfiles: applicationWebfiles,
+      appointment: applicationAppointment,
+    },
+    {
+      userId: user.uid,
+      applicationId: application?.id,
+    },
+  );
   const [showManagement, setShowManagement] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -91,7 +97,10 @@ export function Dashboard({
                   onHumanAction={workflow.submitHumanAction}
                   onSkip={workflow.skipStep}
                 />
-                <ActivityLog logs={workflow.logs} />
+                <ActivityLog
+                  logs={workflow.logs}
+                  onClearLogs={workflow.clearLogs}
+                />
               </>
             )}
           </>

@@ -1,6 +1,6 @@
 import { Check, ChevronDown, FileText, MapPin, Search } from "lucide-react";
 import { useState } from "react";
-import { Application } from "../../../types/models";
+import { Application } from "../../../types/application.type";
 import { StatusBadge } from "./Shared";
 
 type Props = {

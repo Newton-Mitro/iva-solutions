@@ -1,7 +1,7 @@
 import { FileText } from "lucide-react";
 import { WebfileItem } from "../items/WebfileItem";
 import { AddButton } from "../../../../components/ui/Button";
-import { RecordItem } from "../../../../types/management.types";
+import { RecordItem } from "../../../../types/management.type";
 
 interface WebfilesSectionProps {
   webfiles: RecordItem[];

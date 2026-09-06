@@ -1,6 +1,6 @@
 import { FileCheck, FileWarning, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { RecordItem, text } from "../../../../types/management.types";
+import { RecordItem, text } from "../../../../types/management.type";
 import { getLocalFile } from "../../../../storage/storage";
 
 interface WebfileItemProps {

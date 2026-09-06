@@ -5,7 +5,7 @@ import { AppointmentCard } from "./sections/AppointmentCard";
 import { WebfilesSection } from "./sections/WebfilesSection";
 import { Card } from "../../../components/ui/Card";
 import { AddButton } from "../../../components/ui/Button";
-import { RecordItem } from "../../../types/management.types";
+import { RecordItem } from "../../../types/management.type";
 
 interface ApplicationsListProps {
   automationAccounts: RecordItem[];

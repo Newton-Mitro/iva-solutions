@@ -1,5 +1,5 @@
 import { Check, Pause, X } from "lucide-react";
-import { AutomationStep } from "../../../types/dashboard.types";
+import { AutomationStep } from "../../../types/workflow.type";
 
 export function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {

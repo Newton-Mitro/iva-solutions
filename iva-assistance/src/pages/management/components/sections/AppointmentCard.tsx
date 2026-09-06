@@ -1,5 +1,5 @@
 import { InfoCard } from "../../../../components/ui/Card";
-import { RecordItem, text } from "../../../../types/management.types";
+import { RecordItem, text } from "../../../../types/management.type";
 
 interface AppointmentCardProps {
   appointment: RecordItem | undefined;
