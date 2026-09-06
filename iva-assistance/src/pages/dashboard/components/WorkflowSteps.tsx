@@ -16,7 +16,7 @@ export default function WorkflowSteps({ steps, onHumanAction, onSkip }: Props) {
           {index !== steps.length - 1 && (
             <div
               className={`absolute left-[15px] top-8 h-[calc(100%-8px)] w-px ${
-                step.status === "completed"
+                step.status === "completed" || step.status === "skipped"
                   ? "bg-emerald-400"
                   : "bg-[var(--app-border)]"
               }`}

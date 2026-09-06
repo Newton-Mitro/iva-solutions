@@ -161,7 +161,7 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
     }
 
     const completed = steps.filter(
-      (step) => step.status === "completed",
+      (step) => step.status === "completed" || step.status === "skipped",
     ).length;
 
     const current = steps.find((step) => step.status === "running");
@@ -231,29 +231,85 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
       return { found: false, message: "No active web page was found." };
     }
 
+    if (step.action === "navigate") {
+      if (!step.url) {
+        return {
+          found: false,
+          message: `No URL configured for ${step.title}.`,
+        };
+      }
+
+      await new Promise<void>((resolve) => {
+        let settled = false;
+        const finish = () => {
+          if (settled) {
+            return;
+          }
+
+          settled = true;
+          chrome.tabs.onUpdated.removeListener(handleUpdate);
+          window.clearTimeout(timeout);
+          resolve();
+        };
+        const handleUpdate = (
+          tabId: number,
+          changeInfo: chrome.tabs.OnUpdatedInfo,
+        ) => {
+          if (tabId === target.id && changeInfo.status === "complete") {
+            finish();
+          }
+        };
+        const timeout = window.setTimeout(finish, 30000);
+
+        chrome.tabs.onUpdated.addListener(handleUpdate);
+        void chrome.tabs.update(target.id as number, { url: step.url });
+      });
+      return { found: true };
+    }
+
     const [result] = await chrome.scripting.executeScript({
       target: { tabId: target.id },
       world: "MAIN",
-      func: (config: {
+      func: async (config: {
         selectors: string[];
-        action: "focus" | "fill" | "click";
+        action: "navigate" | "focus" | "fill" | "click";
         value?: string;
         manual: boolean;
-      }): DomActionResult => {
-        const element = config.selectors
-          .flatMap((selector) =>
-            Array.from(document.querySelectorAll(selector)),
-          )
-          .find((candidate) => {
-            const item = candidate as HTMLElement;
-            return (
-              item.offsetParent !== null ||
-              candidate instanceof HTMLIFrameElement
-            );
-          }) as HTMLElement | undefined;
+        waitForMs: number;
+      }): Promise<DomActionResult> => {
+        const startedAt = Date.now();
+
+        const findElement = () =>
+          config.selectors
+            .flatMap((selector) =>
+              Array.from(document.querySelectorAll(selector)),
+            )
+            .find((candidate) => {
+              const item = candidate as HTMLElement;
+              return (
+                item.offsetParent !== null ||
+                candidate instanceof HTMLIFrameElement
+              );
+            }) as HTMLElement | undefined;
+
+        while (
+          document.readyState !== "complete" &&
+          Date.now() - startedAt < config.waitForMs
+        ) {
+          await new Promise((resolve) => setTimeout(resolve, 250));
+        }
+
+        let element = findElement();
+        while (!element && Date.now() - startedAt < config.waitForMs) {
+          await new Promise((resolve) => setTimeout(resolve, 250));
+          element = findElement();
+        }
 
         if (!element) {
-          return { found: false };
+          return {
+            found: false,
+            message: `Element not found after waiting ${Math.round(config.waitForMs / 1000)} seconds.`,
+          };
         }
 
         element.scrollIntoView({ block: "center", behavior: "smooth" });
@@ -294,6 +350,7 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
           action: step.action,
           value,
           manual: Boolean(step.manual),
+          waitForMs: 20000,
         },
       ],
     });

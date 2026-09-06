@@ -46,7 +46,8 @@ export type WorkflowStep = {
   manual?: boolean;
   manualInput?: "otp" | "verification";
   selectors: string[];
-  action: "focus" | "fill" | "click";
+  action: "navigate" | "focus" | "fill" | "click";
+  url?: string;
   valueKey?: WorkflowValueKey;
 
   status: "pending" | "running" | "completed" | "failed" | "skipped";
@@ -63,7 +64,8 @@ export type WorkflowStepDefinition = {
   manual?: boolean;
   manualInput?: "otp" | "verification";
   selectors: string[];
-  action: "focus" | "fill" | "click";
+  action: "navigate" | "focus" | "fill" | "click";
+  url?: string;
   valueKey?: WorkflowValueKey;
 };
 
@@ -91,17 +93,22 @@ export type WorkflowContext = {
 
 export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   {
-    id: "signin-email",
+    id: "open-ivac",
     phase: "phase_one",
-    title: "Enter email address",
+    title: "Open IVAC website",
+    icon: LogIn,
+    selectors: [],
+    action: "navigate",
+    url: "https://appointment.ivacbd.com/signin",
+  },
+  {
+    id: "signin-phone",
+    phase: "phase_one",
+    title: "Enter phone number",
     icon: AtSign,
-    selectors: [
-      'input[type="email"]',
-      'input[type="text"]',
-      'input[name="username"]',
-    ],
+    selectors: ['input[name="phone"]'],
     action: "fill",
-    valueKey: "account.email",
+    valueKey: "account.mobile",
   },
   {
     id: "signin-password",
@@ -128,11 +135,23 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   //   action: "focus",
   // },
   {
-    id: "sign-in",
+    id: "sign-verify-human",
     phase: "phase_one",
-    title: "Sign In",
+    title: "Human verification required",
     icon: CheckCircle,
-    selectors: ["input[type=submit]", "input"],
+    selectors: [
+      'input[aria-label="Verify you are human"]',
+      'input[type="checkbox"][aria-label*="human" i]',
+      'input[type="checkbox"][aria-label*="verify" i]',
+    ],
+    action: "click",
+  },
+  {
+    id: "sign-in-now",
+    phase: "phase_one",
+    title: "Sign In Now",
+    icon: CheckCircle,
+    selectors: ["button[type=submit]", "button"],
     action: "click",
   },
 ];

@@ -47,7 +47,7 @@ export default function WorkflowCard({
   const phaseSteps = steps;
 
   const completedCount = phaseSteps.filter(
-    (step) => step.status === "completed",
+    (step) => step.status === "completed" || step.status === "skipped",
   ).length;
 
   const progress =
