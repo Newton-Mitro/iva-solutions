@@ -11,17 +11,37 @@ type Props = {
   application: Application;
   account?: AutomationAccount;
   appointment?: Appointment;
+  applicationReady: boolean;
 };
 
 export default function ApplicationDetailsCard({
   application,
   account,
   appointment,
+  applicationReady,
 }: Props) {
   const [open, setOpen] = useState(false);
 
+  const readyStyles = applicationReady
+    ? {
+        card: "border-emerald-500/30 bg-emerald-500/[0.025]",
+        icon: "bg-emerald-500/10 text-emerald-500",
+        accent: "text-emerald-500",
+      }
+    : {
+        card: "border-red-500/30 bg-red-500/[0.025]",
+        icon: "bg-red-500/10 text-red-500",
+        accent: "text-red-500",
+      };
+
   return (
-    <section className="ivac-card overflow-hidden rounded-xl border border-(--app-border)">
+    <section
+      className={`
+        ivac-card overflow-hidden rounded-xl border
+        transition-colors duration-200
+        ${readyStyles.card}
+      `}
+    >
       {/* Header */}
       <button
         type="button"
@@ -29,7 +49,13 @@ export default function ApplicationDetailsCard({
         aria-expanded={open}
         className="ivac-hover flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition-colors"
       >
-        <div className="ivac-primary-bg ivac-primary flex h-7 w-7 shrink-0 items-center justify-center rounded-lg">
+        {/* Status Icon */}
+        <div
+          className={`
+            flex h-7 w-7 shrink-0 items-center justify-center rounded-lg
+            ${readyStyles.icon}
+          `}
+        >
           <FileText size={14} />
         </div>
 
@@ -47,6 +73,18 @@ export default function ApplicationDetailsCard({
           </p>
         </div>
 
+        {/* Ready / Not Ready Indicator */}
+        <span
+          className={`
+            shrink-0 rounded-md px-1.5 py-0.5
+            text-[7px] font-bold uppercase tracking-wide
+            ${readyStyles.icon}
+          `}
+        >
+          {applicationReady ? "Ready" : "Not ready"}
+        </span>
+
+        {/* Expand Button */}
         <div className="ivac-surface-2 ivac-text-muted flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
           <ChevronDown
             size={13}
@@ -67,12 +105,16 @@ export default function ApplicationDetailsCard({
           {/* Application Information */}
           <div className="grid grid-cols-2 gap-x-3 px-3">
             <InfoRow label="Full name" value={application.fullName || "-"} />
+
             <InfoRow
               label="Passport"
               value={application.passportNumber || "-"}
             />
+
             <InfoRow label="Mobile" value={application.mobile || "-"} />
+
             <InfoRow label="Mission" value={application.mission || "-"} />
+
             <InfoRow
               label="IVAC center"
               value={application.ivacCenter || "-"}
@@ -87,6 +129,7 @@ export default function ApplicationDetailsCard({
               value={account?.email || "Not added"}
               secondary={account?.mobile || "No mobile"}
               status={account?.accountStatus}
+              accentClass={readyStyles.accent}
             />
 
             <InfoPanel
@@ -95,6 +138,7 @@ export default function ApplicationDetailsCard({
               value={appointment?.appointmentDate || "Not scheduled"}
               secondary={appointment?.appointmentTime || "No time selected"}
               status={appointment?.status}
+              accentClass={readyStyles.accent}
             />
           </div>
         </div>
@@ -109,17 +153,19 @@ function InfoPanel({
   value,
   secondary,
   status,
+  accentClass,
 }: {
   icon: React.ReactNode;
   title: string;
   value: string;
   secondary: string;
   status?: string;
+  accentClass: string;
 }) {
   return (
     <div className="ivac-surface-2 min-w-0 rounded-lg p-2">
       <div className="flex min-w-0 items-center gap-1.5">
-        <span className="ivac-primary shrink-0">{icon}</span>
+        <span className={`shrink-0 ${accentClass}`}>{icon}</span>
 
         <span className="truncate text-[7px] font-bold uppercase tracking-wider ivac-text-muted">
           {title}

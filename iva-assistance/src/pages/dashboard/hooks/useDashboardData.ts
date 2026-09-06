@@ -4,7 +4,6 @@ import {
   Application,
   Appointment,
   AutomationAccount,
-  Payment,
   Webfile,
 } from "../../../types/models";
 import { subscribeToLocalRecords } from "../../../storage/storage";
@@ -15,7 +14,6 @@ export function useDashboardData(user: FirebaseUser) {
   const [accounts, setAccounts] = useState<AutomationAccount[]>([]);
   const [webfiles, setWebfiles] = useState<Webfile[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
 
   const [selectedApplicationId, setSelectedApplicationId] = useState("");
 
@@ -58,19 +56,11 @@ export function useDashboardData(user: FirebaseUser) {
       (error) => setDataError(error.message),
     );
 
-    const unsubscribePayments = subscribeToRecords<Payment>(
-      user.uid,
-      "payments",
-      setPayments,
-      (error) => setDataError(error.message),
-    );
-
     return () => {
       unsubscribeApplications?.();
       unsubscribeAccounts?.();
       unsubscribeWebfiles?.();
       unsubscribeAppointments?.();
-      unsubscribePayments?.();
     };
   }, [user.uid]);
 
@@ -101,19 +91,12 @@ export function useDashboardData(user: FirebaseUser) {
     [appointments, application?.id],
   );
 
-  // One payment per application
-  const applicationPayment = useMemo(
-    () => payments.find((item) => item.ivacApplicationId === application?.id),
-    [payments, application?.id],
-  );
-
   return {
     applications,
     application,
     account,
     applicationWebfiles,
     applicationAppointment,
-    applicationPayment,
     selectedApplicationId,
     setSelectedApplicationId,
     dataError,

@@ -36,7 +36,7 @@ export default function WorkflowSteps({ steps }: Props) {
                 <p className="text-xs font-semibold">{step.title}</p>
 
                 <p className="mt-0.5 text-[9px] ivac-text-muted">
-                  {step.description}
+                  {step.child}
                 </p>
               </div>
 

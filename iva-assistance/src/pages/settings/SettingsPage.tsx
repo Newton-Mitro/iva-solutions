@@ -1,66 +1,28 @@
 import { useState } from "react";
 import {
   ArrowLeft,
-  Bell,
   Check,
-  CreditCard,
-  Globe2,
+  ChevronRight,
+  KeyRound,
   LogOut,
   Save,
   ShieldCheck,
   SlidersHorizontal,
-  Smartphone,
   UserRound,
+  Zap,
 } from "lucide-react";
 
 import LicenseActivation from "../dashboard/components/LicenseActivation";
-import { signOutUser } from "../../firebase/auth";
+import { changePassword, signOutUser } from "../../firebase/auth";
 
 type Settings = {
-  demoMode: boolean;
   confirmBeforePayment: boolean;
   pauseOnVerification: boolean;
-  autoStartWorkflow: boolean;
-
-  mission: string;
-  center: string;
-
-  gateway: string;
-  currency: string;
-  paymentMethod: string;
-
-  // Non-sensitive payment information only.
-  cardHolderName: string;
-  cardLast4: string;
-
-  bkashAccountName: string;
-  bkashLast4: string;
-
-  paymentNotifications: boolean;
-  appointmentNotifications: boolean;
 };
 
 const defaultSettings: Settings = {
-  demoMode: false,
   confirmBeforePayment: true,
   pauseOnVerification: true,
-  autoStartWorkflow: false,
-
-  mission: "Bangladesh",
-  center: "Dhaka",
-
-  gateway: "IVAC Payment Gateway",
-  currency: "BDT",
-  paymentMethod: "Card",
-
-  cardHolderName: "",
-  cardLast4: "",
-
-  bkashAccountName: "",
-  bkashLast4: "",
-
-  paymentNotifications: true,
-  appointmentNotifications: true,
 };
 
 function readSettings(): Settings {
@@ -75,6 +37,10 @@ function readSettings(): Settings {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+/* Toggle                                                                      */
+/* -------------------------------------------------------------------------- */
+
 function Toggle({
   checked,
   onChange,
@@ -87,38 +53,70 @@ function Toggle({
       type="button"
       role="switch"
       aria-checked={checked}
-      aria-label="Toggle setting"
       onClick={() => onChange(!checked)}
       className={`
-        relative inline-flex
-        h-5 w-9 shrink-0
-        items-center
-        rounded-full
-        p-0
+        relative flex h-[20px] w-[36px] shrink-0
+        items-center rounded-full
+        border p-[2px]
         transition-colors duration-200
         focus:outline-none
-        focus:ring-2
-        focus:ring-blue-500/30
-        ${checked ? "bg-blue-600" : "bg-(--app-surface-3)"}
+        focus:ring-2 focus:ring-blue-500/20
+        ${
+          checked
+            ? "border-blue-600 bg-blue-600"
+            : "border-(--app-border) bg-(--app-surface-3)"
+        }
       `}
     >
       <span
         className={`
-          absolute
-          left-0
-          top-1/2
-          h-4 w-4
-          -translate-y-1/2
+          h-[14px] w-[14px]
           rounded-full
           bg-white
           shadow-sm
           transition-transform duration-200
-          ${checked ? "translate-x-4" : "translate-x-0.5"}
+          ${checked ? "translate-x-[16px]" : "translate-x-0"}
         `}
       />
     </button>
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/* Section Header                                                              */
+/* -------------------------------------------------------------------------- */
+
+function SectionTitle({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: typeof ShieldCheck;
+  title: string;
+  description?: string;
+}) {
+  return (
+    <div className="mb-2.5 flex items-start gap-2">
+      <div className="ivac-primary-bg ivac-primary flex h-6 w-6 shrink-0 items-center justify-center rounded-md">
+        <Icon size={12} />
+      </div>
+
+      <div className="min-w-0">
+        <h2 className="text-[11px] font-bold leading-tight">{title}</h2>
+
+        {description && (
+          <p className="mt-0.5 text-[8px] leading-tight ivac-text-muted">
+            {description}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Setting Row                                                                 */
+/* -------------------------------------------------------------------------- */
 
 function SettingToggle({
   title,
@@ -134,76 +132,79 @@ function SettingToggle({
   return (
     <div
       className="
-        flex min-h-14
-        items-center
-        justify-between
-        gap-4
-        border-b
-        border-(--app-border-light)
+        flex items-center gap-3
+        border-b border-(--app-border-light)
         py-2.5
         last:border-b-0
       "
     >
-      <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-semibold">{title}</p>
+      <div
+        className={`
+          flex h-7 w-7 shrink-0 items-center justify-center
+          rounded-md text-[9px] font-bold
+          ${
+            checked
+              ? "bg-blue-500/10 text-blue-500"
+              : "ivac-surface-3 ivac-text-muted"
+          }
+        `}
+      >
+        {checked ? <Check size={12} /> : <span>—</span>}
+      </div>
 
-        <p className="mt-0.5 text-[9px] leading-4 ivac-text-muted">
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-semibold leading-tight">{title}</p>
+
+        <p className="mt-0.5 text-[8px] leading-3.5 ivac-text-muted">
           {description}
         </p>
       </div>
 
-      <div className="flex shrink-0 items-center justify-center">
-        <Toggle checked={checked} onChange={onChange} />
-      </div>
+      <Toggle checked={checked} onChange={onChange} />
     </div>
   );
 }
 
-function SectionTitle({
-  icon: Icon,
-  children,
-}: {
-  icon: typeof CreditCard;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="mb-2 flex items-center gap-2">
-      <Icon size={14} className="ivac-primary" />
-      <h2 className="text-xs font-bold">{children}</h2>
-    </div>
-  );
-}
+/* -------------------------------------------------------------------------- */
+/* Status Row                                                                  */
+/* -------------------------------------------------------------------------- */
 
-function Field({
+function StatusRow({
   label,
   value,
-  onChange,
-  placeholder,
-  type = "text",
-  maxLength,
+  ready,
 }: {
   label: string;
   value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  type?: string;
-  maxLength?: number;
+  ready: boolean;
 }) {
   return (
-    <label className="text-[10px] font-semibold">
-      {label}
+    <div className="flex items-center justify-between gap-3 py-1.5">
+      <span className="text-[9px] ivac-text-muted">{label}</span>
 
-      <input
-        type={type}
-        value={value}
-        maxLength={maxLength}
-        placeholder={placeholder}
-        onChange={(event) => onChange(event.target.value)}
-        className="ivac-input mt-1"
-      />
-    </label>
+      <span
+        className={`
+          flex items-center gap-1
+          text-[8px] font-semibold
+          ${ready ? "text-emerald-500" : "text-red-500"}
+        `}
+      >
+        <span
+          className={`
+            h-1.5 w-1.5 rounded-full
+            ${ready ? "bg-emerald-500" : "bg-red-500"}
+          `}
+        />
+
+        {value}
+      </span>
+    </div>
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/* Page                                                                        */
+/* -------------------------------------------------------------------------- */
 
 export default function SettingsPage({
   email,
@@ -217,8 +218,17 @@ export default function SettingsPage({
   onLicenseDeactivated: () => void;
 }) {
   const [settings, setSettings] = useState<Settings>(readSettings);
-
   const [saved, setSaved] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    current: "",
+    next: "",
+    confirm: "",
+  });
+  const [passwordState, setPasswordState] = useState({
+    busy: false,
+    message: "",
+    error: "",
+  });
 
   const update = <K extends keyof Settings>(key: K, value: Settings[K]) => {
     setSaved(false);
@@ -233,384 +243,410 @@ export default function SettingsPage({
     localStorage.setItem("ivac-settings", JSON.stringify(settings));
 
     setSaved(true);
+
+    window.setTimeout(() => {
+      setSaved(false);
+    }, 1800);
+  };
+
+  const automationConfigured =
+    settings.pauseOnVerification && settings.confirmBeforePayment;
+
+  const updatePasswordField = (
+    field: keyof typeof passwordForm,
+    value: string,
+  ) => {
+    setPasswordState({ busy: false, message: "", error: "" });
+    setPasswordForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const submitPasswordChange = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+    const { current, next, confirm } = passwordForm;
+
+    if (next.length < 6) {
+      setPasswordState({
+        busy: false,
+        message: "",
+        error: "Password must be at least 6 characters.",
+      });
+      return;
+    }
+    if (next !== confirm) {
+      setPasswordState({
+        busy: false,
+        message: "",
+        error: "New passwords do not match.",
+      });
+      return;
+    }
+
+    setPasswordState({ busy: true, message: "", error: "" });
+    try {
+      await changePassword(current, next);
+      setPasswordForm({ current: "", next: "", confirm: "" });
+      setPasswordState({
+        busy: false,
+        message: "Password changed successfully.",
+        error: "",
+      });
+    } catch (changeError) {
+      const code =
+        changeError && typeof changeError === "object" && "code" in changeError
+          ? String(changeError.code)
+          : "";
+      const error =
+        code === "auth/wrong-password" || code === "auth/invalid-credential"
+          ? "Current password is incorrect."
+          : code === "auth/requires-recent-login"
+            ? "For security, sign out and sign in again before changing your password."
+            : changeError instanceof Error
+              ? changeError.message
+              : "Unable to change password.";
+      setPasswordState({ busy: false, message: "", error });
+    }
   };
 
   return (
-    <div className="ivac-app">
-      {/* Header */}
+    <div className="ivac-app min-h-screen">
+      {/* ------------------------------------------------------------------ */}
+      {/* Header                                                             */}
+      {/* ------------------------------------------------------------------ */}
+
       <header
         className="
           sticky top-0 z-40
-          border-b
-          border-(--app-border)
-          bg-(--app-surface)
+          border-b border-(--app-border)
+          bg-(--app-surface)/95
+          backdrop-blur
         "
       >
-        <div className="flex h-14 items-center gap-3 px-4">
+        <div className="flex h-13 items-center gap-2.5 px-3.5">
           <button
             type="button"
             onClick={onBack}
             aria-label="Back to dashboard"
             className="
               ivac-hover
+              flex h-7 w-7
+              items-center justify-center
               rounded-lg
-              p-2
               ivac-text-muted
             "
           >
-            <ArrowLeft size={17} />
+            <ArrowLeft size={15} />
           </button>
 
-          <div>
-            <h1 className="text-sm font-bold">Settings</h1>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-[12px] font-bold leading-tight">Settings</h1>
 
-            <p className="text-[9px] ivac-text-muted">Workspace preferences</p>
+            <p className="mt-0.5 text-[8px] ivac-text-muted">
+              Automation workspace configuration
+            </p>
+          </div>
+
+          {/* Configuration indicator */}
+          <div
+            className={`
+              flex items-center gap-1.5
+              rounded-md px-2 py-1
+              text-[7px] font-bold uppercase tracking-wide
+              ${
+                automationConfigured
+                  ? "bg-emerald-500/10 text-emerald-500"
+                  : "bg-amber-500/10 text-amber-500"
+              }
+            `}
+          >
+            <span
+              className={`
+                h-1.5 w-1.5 rounded-full
+                ${automationConfigured ? "bg-emerald-500" : "bg-amber-500"}
+              `}
+            />
+
+            {automationConfigured ? "Configured" : "Review"}
           </div>
         </div>
       </header>
 
+      {/* ------------------------------------------------------------------ */}
+      {/* Main                                                               */}
+      {/* ------------------------------------------------------------------ */}
+
       <main
         className="
-          mx-auto
-          w-full
-          max-w-2xl
-          space-y-4
-          px-4
+          mx-auto w-full max-w-xl
+          space-y-5
+          px-3.5
           pb-8
-          pt-5
+          pt-4
         "
       >
-        {/* Account */}
-        <div className="border-b border-(--app-border) pb-4">
-          <p
+        {/* ---------------------------------------------------------------- */}
+        {/* Workspace                                                        */}
+        {/* ---------------------------------------------------------------- */}
+
+        <section>
+          <SectionTitle
+            icon={UserRound}
+            title="Workspace"
+            description="Current automation account"
+          />
+
+          <div
             className="
-              text-[10px]
-              font-semibold
-              uppercase
-              tracking-wider
-              ivac-primary
+              ivac-card
+              flex items-center gap-3
+              rounded-xl
+              border border-(--app-border)
+              p-3
             "
           >
-            Account
-          </p>
-
-          <div className="mt-2 flex items-center gap-3">
             <div
               className="
-                flex h-9 w-9
+                ivac-primary-bg ivac-primary
+                flex h-9 w-9 shrink-0
                 items-center justify-center
-                rounded-full
-                ivac-primary-bg
-                ivac-primary
+                rounded-lg
               "
             >
-              <UserRound size={17} />
+              <UserRound size={16} />
             </div>
 
-            <div className="min-w-0">
-              <p className="truncate text-xs font-semibold">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[10px] font-bold">
                 {email || "Signed-in account"}
               </p>
 
-              <p className="text-[9px] ivac-text-muted">
-                Indian Visa Assistance workspace
+              <p className="mt-0.5 truncate text-[8px] ivac-text-muted">
+                Indian Visa Assistance automation workspace
               </p>
             </div>
+
+            <ChevronRight size={13} className="shrink-0 ivac-text-muted" />
           </div>
-        </div>
+        </section>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* Account security                                                  */}
+        {/* ---------------------------------------------------------------- */}
 
         <section>
-          <SectionTitle icon={ShieldCheck}>License</SectionTitle>
+          <SectionTitle
+            icon={KeyRound}
+            title="Change password"
+            description="Update your Firebase sign-in password"
+          />
+
+          <form
+            onSubmit={(event) => void submitPasswordChange(event)}
+            className="ivac-card space-y-2 rounded-xl border border-(--app-border) p-3"
+          >
+            <input
+              className="ivac-input"
+              type="password"
+              autoComplete="current-password"
+              placeholder="Current password"
+              value={passwordForm.current}
+              onChange={(event) =>
+                updatePasswordField("current", event.target.value)
+              }
+              required
+            />
+
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                className="ivac-input"
+                type="password"
+                autoComplete="new-password"
+                placeholder="New password"
+                value={passwordForm.next}
+                onChange={(event) =>
+                  updatePasswordField("next", event.target.value)
+                }
+                minLength={6}
+                required
+              />
+              <input
+                className="ivac-input"
+                type="password"
+                autoComplete="new-password"
+                placeholder="Confirm password"
+                value={passwordForm.confirm}
+                onChange={(event) =>
+                  updatePasswordField("confirm", event.target.value)
+                }
+                minLength={6}
+                required
+              />
+            </div>
+
+            {(passwordState.error || passwordState.message) && (
+              <p
+                className={`text-[9px] ${passwordState.error ? "ivac-danger" : "text-emerald-500"}`}
+              >
+                {passwordState.error || passwordState.message}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={passwordState.busy}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-2 text-[10px] font-bold text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
+            >
+              <KeyRound size={12} />
+              {passwordState.busy ? "Updating..." : "Update password"}
+            </button>
+          </form>
+        </section>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* License                                                          */}
+        {/* ---------------------------------------------------------------- */}
+
+        <section>
+          <SectionTitle
+            icon={ShieldCheck}
+            title="License"
+            description="Manage your automation license"
+          />
+
           <LicenseActivation
             userId={userId}
             onDeactivated={onLicenseDeactivated}
           />
         </section>
 
-        {/* General */}
+        {/* ---------------------------------------------------------------- */}
+        {/* Automation                                                       */}
+        {/* ---------------------------------------------------------------- */}
+
         <section>
-          <SectionTitle icon={SlidersHorizontal}>
-            General configuration
-          </SectionTitle>
+          <SectionTitle
+            icon={Zap}
+            title="Automation"
+            description="Control how the IVAC workflow behaves"
+          />
 
-          <div className="ivac-card rounded-lg px-3">
-            <SettingToggle
-              title="Demo mode"
-              description="Use sample data and simulated actions"
-              checked={settings.demoMode}
-              onChange={(value) => update("demoMode", value)}
-            />
-
+          <div
+            className="
+              ivac-card
+              rounded-xl
+              border border-(--app-border)
+              px-3
+            "
+          >
             <SettingToggle
               title="Pause on human verification"
-              description="Stop automation when verification appears"
+              description="Automatically stop when a verification or CAPTCHA step requires manual action."
               checked={settings.pauseOnVerification}
               onChange={(value) => update("pauseOnVerification", value)}
             />
 
             <SettingToggle
-              title="Auto-start workflow"
-              description="Start the selected workflow when the dashboard opens"
-              checked={settings.autoStartWorkflow}
-              onChange={(value) => update("autoStartWorkflow", value)}
+              title="Confirm before payment"
+              description="Pause the workflow before submitting an appointment payment."
+              checked={settings.confirmBeforePayment}
+              onChange={(value) => update("confirmBeforePayment", value)}
             />
           </div>
         </section>
 
-        {/* Appointment */}
+        {/* ---------------------------------------------------------------- */}
+        {/* Automation Status                                                */}
+        {/* ---------------------------------------------------------------- */}
+
         <section>
-          <SectionTitle icon={Globe2}>Appointment defaults</SectionTitle>
+          <SectionTitle
+            icon={SlidersHorizontal}
+            title="Automation status"
+            description="Current workflow safeguards"
+          />
 
           <div
             className="
-              ivac-card
-              grid grid-cols-2
-              gap-3
-              rounded-lg
-              p-3
+              ivac-surface-2
+              rounded-xl
+              border border-(--app-border)
+              px-3 py-2
             "
           >
-            <label className="text-[10px] font-semibold">
-              Mission
-              <select
-                className="ivac-input mt-1"
-                value={settings.mission}
-                onChange={(event) => update("mission", event.target.value)}
-              >
-                <option>Bangladesh</option>
-                <option>India</option>
-              </select>
-            </label>
+            <StatusRow
+              label="Human verification protection"
+              value={settings.pauseOnVerification ? "Enabled" : "Disabled"}
+              ready={settings.pauseOnVerification}
+            />
 
-            <label className="text-[10px] font-semibold">
-              Preferred center
-              <select
-                className="ivac-input mt-1"
-                value={settings.center}
-                onChange={(event) => update("center", event.target.value)}
-              >
-                <option>Dhaka</option>
-                <option>Chittagong</option>
-                <option>Rajshahi</option>
-              </select>
-            </label>
-          </div>
-        </section>
+            <StatusRow
+              label="Payment confirmation"
+              value={settings.confirmBeforePayment ? "Required" : "Automatic"}
+              ready={settings.confirmBeforePayment}
+            />
 
-        {/* Payment Configuration */}
-        <section>
-          <SectionTitle icon={CreditCard}>Payment configuration</SectionTitle>
-
-          <div className="ivac-card rounded-lg p-3">
-            <div className="grid grid-cols-2 gap-3">
-              <label className="text-[10px] font-semibold">
-                Payment gateway
-                <select
-                  className="ivac-input mt-1"
-                  value={settings.gateway}
-                  onChange={(event) => update("gateway", event.target.value)}
-                >
-                  <option>IVAC Payment Gateway</option>
-                  <option>Manual payment</option>
-                </select>
-              </label>
-
-              <label className="text-[10px] font-semibold">
-                Currency
-                <select
-                  className="ivac-input mt-1"
-                  value={settings.currency}
-                  onChange={(event) => update("currency", event.target.value)}
-                >
-                  <option>BDT</option>
-                  <option>USD</option>
-                </select>
-              </label>
-
-              <label className="text-[10px] font-semibold">
-                Default method
-                <select
-                  className="ivac-input mt-1"
-                  value={settings.paymentMethod}
-                  onChange={(event) =>
-                    update("paymentMethod", event.target.value)
-                  }
-                >
-                  <option>Card</option>
-                  <option>Mobile banking</option>
-                  <option>Bank transfer</option>
-                </select>
-              </label>
-            </div>
-
-            {/* Confirm Payment */}
-            <div className="mt-3 border-t border-(--app-border-light) pt-1">
-              <SettingToggle
-                title="Confirm before payment"
-                description="Require manual confirmation before opening the payment step"
-                checked={settings.confirmBeforePayment}
-                onChange={(value) => update("confirmBeforePayment", value)}
+            <div className="mt-1 border-t border-(--app-border-light) pt-1">
+              <StatusRow
+                label="Automation safety"
+                value={automationConfigured ? "Protected" : "Review settings"}
+                ready={automationConfigured}
               />
             </div>
-
-            {/* Payment Card Info */}
-            <div className="mt-4 border-t border-(--app-border-light) pt-3">
-              <div className="mb-2 flex items-center gap-2">
-                <CreditCard size={13} className="ivac-primary" />
-
-                <div>
-                  <p className="text-[10px] font-bold">Payment Card Info</p>
-
-                  <p className="text-[8px] ivac-text-muted">
-                    Store display information only
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Field
-                  label="Card holder name"
-                  value={settings.cardHolderName}
-                  placeholder="e.g. JOHN DOE"
-                  onChange={(value) => update("cardHolderName", value)}
-                />
-
-                <Field
-                  label="Last 4 digits"
-                  value={settings.cardLast4}
-                  placeholder="1234"
-                  maxLength={4}
-                  onChange={(value) =>
-                    update("cardLast4", value.replace(/\D/g, ""))
-                  }
-                />
-              </div>
-            </div>
-
-            {/* bKash Info */}
-            <div className="mt-4 border-t border-(--app-border-light) pt-3">
-              <div className="mb-2 flex items-center gap-2">
-                <Smartphone size={13} className="ivac-primary" />
-
-                <div>
-                  <p className="text-[10px] font-bold">bKash Info</p>
-
-                  <p className="text-[8px] ivac-text-muted">
-                    Store only non-sensitive account reference
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Field
-                  label="Account name"
-                  value={settings.bkashAccountName}
-                  placeholder="e.g. Personal bKash"
-                  onChange={(value) => update("bkashAccountName", value)}
-                />
-
-                <Field
-                  label="Last 4 digits"
-                  value={settings.bkashLast4}
-                  placeholder="5678"
-                  maxLength={4}
-                  onChange={(value) =>
-                    update("bkashLast4", value.replace(/\D/g, ""))
-                  }
-                />
-              </div>
-            </div>
-
-            {/* Security Notice */}
-            <div
-              className="
-                mt-4
-                flex gap-2
-                rounded-md
-                ivac-warning-bg
-                p-2
-                text-[9px]
-                ivac-warning
-              "
-            >
-              <ShieldCheck size={13} className="mt-0.5 shrink-0" />
-
-              <span className="leading-4">
-                For security, the extension never stores full card numbers,
-                expiry dates, CVV, PINs, passwords, or OTPs.
-              </span>
-            </div>
           </div>
         </section>
 
-        {/* Notifications */}
-        <section>
-          <SectionTitle icon={Bell}>Notifications</SectionTitle>
+        {/* ---------------------------------------------------------------- */}
+        {/* Actions                                                          */}
+        {/* ---------------------------------------------------------------- */}
 
-          <div className="ivac-card rounded-lg px-3">
-            <SettingToggle
-              title="Payment updates"
-              description="Show payment status changes in the activity log"
-              checked={settings.paymentNotifications}
-              onChange={(value) => update("paymentNotifications", value)}
-            />
-
-            <SettingToggle
-              title="Appointment updates"
-              description="Show appointment availability and booking updates"
-              checked={settings.appointmentNotifications}
-              onChange={(value) => update("appointmentNotifications", value)}
-            />
-          </div>
-        </section>
-
-        {/* Actions */}
-        <div className="flex gap-2 pt-1">
+        <section className="space-y-2">
           <button
             type="button"
             onClick={saveSettings}
-            className="
-              flex flex-1
-              items-center
-              justify-center
-              gap-2
+            className={`
+              flex w-full
+              items-center justify-center gap-2
               rounded-lg
-              bg-blue-600
               py-2.5
-              text-[11px]
+              text-[10px]
               font-bold
               text-white
-              hover:bg-blue-700
-            "
+              transition-all duration-200
+              ${saved ? "bg-emerald-600" : "bg-blue-600 hover:bg-blue-700"}
+            `}
           >
-            {saved ? <Check size={14} /> : <Save size={14} />}
+            {saved ? <Check size={13} /> : <Save size={13} />}
 
-            {saved ? "Saved" : "Save settings"}
+            {saved ? "Settings saved" : "Save settings"}
           </button>
 
           <button
             type="button"
             onClick={() => void signOutUser()}
             className="
-              flex
-              items-center
-              justify-center
-              gap-2
+              flex w-full
+              items-center justify-center gap-2
               rounded-lg
-              border
-              border-red-200
-              px-3
+              border border-red-500/20
+              bg-red-500/[0.03]
               py-2.5
-              text-[11px]
+              text-[10px]
               font-bold
               text-red-500
-              dark:border-red-900
+              transition-colors
+              hover:bg-red-500/[0.07]
             "
           >
-            <LogOut size={14} />
+            <LogOut size={13} />
             Sign out
           </button>
-        </div>
+        </section>
+
+        {/* Footer */}
+        <p className="pt-1 text-center text-[7px] ivac-text-muted">
+          IVAC Automation · Workspace preferences
+        </p>
       </main>
     </div>
   );

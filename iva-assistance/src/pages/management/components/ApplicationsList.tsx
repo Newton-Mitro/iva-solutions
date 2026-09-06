@@ -2,7 +2,6 @@ import { FileText } from "lucide-react";
 import { ApplicationItem } from "./items/ApplicationItem";
 import { AccountSection } from "./sections/AccountSection";
 import { AppointmentCard } from "./sections/AppointmentCard";
-import { PaymentCard } from "./sections/PaymentCard";
 import { WebfilesSection } from "./sections/WebfilesSection";
 import { Card } from "../../../components/ui/Card";
 import { AddButton } from "../../../components/ui/Button";
@@ -97,7 +96,6 @@ export function ApplicationsList({
                   onDelete={() => onDeleteAccount(applicationAccount!.id)}
                 />
                 <AppointmentCard appointment={relatedAppointment} />
-                <PaymentCard payment={relatedPayment} />
                 <WebfilesSection
                   webfiles={relatedWebfiles}
                   onAdd={onAddWebfile}

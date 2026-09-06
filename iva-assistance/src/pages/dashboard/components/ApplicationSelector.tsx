@@ -112,7 +112,8 @@ export default function ApplicationSelector({
             <div className="relative mb-2">
               <Search
                 size={11}
-                className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 ivac-text-muted"
+                strokeWidth={2}
+                className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 ivac-text-muted"
               />
 
               <input
@@ -120,13 +121,14 @@ export default function ApplicationSelector({
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search applications..."
                 aria-label="Search applications"
-                className="ivac-input h-7 w-full pl-7 text-[9px]"
+                className="ivac-input h-7 w-full pr-2 text-[9px]"
+                style={{ paddingLeft: "30px" }}
               />
             </div>
 
             {applications.length > 0 ? (
               filteredApplications.length > 0 ? (
-                <div className="max-h-52 space-y-1 overflow-y-auto pr-0.5">
+                <div className="max-h-40 space-y-1 overflow-y-auto pr-0.5">
                   {filteredApplications.map((item) => {
                     const selected = item.id === application?.id;
 
@@ -136,7 +138,6 @@ export default function ApplicationSelector({
                         type="button"
                         onClick={() => {
                           onSelect(item.id);
-                          setOpen(false);
                         }}
                         className={`group flex w-full items-center gap-2 rounded-lg border px-2 py-1.5 text-left transition ${
                           selected

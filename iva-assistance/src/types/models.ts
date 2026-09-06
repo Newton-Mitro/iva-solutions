@@ -1,9 +1,5 @@
 import type { LucideIcon } from "lucide-react";
 
-/* -------------------------------------------------------------------------- */
-/* Common / Enum-like Types                                                   */
-/* -------------------------------------------------------------------------- */
-
 export type Gender = "male" | "female" | "other";
 export type VisaType =
   | "tourist"
@@ -17,21 +13,7 @@ export type VisaType =
 export type Mission = "India" | "Bangladesh";
 export type IvacCenter = "Dhaka" | "Chittagong" | "Rajshahi";
 export type WebfileType = "primary" | "other";
-export type PaymentMethod = "card" | "mobile_banking" | "bank_transfer";
-export type PaymentGateway = "ivac" | "manual";
 export type Currency = "BDT" | "USD";
-
-export type AutomationType =
-  | "signup"
-  | "signin"
-  | "webfile"
-  | "mission"
-  | "appointment"
-  | "payment"
-  | "invoice"
-  | "signout";
-
-export type LogType = "success" | "info" | "warning" | "error";
 
 /* -------------------------------------------------------------------------- */
 /* Status Types                                                               */
@@ -49,24 +31,6 @@ export type ApplicationStatus =
 export type AccountStatus = "active" | "suspended" | "blocked";
 
 export type AppointmentAttemptStatus = "pending" | "success" | "failed";
-
-export type PaymentStatus =
-  | "pending"
-  | "processing"
-  | "paid"
-  | "failed"
-  | "cancelled"
-  | "refunded";
-
-export type InvoiceStatus = "pending" | "downloaded" | "failed";
-
-export type AutomationRunStatus =
-  | "pending"
-  | "running"
-  | "paused"
-  | "completed"
-  | "failed"
-  | "cancelled";
 
 export type AutomationLogStatus =
   | "pending"
@@ -96,16 +60,6 @@ export type Appointment = {
   status?: AppointmentAttemptStatus;
 };
 
-export type Payment = {
-  id: string;
-  ivacApplicationId: string;
-  appointmentId?: string;
-  transactionId?: string;
-  amount?: number;
-  currency?: Currency;
-  status: PaymentStatus;
-};
-
 export type AutomationAccount = {
   id: string;
   applicationId: string;
@@ -133,7 +87,6 @@ export type Application = {
 
   webfiles: Webfile[];
   appointment?: Appointment;
-  payment?: Payment;
   automationAccount?: AutomationAccount;
 
   visaType?: VisaType;
@@ -157,47 +110,6 @@ export type AutomationLog = {
   metadata?: string;
   startedAt?: string;
   completedAt?: string;
-};
-
-/* -------------------------------------------------------------------------- */
-/* Workflow                                                                   */
-/* -------------------------------------------------------------------------- */
-
-export type WorkflowPhase =
-  | "signup"
-  | "signin"
-  | "webfile"
-  | "mission"
-  | "relogin"
-  | "appointment"
-  | "payment"
-  | "invoice"
-  | "signout";
-
-export type WorkflowStepStatus = "pending" | "running" | "completed" | "failed";
-
-export type WorkflowStepDefinition = {
-  id: string;
-  phase: WorkflowPhase;
-  title: string;
-  description: string;
-  icon: LucideIcon;
-  manual?: boolean;
-};
-
-export type WorkflowStep = WorkflowStepDefinition & {
-  status: WorkflowStepStatus;
-  progress: number;
-};
-
-/* -------------------------------------------------------------------------- */
-/* Workflow Logs                                                              */
-/* -------------------------------------------------------------------------- */
-
-export type WorkflowLog = {
-  type: LogType;
-  message: string;
-  time: string;
 };
 
 /* -------------------------------------------------------------------------- */

@@ -10,8 +10,11 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import WorkflowSteps from "./WorkflowSteps";
-import { flowTabs } from "../constants";
-import { WorkflowPhase, WorkflowStep } from "../../../types/dashboard.types";
+import {
+  flowTabs,
+  WorkflowPhase,
+  WorkflowStep,
+} from "../../../types/dashboard.types";
 
 type Props = {
   phase: WorkflowPhase;
@@ -322,29 +325,11 @@ export default function WorkflowCard({
 
 function getPhaseDescription(phase: WorkflowPhase): string {
   switch (phase) {
-    case "signup":
+    case "phase_one":
       return "Create and configure the Indian Visa Application account.";
 
-    case "signin":
+    case "phase_two":
       return "Sign in to the registered Indian Visa Application account.";
-
-    case "webfile":
-      return "Upload and manage webfiles for the application.";
-
-    case "mission":
-      return "Select the mission (consulate/embassy).";
-
-    case "appointment":
-      return "Book an appointment for the visa interview.";
-
-    case "payment":
-      return "Process payment for the visa application.";
-
-    case "invoice":
-      return "Download the invoice for the payment.";
-
-    case "signout":
-      return "Sign out from the account.";
 
     default:
       return "Manage the current automation workflow.";

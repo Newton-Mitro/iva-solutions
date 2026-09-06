@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { createWorkflowSteps, workflowStepsByPhase } from "../constants";
-import { WorkflowPhase, WorkflowStep } from "../../../types/dashboard.types";
+import {
+  createWorkflowSteps,
+  WorkflowPhase,
+  WorkflowStep,
+  workflowStepsByPhase,
+} from "../../../types/dashboard.types";
 import { signOutUser } from "../../../firebase/auth";
 
 type LogType = "success" | "info" | "warning" | "error";
@@ -69,10 +73,11 @@ export function useWorkflow() {
    * ============================================================
    */
 
-  const [workflowPhase, setWorkflowPhase] = useState<WorkflowPhase>("signup");
+  const [workflowPhase, setWorkflowPhase] =
+    useState<WorkflowPhase>("phase_one");
 
   const [steps, setSteps] = useState<WorkflowStep[]>(() =>
-    createWorkflowSteps("signup"),
+    createWorkflowSteps("phase_one"),
   );
 
   /**
@@ -497,7 +502,7 @@ export function useWorkflow() {
    */
 
   function reset() {
-    const initialPhase: WorkflowPhase = "signup";
+    const initialPhase: WorkflowPhase = "phase_one";
 
     setWorkflowPhase(initialPhase);
 

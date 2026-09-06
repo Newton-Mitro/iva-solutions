@@ -66,19 +66,27 @@ export function Dashboard({
               application={application}
               account={account}
               appointment={applicationAppointment}
+              applicationReady={
+                account != null && applicationWebfiles.length > 0
+              }
             />
             <WebfileInfoCard webfiles={applicationWebfiles} />
-            <WorkflowCard
-              phase={workflow.workflowPhase}
-              steps={workflow.steps}
-              started={workflow.running}
-              onPhaseChange={(phase: WorkflowPhase) =>
-                workflow.setWorkflowPhase(phase)
-              }
-              onStart={workflow.startFlow}
-              onStop={workflow.stopFlow}
-              onReset={workflow.reset}
-            />
+            {account != null && applicationWebfiles.length > 0 && (
+              <>
+                <WorkflowCard
+                  phase={workflow.workflowPhase}
+                  steps={workflow.steps}
+                  started={workflow.running}
+                  onPhaseChange={(phase: WorkflowPhase) =>
+                    workflow.setWorkflowPhase(phase)
+                  }
+                  onStart={workflow.startFlow}
+                  onStop={workflow.stopFlow}
+                  onReset={workflow.reset}
+                />
+                <ActivityLog logs={workflow.logs} />
+              </>
+            )}
           </>
         ) : (
           <div className="ivac-card rounded-xl p-4 text-center text-[10px] ivac-text-muted">
@@ -88,8 +96,6 @@ export function Dashboard({
             />
           </div>
         )}
-
-        <ActivityLog logs={workflow.logs} />
       </main>
 
       {/* Management */}
