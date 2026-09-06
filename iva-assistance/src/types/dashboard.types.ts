@@ -2,7 +2,9 @@ import {
   Globe2,
   LockKeyhole,
   LucideIcon,
+  MessageSquare,
   Phone,
+  RefreshCw,
   ShieldCheck,
   UserRound,
 } from "lucide-react";
@@ -13,7 +15,7 @@ import type {
   AutomationAccount,
   Webfile,
 } from "./models";
-import { AtSign, CheckCircle, LogIn, Send } from "lucide-react";
+import { LogIn } from "lucide-react";
 
 export type StepStatus =
   | "completed"
@@ -43,7 +45,13 @@ export type WorkflowStep = {
   manual?: boolean;
   manualInput?: "otp" | "verification";
   selectors: string[];
-  action: "navigate" | "focus" | "fill" | "click";
+  action:
+    | "navigate"
+    | "focus"
+    | "fill"
+    | "click"
+    | "replace-text"
+    | "replace-html";
   url?: string;
   valueKey?: WorkflowValueKey;
 
@@ -61,7 +69,13 @@ export type WorkflowStepDefinition = {
   manual?: boolean;
   manualInput?: "otp" | "verification";
   selectors: string[];
-  action: "navigate" | "focus" | "fill" | "click";
+  action:
+    | "navigate"
+    | "focus"
+    | "fill"
+    | "click"
+    | "replace-text"
+    | "replace-html";
   url?: string;
   valueKey?: WorkflowValueKey;
 };
@@ -155,6 +169,30 @@ export const phaseTwoWorkflow: WorkflowStepDefinition[] = [
     selectors: [],
     action: "navigate",
     url: "https://newton-mitro.github.io/nm-portfolio/",
+  },
+  {
+    id: "phase-two-otp",
+    phase: "phase_two",
+    title: "Enter OTP",
+    child: "Enter the OTP received for this phase.",
+    icon: MessageSquare,
+    manual: true,
+    manualInput: "otp",
+    selectors: [
+      'input[autocomplete="one-time-code"]',
+      'input[name="otp"]',
+      'input[id*="otp" i]',
+    ],
+    action: "focus",
+  },
+  {
+    id: "phase-two-replace-body",
+    phase: "phase_two",
+    title: "Replace Body",
+    icon: RefreshCw,
+    selectors: ["body"],
+    action: "replace-html",
+    valueKey: "account.ivacPassword",
   },
 ];
 

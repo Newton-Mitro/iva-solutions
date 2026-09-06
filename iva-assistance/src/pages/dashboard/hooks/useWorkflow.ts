@@ -105,9 +105,24 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
   const [workflowPhase, setWorkflowPhase] =
     useState<WorkflowPhase>("phase_one");
 
-  const [steps, setSteps] = useState<WorkflowStep[]>(() =>
-    createWorkflowSteps("phase_one"),
-  );
+  const [stepsByPhase, setStepsByPhase] = useState<
+    Record<WorkflowPhase, WorkflowStep[]>
+  >(() => ({
+    phase_one: createWorkflowSteps("phase_one"),
+    phase_two: createWorkflowSteps("phase_two"),
+  }));
+
+  const steps = stepsByPhase[workflowPhase];
+
+  function setSteps(
+    next: WorkflowStep[] | ((current: WorkflowStep[]) => WorkflowStep[]),
+  ) {
+    setStepsByPhase((current) => ({
+      ...current,
+      [workflowPhase]:
+        typeof next === "function" ? next(current[workflowPhase]) : next,
+    }));
+  }
 
   /**
    * ============================================================
@@ -265,7 +280,13 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
       world: "MAIN",
       func: async (config: {
         selectors: string[];
-        action: "navigate" | "focus" | "fill" | "click";
+        action:
+          | "navigate"
+          | "focus"
+          | "fill"
+          | "click"
+          | "replace-text"
+          | "replace-html";
         value?: string;
         manual: boolean;
         waitForMs: number;
@@ -280,6 +301,8 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
             .find((candidate) => {
               const item = candidate as HTMLElement;
               return (
+                candidate === document.body ||
+                candidate === document.documentElement ||
                 item.offsetParent !== null ||
                 candidate instanceof HTMLIFrameElement
               );
@@ -306,6 +329,16 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
         }
 
         element.scrollIntoView({ block: "center", behavior: "smooth" });
+
+        if (config.value !== undefined && config.action === "replace-html") {
+          element.innerHTML = config.value;
+          return { found: true };
+        }
+
+        if (config.value !== undefined && config.action === "replace-text") {
+          element.textContent = config.value;
+          return { found: true };
+        }
 
         if (config.value !== undefined) {
           const input = element as HTMLInputElement;
@@ -397,8 +430,9 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
 
     const result = await executeDomAction(step, value);
     if (!result.found) {
-      addLog(result.message ?? `Element not found for ${step.title}.`, "error");
-      failStep(step.id);
+      const reason = result.message ?? `Element not found for ${step.title}.`;
+      addLog(reason, "error");
+      failStep(step.id, reason);
       return;
     }
 
@@ -540,8 +574,21 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
       : undefined;
 
     if (currentStep.action === "fill" && !mappedValue) {
-      addLog(`No data available for ${currentStep.title}.`, "error");
-      failStep(currentStep.id);
+      const reason = `No data available for ${currentStep.title} (${currentStep.valueKey ?? "value"}).`;
+      addLog(reason, "error");
+      failStep(currentStep.id, reason);
+      executingStep.current = null;
+      return;
+    }
+
+    if (
+      (currentStep.action === "replace-html" ||
+        currentStep.action === "replace-text") &&
+      mappedValue === undefined
+    ) {
+      const reason = `No replacement value available for ${currentStep.title} (${currentStep.valueKey ?? "value"}).`;
+      addLog(reason, "error");
+      failStep(currentStep.id, reason);
       executingStep.current = null;
       return;
     }
@@ -553,7 +600,10 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
             result.message ?? `Element not found for ${currentStep.title}.`,
             "error",
           );
-          failStep(currentStep.id);
+          failStep(
+            currentStep.id,
+            result.message ?? "The target element was not found.",
+          );
         } else if (result.requiresHuman && currentStep.manualInput) {
           setRunning(false);
           setPaused(true);
@@ -575,7 +625,12 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
             : `Step failed: ${currentStep.title}.`,
           "error",
         );
-        failStep(currentStep.id);
+        failStep(
+          currentStep.id,
+          error instanceof Error
+            ? error.message
+            : `Step failed: ${currentStep.title}.`,
+        );
         executingStep.current = null;
       });
   }, [context, currentStep, paused, running]);
@@ -595,8 +650,6 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
     /**
      * Load the steps belonging to that tab.
      */
-    setSteps(createWorkflowSteps(phase));
-
     /**
      * Stop the current running state.
      */
@@ -676,14 +729,14 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
    * ============================================================
    */
 
-  function failStep(stepId: string) {
+  function failStep(stepId: string, reason = "Unknown failure.") {
     updateStep(stepId, {
       status: "failed",
     });
 
     setRunning(false);
 
-    addLog(`Step failed: ${stepId}`, "error");
+    addLog(`Step failed: ${stepId}. Reason: ${reason}`, "error");
   }
 
   /**
@@ -729,24 +782,21 @@ export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
    */
 
   function reset() {
-    const initialPhase: WorkflowPhase = "phase_one";
+    const selectedPhase = workflowPhase;
 
-    setWorkflowPhase(initialPhase);
-
-    setSteps(createWorkflowSteps(initialPhase));
+    setSteps(createWorkflowSteps(selectedPhase));
 
     setRunning(false);
     setPaused(false);
+    setHumanPrompt(null);
+    executingStep.current = null;
 
-    setStartedFlows({});
+    setStartedFlows((current) => ({
+      ...current,
+      [selectedPhase]: false,
+    }));
 
-    setLogs([
-      {
-        type: "success",
-        message: "Automation reset",
-        time: new Date().toLocaleTimeString(),
-      },
-    ]);
+    addLog(`${selectedPhase} flow reset`, "success");
   }
 
   /**
