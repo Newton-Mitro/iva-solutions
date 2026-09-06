@@ -20,18 +20,11 @@ export default function ApplicationSelector({
   const query = search.trim().toLowerCase();
 
   const filteredApplications = applications.filter((item) =>
-    [
-      item.fullName,
-      item.email,
-      item.mobile,
-      item.passportNumber,
-      item.visaType,
-      item.ivacCenter,
-      item.mission,
-    ].some((value) =>
-      String(value ?? "")
-        .toLowerCase()
-        .includes(query),
+    [item.fullName, item.passportNumber, item.ivacCenter, item.mission].some(
+      (value) =>
+        String(value ?? "")
+          .toLowerCase()
+          .includes(query),
     ),
   );
 
@@ -67,9 +60,6 @@ export default function ApplicationSelector({
 
               {application ? (
                 <div className="mt-0.5 flex min-w-0 items-center gap-1 text-[8px] leading-tight ivac-text-muted">
-                  <span className="truncate">
-                    {application.mobile || "No mobile"}
-                  </span>
                   <span>·</span>
                   <span className="truncate">
                     {application.passportNumber || "No passport"}
@@ -171,10 +161,6 @@ export default function ApplicationSelector({
                           </div>
 
                           <div className="mt-0.5 flex items-center gap-1 text-[7px] leading-tight ivac-text-muted">
-                            <span className="truncate">
-                              {item.mobile || "No mobile"}
-                            </span>
-                            <span>·</span>
                             <span className="truncate">
                               {item.passportNumber || "No passport"}
                             </span>

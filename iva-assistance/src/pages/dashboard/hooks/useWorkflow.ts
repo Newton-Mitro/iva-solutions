@@ -25,21 +25,14 @@ function getWorkflowValue(
   key: WorkflowValueKey,
 ): string | undefined {
   switch (key) {
-    case "application.email":
-      return context.application?.email;
     case "application.passportNumber":
       return context.application?.passportNumber;
-    case "application.mobile":
-      return context.application?.mobile;
     case "account.email":
       return context.account?.email;
     case "account.mobile":
       return context.account?.mobile;
     case "account.ivacPassword":
       return context.account?.ivacPassword;
-    case "webfile.primary.webfileNumber":
-      return context.webfiles.find((item) => item.type === "primary")
-        ?.webfileNumber;
   }
 }
 

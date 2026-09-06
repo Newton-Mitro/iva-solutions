@@ -1,19 +1,8 @@
-import type { LucideIcon } from "lucide-react";
-
 export type Gender = "male" | "female" | "other";
-export type VisaType =
-  | "tourist"
-  | "medical"
-  | "business"
-  | "student"
-  | "employment"
-  | "entry"
-  | "other";
 
 export type Mission = "India" | "Bangladesh";
 export type IvacCenter = "Dhaka" | "Chittagong" | "Rajshahi";
 export type WebfileType = "primary" | "other";
-export type Currency = "BDT" | "USD";
 
 /* -------------------------------------------------------------------------- */
 /* Status Types                                                               */
@@ -43,13 +32,10 @@ export type AutomationLogStatus =
 export type Webfile = {
   id: string;
   ivacApplicationId: string;
-  webfileNumber?: string;
   originalName?: string;
   filePath?: string;
   type: WebfileType;
   status?: string;
-  uploadedAt?: string;
-  errorMessage?: string;
 };
 
 export type Appointment = {
@@ -80,8 +66,6 @@ export type AutomationAccount = {
 export type Application = {
   id: string;
   fullName: string;
-  email?: string;
-  mobile?: string;
   gender?: Gender;
   passportNumber: string;
 
@@ -89,7 +73,6 @@ export type Application = {
   appointment?: Appointment;
   automationAccount?: AutomationAccount;
 
-  visaType?: VisaType;
   mission?: Mission;
   ivacCenter?: IvacCenter;
   status: ApplicationStatus;

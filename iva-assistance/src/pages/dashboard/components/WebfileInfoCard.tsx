@@ -155,44 +155,6 @@ export default function WebfileInfoCard({ webfiles }: { webfiles: Webfile[] }) {
                           </p>
                         </div>
                       </div>
-
-                      {/* Uploaded state */}
-                      {webfile.uploadedAt && (
-                        <div
-                          className="
-                            mt-2
-                            flex items-center gap-1.5
-                            rounded-md
-                            ivac-surface-2
-                            px-2 py-1.5
-                          "
-                        >
-                          <CheckCircle2
-                            size={11}
-                            className="shrink-0 text-emerald-500"
-                          />
-
-                          <span className="text-[8px] ivac-text-muted">
-                            Uploaded {formatDate(webfile.uploadedAt)}
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Error */}
-                      {webfile.errorMessage && (
-                        <div
-                          className="
-                            mt-2
-                            rounded-md
-                            ivac-warning-bg
-                            px-2 py-1.5
-                          "
-                        >
-                          <p className="text-[8px] ivac-warning">
-                            {webfile.errorMessage}
-                          </p>
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>

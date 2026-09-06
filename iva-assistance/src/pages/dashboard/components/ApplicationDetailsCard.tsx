@@ -111,8 +111,6 @@ export default function ApplicationDetailsCard({
               value={application.passportNumber || "-"}
             />
 
-            <InfoRow label="Mobile" value={application.mobile || "-"} />
-
             <InfoRow label="Mission" value={application.mission || "-"} />
 
             <InfoRow

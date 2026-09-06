@@ -56,20 +56,6 @@ export function ApplicationForm({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <Field
-                name="email"
-                label="Email"
-                type="email"
-                defaultValue={value("email")}
-              />
-              <Field
-                name="mobile"
-                label="Mobile"
-                defaultValue={value("mobile")}
-              />
-            </div>
-
             <label className="block text-[9px] font-semibold">
               Gender
               <select
@@ -87,24 +73,6 @@ export function ApplicationForm({
             {/* Visa Type + Mission */}
             <div className="grid grid-cols-2 gap-2">
               <label className="block text-[9px] font-semibold">
-                Visa type
-                <select
-                  className="ivac-input mt-0.5"
-                  name="visaType"
-                  defaultValue={text(record, "visaType")}
-                >
-                  <option value="">Select</option>
-                  <option value="tourist">Tourist</option>
-                  <option value="medical">Medical</option>
-                  <option value="business">Business</option>
-                  <option value="student">Student</option>
-                  <option value="employment">Employment</option>
-                  <option value="entry">Entry</option>
-                  <option value="other">Other</option>
-                </select>
-              </label>
-
-              <label className="block text-[9px] font-semibold">
                 Mission
                 <select
                   className="ivac-input mt-0.5"
@@ -115,22 +83,22 @@ export function ApplicationForm({
                   <option value="Bangladesh">Bangladesh</option>
                 </select>
               </label>
-            </div>
 
-            {/* IVAC Center */}
-            <label className="block text-[9px] font-semibold">
-              IVAC center
-              <select
-                className="ivac-input mt-0.5"
-                name="ivacCenter"
-                defaultValue={text(record, "ivacCenter")}
-              >
-                <option value="">Select center</option>
-                <option value="Dhaka">Dhaka</option>
-                <option value="Chittagong">Chittagong</option>
-                <option value="Rajshahi">Rajshahi</option>
-              </select>
-            </label>
+              {/* IVAC Center */}
+              <label className="block text-[9px] font-semibold">
+                IVAC center
+                <select
+                  className="ivac-input mt-0.5"
+                  name="ivacCenter"
+                  defaultValue={text(record, "ivacCenter")}
+                >
+                  <option value="">Select center</option>
+                  <option value="Dhaka">Dhaka</option>
+                  <option value="Chittagong">Chittagong</option>
+                  <option value="Rajshahi">Rajshahi</option>
+                </select>
+              </label>
+            </div>
           </div>
         </div>
 

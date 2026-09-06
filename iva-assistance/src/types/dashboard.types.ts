@@ -1,4 +1,11 @@
-import { LucideIcon } from "lucide-react";
+import {
+  Globe2,
+  LockKeyhole,
+  LucideIcon,
+  Phone,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
 import React from "react";
 import type {
   Application,
@@ -6,19 +13,9 @@ import type {
   AutomationAccount,
   Webfile,
 } from "./models";
-import {
-  AtSign,
-  CheckCircle,
-  FileText,
-  Lock,
-  LogIn,
-  MessageSquare,
-  Send,
-  ShieldCheck,
-  Smartphone,
-} from "lucide-react";
+import { AtSign, CheckCircle, LogIn, Send } from "lucide-react";
 
-export type Status =
+export type StepStatus =
   | "completed"
   | "running"
   | "pending"
@@ -31,7 +28,7 @@ export type Step = {
   title: string;
   child?: React.ReactNode;
   icon: LucideIcon;
-  status: Status;
+  status: StepStatus;
   progress?: number;
 };
 
@@ -89,56 +86,42 @@ export type WorkflowContext = {
  * ============================================================
  * SIGN UP
  * ============================================================
- */
-
-export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
+ */ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   {
     id: "open-ivac",
     phase: "phase_one",
     title: "Open IVAC website",
-    icon: LogIn,
+    icon: Globe2,
     selectors: [],
     action: "navigate",
     url: "https://appointment.ivacbd.com/signin",
   },
+
   {
     id: "signin-phone",
     phase: "phase_one",
     title: "Enter phone number",
-    icon: AtSign,
+    icon: Phone,
     selectors: ['input[name="phone"]'],
     action: "fill",
     valueKey: "account.mobile",
   },
+
   {
     id: "signin-password",
     phase: "phase_one",
     title: "Enter password",
-    icon: Send,
-    selectors: ["input[type=password]", "input[name='password']", "input"],
+    icon: LockKeyhole,
+    selectors: ['input[name="password"]', 'input[type="password"]'],
     action: "fill",
     valueKey: "account.ivacPassword",
   },
-  // {
-  //   id: "signin-otp",
-  //   phase: "phase_one",
-  //   title: "Enter OTP",
-  //   child: "Enter the OTP received in the application account email.",
-  //   icon: MessageSquare,
-  //   manual: true,
-  //   manualInput: "otp",
-  //   selectors: [
-  //     'input[autocomplete="one-time-code"]',
-  //     'input[name="otp"]',
-  //     'input[id*="otp" i]',
-  //   ],
-  //   action: "focus",
-  // },
+
   {
     id: "sign-verify-human",
     phase: "phase_one",
     title: "Human verification required",
-    icon: CheckCircle,
+    icon: ShieldCheck,
     selectors: [
       'input[aria-label="Verify you are human"]',
       'input[type="checkbox"][aria-label*="human" i]',
@@ -146,81 +129,32 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     ],
     action: "click",
   },
+
   {
     id: "sign-in-now",
     phase: "phase_one",
-    title: "Sign In Now",
-    icon: CheckCircle,
-    selectors: ["button[type=submit]", "button"],
+    title: "Sign in",
+    icon: LogIn,
+    selectors: ['button[type="submit"]', "button"],
     action: "click",
   },
 ];
 
 /**
  * ============================================================
- * SIGN IN
+ * PHASE TWO
  * ============================================================
  */
 
 export const phaseTwoWorkflow: WorkflowStepDefinition[] = [
   {
-    id: "signin-email",
+    id: "open-portfolio",
     phase: "phase_two",
-    title: "Enter email address",
-    icon: AtSign,
-    selectors: ['input[type="email"]', 'input[name="email"]', "#email"],
-    action: "fill",
-    valueKey: "account.email",
-  },
-  {
-    id: "signin-password",
-    phase: "phase_two",
-    title: "Enter password",
-    icon: Lock,
-    selectors: [
-      'input[type="password"]',
-      'input[name="password"]',
-      "#password",
-    ],
-    action: "fill",
-    valueKey: "account.ivacPassword",
-  },
-  {
-    id: "signin-human-verification",
-    phase: "phase_two",
-    title: "Human verification",
-    icon: ShieldCheck,
-    manual: true,
-    manualInput: "verification",
-    selectors: [
-      'input[type="checkbox"]',
-      '[role="checkbox"]',
-      'iframe[title*="captcha" i]',
-    ],
-    action: "focus",
-  },
-  {
-    id: "signin-submit",
-    phase: "phase_two",
-    title: "Sign In Now",
-    icon: LogIn,
-    selectors: ["button[type=submit]", "button"],
-    action: "click",
-  },
-  {
-    id: "signin-mobile-otp",
-    phase: "phase_two",
-    title: "Enter mobile OTP",
-    child: "Enter the OTP received on the registered mobile number.",
-    icon: Smartphone,
-    manual: true,
-    manualInput: "otp",
-    selectors: [
-      'input[autocomplete="one-time-code"]',
-      'input[name="otp"]',
-      'input[id*="otp" i]',
-    ],
-    action: "focus",
+    title: "Open Developer Portfolio",
+    icon: UserRound,
+    selectors: [],
+    action: "navigate",
+    url: "https://newton-mitro.github.io/nm-portfolio/",
   },
 ];
 
@@ -258,14 +192,6 @@ export const workflowStepsByPhase: Record<
   phase_one: phaseOneWorkFlow,
   phase_two: phaseTwoWorkflow,
 };
-
-export type StepStatus =
-  | "completed"
-  | "running"
-  | "pending"
-  | "failed"
-  | "paused"
-  | "skipped";
 
 export type AutomationStep = {
   id: string;
