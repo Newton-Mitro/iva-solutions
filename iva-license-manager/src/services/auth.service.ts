@@ -1,9 +1,8 @@
 import {
-  createUserWithEmailAndPassword,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
-  type User
+  type User,
 } from "firebase/auth";
 import { auth } from "../config/firebase";
 
@@ -13,10 +12,6 @@ export function observeAuth(callback: (user: User | null) => void) {
 
 export async function login(email: string, password: string) {
   return (await signInWithEmailAndPassword(auth, email, password)).user;
-}
-
-export async function createAccount(email: string, password: string) {
-  return (await createUserWithEmailAndPassword(auth, email, password)).user;
 }
 
 export async function logout() {

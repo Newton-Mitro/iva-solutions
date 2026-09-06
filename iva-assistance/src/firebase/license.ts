@@ -8,7 +8,6 @@ import {
   runTransaction,
   serverTimestamp,
   Timestamp,
-  updateDoc,
   where,
 } from "firebase/firestore";
 import { db } from "./firestore";

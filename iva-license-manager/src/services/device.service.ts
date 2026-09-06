@@ -7,12 +7,3 @@ export async function getDeviceId() {
   await chrome.storage.local.set({ [KEY]: id });
   return id;
 }
-
-export async function getDeviceInfo() {
-  return {
-    deviceId: await getDeviceId(),
-    deviceName: navigator.platform || "Unknown",
-    platform: navigator.platform || "Unknown",
-    browser: "Chrome"
-  };
-}
