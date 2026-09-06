@@ -10,7 +10,7 @@ chrome.action.onClicked.addListener(async () => {
     type: "popup",
     left: workArea.left,
     top: workArea.top,
-    width: 420,
+    width: 520,
     height: workArea.height,
     focused: true,
   });

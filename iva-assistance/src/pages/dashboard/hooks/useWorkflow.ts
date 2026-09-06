@@ -1,11 +1,47 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createWorkflowSteps,
+  WorkflowContext,
   WorkflowPhase,
   WorkflowStep,
+  WorkflowValueKey,
   workflowStepsByPhase,
 } from "../../../types/dashboard.types";
 import { signOutUser } from "../../../firebase/auth";
+
+type HumanPrompt = {
+  stepId: string;
+  kind: "otp" | "verification";
+};
+
+type DomActionResult = {
+  found: boolean;
+  requiresHuman?: boolean;
+  message?: string;
+};
+
+function getWorkflowValue(
+  context: WorkflowContext,
+  key: WorkflowValueKey,
+): string | undefined {
+  switch (key) {
+    case "application.email":
+      return context.application?.email;
+    case "application.passportNumber":
+      return context.application?.passportNumber;
+    case "application.mobile":
+      return context.application?.mobile;
+    case "account.email":
+      return context.account?.email;
+    case "account.mobile":
+      return context.account?.mobile;
+    case "account.ivacPassword":
+      return context.account?.ivacPassword;
+    case "webfile.primary.webfileNumber":
+      return context.webfiles.find((item) => item.type === "primary")
+        ?.webfileNumber;
+  }
+}
 
 type LogType = "success" | "info" | "warning" | "error";
 
@@ -66,7 +102,7 @@ export type WorkflowLog = {
   time: string;
 };
 
-export function useWorkflow() {
+export function useWorkflow(context: WorkflowContext = { webfiles: [] }) {
   /**
    * ============================================================
    * WORKFLOW STATE
@@ -88,6 +124,8 @@ export function useWorkflow() {
 
   const [running, setRunning] = useState(false);
   const [paused, setPaused] = useState(false);
+  const [humanPrompt, setHumanPrompt] = useState<HumanPrompt | null>(null);
+  const executingStep = useRef<string | null>(null);
 
   /**
    * Tracks whether each workflow phase has been started.
@@ -176,6 +214,168 @@ export function useWorkflow() {
     ]);
   }
 
+  async function executeDomAction(
+    step: WorkflowStep,
+    value?: string,
+  ): Promise<DomActionResult> {
+    if (typeof chrome === "undefined" || !chrome.tabs || !chrome.scripting) {
+      return { found: false, message: "Browser automation is unavailable." };
+    }
+
+    const tabs = await chrome.tabs.query({ active: true });
+    const target = tabs.find(
+      (tab) => typeof tab.id === "number" && /^https?:\/\//.test(tab.url ?? ""),
+    );
+
+    if (typeof target?.id !== "number") {
+      return { found: false, message: "No active web page was found." };
+    }
+
+    const [result] = await chrome.scripting.executeScript({
+      target: { tabId: target.id },
+      world: "MAIN",
+      func: (config: {
+        selectors: string[];
+        action: "focus" | "fill" | "click";
+        value?: string;
+        manual: boolean;
+      }): DomActionResult => {
+        const element = config.selectors
+          .flatMap((selector) =>
+            Array.from(document.querySelectorAll(selector)),
+          )
+          .find((candidate) => {
+            const item = candidate as HTMLElement;
+            return (
+              item.offsetParent !== null ||
+              candidate instanceof HTMLIFrameElement
+            );
+          }) as HTMLElement | undefined;
+
+        if (!element) {
+          return { found: false };
+        }
+
+        element.scrollIntoView({ block: "center", behavior: "smooth" });
+
+        if (config.value !== undefined) {
+          const input = element as HTMLInputElement;
+          const setter = Object.getOwnPropertyDescriptor(
+            HTMLInputElement.prototype,
+            "value",
+          )?.set;
+          setter?.call(input, config.value);
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+          input.dispatchEvent(new Event("change", { bubbles: true }));
+          input.blur();
+
+          if (config.action === "click") {
+            element.click();
+          }
+
+          return { found: true };
+        }
+
+        element.focus();
+
+        if (config.manual) {
+          return { found: true, requiresHuman: true };
+        }
+
+        if (config.action === "click") {
+          element.click();
+        }
+
+        return { found: true };
+      },
+      args: [
+        {
+          selectors: step.selectors,
+          action: step.action,
+          value,
+          manual: Boolean(step.manual),
+        },
+      ],
+    });
+
+    return (
+      result?.result ?? { found: false, message: "The page did not respond." }
+    );
+  }
+
+  function advanceStep(
+    stepId: string,
+    terminalStatus: WorkflowStep["status"] = "completed",
+  ): boolean {
+    const index = steps.findIndex((step) => step.id === stepId);
+    const nextStep = index >= 0 ? steps[index + 1] : undefined;
+
+    setSteps((current) =>
+      current.map((step, stepIndex) => {
+        if (stepIndex === index) {
+          return { ...step, status: terminalStatus, progress: 100 };
+        }
+
+        if (stepIndex === index + 1 && nextStep) {
+          return { ...step, status: "running", progress: 0 };
+        }
+
+        return step;
+      }),
+    );
+    setHumanPrompt(null);
+
+    if (!nextStep) {
+      setRunning(false);
+      addLog(`${workflowPhase} flow completed`, "success");
+      return false;
+    }
+
+    addLog(`Step started: ${nextStep.title}`, "info");
+    return true;
+  }
+
+  async function submitHumanAction(value?: string) {
+    if (!humanPrompt) {
+      return;
+    }
+
+    const step = steps.find((item) => item.id === humanPrompt.stepId);
+    if (!step) {
+      return;
+    }
+
+    const result = await executeDomAction(step, value);
+    if (!result.found) {
+      addLog(result.message ?? `Element not found for ${step.title}.`, "error");
+      failStep(step.id);
+      return;
+    }
+
+    if (result.requiresHuman && humanPrompt.kind !== "verification") {
+      addLog(
+        `Enter the requested value before continuing: ${step.title}.`,
+        "warning",
+      );
+      return;
+    }
+
+    addLog(`Human action completed: ${step.title}`, "success");
+    setRunning(advanceStep(step.id));
+    setPaused(false);
+  }
+
+  function skipStep(stepId: string) {
+    const step = steps.find((item) => item.id === stepId);
+    if (!step || step.status !== "running") {
+      return;
+    }
+
+    addLog(`Step skipped: ${step.title}`, "warning");
+    setRunning(advanceStep(stepId, "skipped"));
+    setPaused(false);
+  }
+
   /**
    * ============================================================
    * START FLOW
@@ -206,37 +406,7 @@ export function useWorkflow() {
         return;
       }
 
-      const nextIndex = activeIndex + 1;
-      const nextStep = steps[nextIndex];
-
-      setSteps((current) =>
-        current.map((step, index) => {
-          if (index === activeIndex) {
-            return { ...step, status: "completed", progress: 100 };
-          }
-
-          if (index === nextIndex && nextStep) {
-            return { ...step, status: "running", progress: 0 };
-          }
-
-          return step;
-        }),
-      );
-
-      addLog(`Manual step completed: ${activeStep.title}`, "success");
-
-      if (!nextStep) {
-        setRunning(false);
-        addLog(`${workflowPhase} flow completed`, "success");
-      } else if (nextStep.manual) {
-        setRunning(false);
-        addLog(`Manual action required: ${nextStep.title}`, "warning");
-      } else {
-        setRunning(true);
-        setPaused(false);
-        addLog(`Step started: ${nextStep.title}`, "info");
-      }
-
+      addLog(`Waiting for human action: ${activeStep.title}`, "warning");
       return;
     }
 
@@ -272,6 +442,10 @@ export function useWorkflow() {
 
       addLog(`${workflowPhase} flow started`, "info");
       addLog(`Step started: ${steps[firstPendingIndex].title}`, "info");
+      addLog(
+        `Using application ${context.application?.fullName ?? "(unnamed)"}, account ${context.account?.email ?? "(missing)"}, and ${context.webfiles.length} webfile(s).`,
+        "info",
+      );
 
       return;
     }
@@ -292,68 +466,69 @@ export function useWorkflow() {
   }
 
   useEffect(() => {
-    if (!running || paused) {
+    if (
+      !running ||
+      paused ||
+      !currentStep ||
+      executingStep.current === currentStep.id
+    ) {
+      return;
+    }
+    executingStep.current = currentStep.id;
+
+    if (currentStep.manual && currentStep.manualInput === "otp") {
+      setRunning(false);
+      setPaused(true);
+      setHumanPrompt({ stepId: currentStep.id, kind: "otp" });
+      addLog(`Waiting for human action: ${currentStep.title}`, "warning");
+      executingStep.current = null;
       return;
     }
 
-    const timer = window.setInterval(() => {
-      setSteps((current) => {
-        const activeIndex = current.findIndex(
-          (step) => step.status === "running",
-        );
+    const mappedValue = currentStep.valueKey
+      ? getWorkflowValue(context, currentStep.valueKey)
+      : undefined;
 
-        if (activeIndex === -1) {
-          setRunning(false);
-          return current;
-        }
+    if (currentStep.action === "fill" && !mappedValue) {
+      addLog(`No data available for ${currentStep.title}.`, "error");
+      failStep(currentStep.id);
+      executingStep.current = null;
+      return;
+    }
 
-        const activeStep = current[activeIndex];
-        const nextProgress = Math.min(activeStep.progress + 25, 100);
-
-        if (nextProgress < 100) {
-          return current.map((step, index) =>
-            index === activeIndex ? { ...step, progress: nextProgress } : step,
+    void executeDomAction(currentStep, mappedValue)
+      .then((result) => {
+        if (!result.found) {
+          addLog(
+            result.message ?? `Element not found for ${currentStep.title}.`,
+            "error",
           );
-        }
-
-        addLog(`Step completed: ${activeStep.title}`, "success");
-
-        const nextIndex = activeIndex + 1;
-        const nextStep = current[nextIndex];
-
-        if (!nextStep) {
+          failStep(currentStep.id);
+        } else if (result.requiresHuman && currentStep.manualInput) {
           setRunning(false);
-          addLog(`${workflowPhase} flow completed`, "success");
-          return current.map((step, index) =>
-            index === activeIndex
-              ? { ...step, status: "completed", progress: 100 }
-              : step,
-          );
-        }
-
-        if (nextStep.manual) {
-          setRunning(false);
-          addLog(`Manual action required: ${nextStep.title}`, "warning");
+          setPaused(true);
+          setHumanPrompt({
+            stepId: currentStep.id,
+            kind: currentStep.manualInput,
+          });
+          addLog(`Human action required: ${currentStep.title}`, "warning");
         } else {
-          addLog(`Step started: ${nextStep.title}`, "info");
+          addLog(`Step completed: ${currentStep.title}`, "success");
+          advanceStep(currentStep.id);
         }
-
-        return current.map((step, index) => {
-          if (index === activeIndex) {
-            return { ...step, status: "completed", progress: 100 };
-          }
-
-          if (index === nextIndex) {
-            return { ...step, status: "running", progress: 0 };
-          }
-
-          return step;
-        });
+        executingStep.current = null;
+      })
+      .catch((error: unknown) => {
+        addLog(
+          error instanceof Error
+            ? error.message
+            : `Step failed: ${currentStep.title}.`,
+          "error",
+        );
+        failStep(currentStep.id);
+        executingStep.current = null;
       });
-    }, 700);
-
-    return () => window.clearInterval(timer);
-  }, [paused, running, workflowPhase]);
+  }, [context, currentStep, paused, running]);
 
   /**
    * ============================================================
@@ -377,6 +552,7 @@ export function useWorkflow() {
      */
     setRunning(false);
     setPaused(false);
+    setHumanPrompt(null);
 
     addLog(`Workflow stage: ${phase}`, "info");
   }
@@ -491,6 +667,7 @@ export function useWorkflow() {
 
     setRunning(false);
     setPaused(false);
+    setHumanPrompt(null);
 
     await signOutUser();
   }
@@ -557,6 +734,7 @@ export function useWorkflow() {
     updateStepProgress,
     completeStep,
     failStep,
+    skipStep,
 
     /**
      * Selected workflow/tab
@@ -588,6 +766,8 @@ export function useWorkflow() {
     startFlow,
     stopFlow,
     togglePause,
+    humanPrompt,
+    submitHumanAction,
     reset,
     signOut,
   };

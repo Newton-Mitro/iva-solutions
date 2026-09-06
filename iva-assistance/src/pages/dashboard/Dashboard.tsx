@@ -30,7 +30,12 @@ export function Dashboard({
     dataError,
   } = useDashboardData(user);
 
-  const workflow = useWorkflow();
+  const workflow = useWorkflow({
+    application,
+    account,
+    webfiles: applicationWebfiles,
+    appointment: applicationAppointment,
+  });
   const [showManagement, setShowManagement] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -83,6 +88,8 @@ export function Dashboard({
                   onStart={workflow.startFlow}
                   onStop={workflow.stopFlow}
                   onReset={workflow.reset}
+                  onHumanAction={workflow.submitHumanAction}
+                  onSkip={workflow.skipStep}
                 />
                 <ActivityLog logs={workflow.logs} />
               </>

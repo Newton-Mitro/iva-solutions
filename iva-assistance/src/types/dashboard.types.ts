@@ -1,5 +1,11 @@
 import { LucideIcon } from "lucide-react";
 import React from "react";
+import type {
+  Application,
+  Appointment,
+  AutomationAccount,
+  Webfile,
+} from "./models";
 import {
   AtSign,
   CheckCircle,
@@ -12,7 +18,13 @@ import {
   Smartphone,
 } from "lucide-react";
 
-export type Status = "completed" | "running" | "pending" | "failed" | "paused";
+export type Status =
+  | "completed"
+  | "running"
+  | "pending"
+  | "failed"
+  | "paused"
+  | "skipped";
 
 export type Step = {
   id: string;
@@ -32,8 +44,12 @@ export type WorkflowStep = {
   child?: React.ReactNode;
   icon: LucideIcon;
   manual?: boolean;
+  manualInput?: "otp" | "verification";
+  selectors: string[];
+  action: "focus" | "fill" | "click";
+  valueKey?: WorkflowValueKey;
 
-  status: "pending" | "running" | "completed" | "failed";
+  status: "pending" | "running" | "completed" | "failed" | "skipped";
 
   progress: number;
 };
@@ -45,6 +61,26 @@ export type WorkflowStepDefinition = {
   child?: React.ReactNode;
   icon: LucideIcon;
   manual?: boolean;
+  manualInput?: "otp" | "verification";
+  selectors: string[];
+  action: "focus" | "fill" | "click";
+  valueKey?: WorkflowValueKey;
+};
+
+export type WorkflowValueKey =
+  | "application.email"
+  | "application.passportNumber"
+  | "application.mobile"
+  | "account.email"
+  | "account.mobile"
+  | "account.ivacPassword"
+  | "webfile.primary.webfileNumber";
+
+export type WorkflowContext = {
+  application?: Application;
+  account?: AutomationAccount;
+  webfiles: Webfile[];
+  appointment?: Appointment;
 };
 
 /**
@@ -55,36 +91,49 @@ export type WorkflowStepDefinition = {
 
 export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   {
-    id: "signup-email",
+    id: "signin-email",
     phase: "phase_one",
     title: "Enter email address",
     icon: AtSign,
+    selectors: [
+      'input[type="email"]',
+      'input[type="text"]',
+      'input[name="username"]',
+    ],
+    action: "fill",
+    valueKey: "account.email",
   },
   {
-    id: "signup-send-email-otp",
+    id: "signin-password",
     phase: "phase_one",
-    title: "Send email OTP",
+    title: "Enter password",
     icon: Send,
+    selectors: ["input[type=password]", "input[name='password']", "input"],
+    action: "fill",
+    valueKey: "account.ivacPassword",
   },
+  // {
+  //   id: "signin-otp",
+  //   phase: "phase_one",
+  //   title: "Enter OTP",
+  //   child: "Enter the OTP received in the application account email.",
+  //   icon: MessageSquare,
+  //   manual: true,
+  //   manualInput: "otp",
+  //   selectors: [
+  //     'input[autocomplete="one-time-code"]',
+  //     'input[name="otp"]',
+  //     'input[id*="otp" i]',
+  //   ],
+  //   action: "focus",
+  // },
   {
-    id: "signup-email-otp",
+    id: "sign-in",
     phase: "phase_one",
-    title: "Enter email OTP",
-    child: "Enter the OTP received in the application account email.",
-    icon: MessageSquare,
-    manual: true,
-  },
-  {
-    id: "signup-passport",
-    phase: "phase_one",
-    title: "Enter passport number",
-    icon: FileText,
-  },
-  {
-    id: "signup-complete",
-    phase: "phase_one",
-    title: "Complete Sign Up",
+    title: "Sign In",
     icon: CheckCircle,
+    selectors: ["input[type=submit]", "input"],
+    action: "click",
   },
 ];
 
@@ -100,12 +149,22 @@ export const phaseTwoWorkflow: WorkflowStepDefinition[] = [
     phase: "phase_two",
     title: "Enter email address",
     icon: AtSign,
+    selectors: ['input[type="email"]', 'input[name="email"]', "#email"],
+    action: "fill",
+    valueKey: "account.email",
   },
   {
     id: "signin-password",
     phase: "phase_two",
     title: "Enter password",
     icon: Lock,
+    selectors: [
+      'input[type="password"]',
+      'input[name="password"]',
+      "#password",
+    ],
+    action: "fill",
+    valueKey: "account.ivacPassword",
   },
   {
     id: "signin-human-verification",
@@ -113,12 +172,21 @@ export const phaseTwoWorkflow: WorkflowStepDefinition[] = [
     title: "Human verification",
     icon: ShieldCheck,
     manual: true,
+    manualInput: "verification",
+    selectors: [
+      'input[type="checkbox"]',
+      '[role="checkbox"]',
+      'iframe[title*="captcha" i]',
+    ],
+    action: "focus",
   },
   {
     id: "signin-submit",
     phase: "phase_two",
     title: "Sign In Now",
     icon: LogIn,
+    selectors: ["button[type=submit]", "button"],
+    action: "click",
   },
   {
     id: "signin-mobile-otp",
@@ -127,6 +195,13 @@ export const phaseTwoWorkflow: WorkflowStepDefinition[] = [
     child: "Enter the OTP received on the registered mobile number.",
     icon: Smartphone,
     manual: true,
+    manualInput: "otp",
+    selectors: [
+      'input[autocomplete="one-time-code"]',
+      'input[name="otp"]',
+      'input[id*="otp" i]',
+    ],
+    action: "focus",
   },
 ];
 
@@ -170,7 +245,8 @@ export type StepStatus =
   | "running"
   | "pending"
   | "failed"
-  | "paused";
+  | "paused"
+  | "skipped";
 
 export type AutomationStep = {
   id: string;

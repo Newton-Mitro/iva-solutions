@@ -25,6 +25,8 @@ type Props = {
   onStart: () => void;
   onReset: () => void;
   onStop?: () => void;
+  onHumanAction?: (value?: string) => void;
+  onSkip?: (stepId: string) => void;
 };
 
 export default function WorkflowCard({
@@ -35,6 +37,8 @@ export default function WorkflowCard({
   onStart,
   onReset,
   onStop,
+  onHumanAction,
+  onSkip,
 }: Props) {
   const [open, setOpen] = useState(true);
 
@@ -219,7 +223,11 @@ export default function WorkflowCard({
                 ================================================== */}
                 {phaseSteps.length > 0 && (
                   <div className="mt-3 rounded-lg border border-(--app-border) bg-(--app-background)/40 p-2.5">
-                    <WorkflowSteps steps={phaseSteps} />
+                    <WorkflowSteps
+                      steps={phaseSteps}
+                      onHumanAction={onHumanAction}
+                      onSkip={onSkip}
+                    />
                   </div>
                 )}
 
