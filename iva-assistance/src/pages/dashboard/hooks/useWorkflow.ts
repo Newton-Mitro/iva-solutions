@@ -311,6 +311,7 @@ export function useWorkflow(
   const [paused, setPaused] = useState(false);
   const [humanPrompt, setHumanPrompt] = useState<HumanPrompt | null>(null);
   const executingStep = useRef<string | null>(null);
+  const singleStepId = useRef<string | null>(null);
 
   /**
    * Tracks whether each workflow phase has been started.
@@ -510,6 +511,7 @@ export function useWorkflow(
         file?: { name: string; type: string; data: string };
         manual: boolean;
         manualInput?: "otp" | "verification";
+        selectionType?: "date" | "text";
         waitForMs: number;
       }): Promise<DomActionResult> => {
         const startedAt = Date.now();
@@ -523,7 +525,7 @@ export function useWorkflow(
               const item = candidate as HTMLElement;
               return (
                 (!config.text ||
-                  item.textContent?.trim() === config.text.trim()) &&
+                  item.textContent?.trim().includes(config.text.trim())) &&
                 (candidate === document.body ||
                   candidate === document.documentElement ||
                   item.offsetParent !== null ||
@@ -631,6 +633,132 @@ export function useWorkflow(
           }
 
           if (
+            config.action === "select" &&
+            (Boolean(config.value) || config.selectionType === "date")
+          ) {
+            if (config.selectionType === "date") {
+              const today = new Date();
+              const todayKey = `${today.getFullYear()}-${String(
+                today.getMonth() + 1,
+              ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+              const savedDates = (config.value ?? "")
+                .split(",")
+                .map((date) => date.trim())
+                .filter(Boolean)
+                .filter((date) => {
+                  if (date === todayKey) {
+                    return false;
+                  }
+
+                  const isoParts = date.match(
+                    /^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/,
+                  );
+                  const localParts = date.match(
+                    /^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/,
+                  );
+                  if (!isoParts && !localParts) {
+                    return true;
+                  }
+
+                  const year = isoParts?.[1] ?? localParts?.[3];
+                  const month = Number(isoParts?.[2] ?? localParts?.[1]);
+                  const day = Number(isoParts?.[3] ?? localParts?.[2]);
+                  return (
+                    `${year}-${String(month).padStart(2, "0")}-${String(
+                      day,
+                    ).padStart(2, "0")}` !== todayKey
+                  );
+                });
+              const savedDays = savedDates
+                .map((date) => date.match(/(?:^|[-/])([0-9]{1,2})$/)?.[1])
+                .filter((day): day is string => Boolean(day))
+                .map((day) => String(Number(day)));
+              const openDateButtons = Array.from(
+                document.querySelectorAll<HTMLButtonElement>("button"),
+              ).filter(
+                (candidate) =>
+                  candidate !== element &&
+                  !candidate.disabled &&
+                  candidate.offsetParent !== null &&
+                  /^\d{1,2}$/.test(candidate.textContent?.trim() ?? "") &&
+                  !candidate.getAttribute("aria-label"),
+              );
+              const dateButton =
+                openDateButtons.find((candidate) =>
+                  savedDays.includes(candidate.textContent?.trim() ?? ""),
+                ) ?? openDateButtons[0];
+
+              if (!dateButton) {
+                return {
+                  found: false,
+                  message: "No open appointment date was found.",
+                };
+              }
+
+              dateButton.click();
+              return { found: true };
+            }
+
+            if (config.selectionType === "text" && config.value) {
+              const textOption = Array.from(
+                document.querySelectorAll<HTMLButtonElement>("button"),
+              ).find(
+                (candidate) =>
+                  candidate !== element &&
+                  !candidate.disabled &&
+                  candidate.offsetParent !== null &&
+                  candidate.textContent?.trim().includes(config.value!),
+              );
+
+              if (!textOption) {
+                return {
+                  found: false,
+                  message: `Appointment time not found for ${config.value}.`,
+                };
+              }
+
+              textOption.click();
+              return { found: true };
+            }
+
+            if (element instanceof HTMLButtonElement && element.disabled) {
+              return { found: true };
+            }
+
+            element.click();
+
+            const optionStartedAt = Date.now();
+            let option: HTMLElement | undefined;
+            while (!option && Date.now() - optionStartedAt < config.waitForMs) {
+              option = Array.from(
+                document.querySelectorAll<HTMLElement>(
+                  '[role="option"], [role="menuitem"], [data-value], button',
+                ),
+              ).find((candidate) => {
+                if (candidate === element || candidate.offsetParent === null) {
+                  return false;
+                }
+
+                return candidate.textContent?.trim().includes(config.value!);
+              });
+
+              if (!option) {
+                await new Promise((resolve) => setTimeout(resolve, 100));
+              }
+            }
+
+            if (!option) {
+              return {
+                found: false,
+                message: `Option not found for ${config.value}.`,
+              };
+            }
+
+            option.click();
+            return { found: true };
+          }
+
+          if (
             element instanceof HTMLInputElement &&
             (element.type === "radio" || element.type === "checkbox")
           ) {
@@ -718,6 +846,7 @@ export function useWorkflow(
           file,
           manual: Boolean(step.manual),
           manualInput: step.manualInput,
+          selectionType: step.selectionType,
           waitForMs: 20000,
         },
       ],
@@ -760,6 +889,22 @@ export function useWorkflow(
     return true;
   }
 
+  function completeSingleStep(
+    stepId: string,
+    status: WorkflowStep["status"] = "completed",
+  ) {
+    setSteps((current) =>
+      current.map((step) =>
+        step.id === stepId ? { ...step, status, progress: 100 } : step,
+      ),
+    );
+    singleStepId.current = null;
+    setHumanPrompt(null);
+    setRunning(false);
+    setPaused(false);
+    addLog(`Single step completed: ${stepId}`, "success");
+  }
+
   async function submitHumanAction(value?: string) {
     if (!humanPrompt) {
       return;
@@ -787,8 +932,12 @@ export function useWorkflow(
     }
 
     addLog(`Human action completed: ${step.title}`, "success");
-    setRunning(advanceStep(step.id));
-    setPaused(false);
+    if (singleStepId.current === step.id) {
+      completeSingleStep(step.id);
+    } else {
+      setRunning(advanceStep(step.id));
+      setPaused(false);
+    }
   }
 
   function skipStep(stepId: string) {
@@ -798,8 +947,12 @@ export function useWorkflow(
     }
 
     addLog(`Step skipped: ${step.title}`, "warning");
-    setRunning(advanceStep(stepId, "skipped"));
-    setPaused(false);
+    if (singleStepId.current === stepId) {
+      completeSingleStep(stepId, "skipped");
+    } else {
+      setRunning(advanceStep(stepId, "skipped"));
+      setPaused(false);
+    }
   }
 
   function retryStep(stepId: string) {
@@ -823,8 +976,12 @@ export function useWorkflow(
 
     addLog(`Continuing after failed step: ${step.title}`, "warning");
     executingStep.current = null;
-    setRunning(advanceStep(stepId, "completed"));
-    setPaused(false);
+    if (singleStepId.current === stepId) {
+      completeSingleStep(stepId);
+    } else {
+      setRunning(advanceStep(stepId, "completed"));
+      setPaused(false);
+    }
   }
 
   /**
@@ -918,9 +1075,91 @@ export function useWorkflow(
     addLog(`${workflowPhase} flow resumed`, "info");
   }
 
+  function startFromStep(stepId: string) {
+    if (running) {
+      addLog(
+        "Stop the current automation before choosing a start step.",
+        "warning",
+      );
+      return;
+    }
+
+    const selectedIndex = steps.findIndex((step) => step.id === stepId);
+    if (selectedIndex === -1) {
+      return;
+    }
+
+    const selectedStep = steps[selectedIndex];
+    singleStepId.current = null;
+    setSteps((current) =>
+      current.map((step, index) => ({
+        ...step,
+        status:
+          index < selectedIndex
+            ? "skipped"
+            : index === selectedIndex
+              ? "running"
+              : "pending",
+        progress: index === selectedIndex ? 0 : index < selectedIndex ? 100 : 0,
+      })),
+    );
+    setStartedFlows((current) => ({
+      ...current,
+      [workflowPhase]: true,
+    }));
+    setHumanPrompt(null);
+    executingStep.current = null;
+    setPaused(false);
+    setRunning(true);
+    addLog(
+      `Starting ${workflowPhase} from step: ${selectedStep.title}`,
+      "info",
+    );
+  }
+
+  function runOnlyStep(stepId: string) {
+    if (running) {
+      addLog(
+        "Stop the current automation before choosing a single step.",
+        "warning",
+      );
+      return;
+    }
+
+    const selectedIndex = steps.findIndex((step) => step.id === stepId);
+    if (selectedIndex === -1) {
+      return;
+    }
+
+    const selectedStep = steps[selectedIndex];
+    singleStepId.current = stepId;
+    setSteps((current) =>
+      current.map((step, index) => ({
+        ...step,
+        status:
+          index === selectedIndex
+            ? "running"
+            : index < selectedIndex
+              ? "skipped"
+              : "pending",
+        progress: index === selectedIndex ? 0 : index < selectedIndex ? 100 : 0,
+      })),
+    );
+    setStartedFlows((current) => ({
+      ...current,
+      [workflowPhase]: true,
+    }));
+    setHumanPrompt(null);
+    executingStep.current = null;
+    setPaused(false);
+    setRunning(true);
+    addLog(`Running only step: ${selectedStep.title}`, "info");
+  }
+
   function stopFlow() {
     setRunning(false);
     setPaused(false);
+    singleStepId.current = null;
     addLog(`${workflowPhase} flow stopped`, "warning");
   }
 
@@ -950,7 +1189,11 @@ export function useWorkflow(
 
     if (currentStep.optional && !mappedValue) {
       addLog(`Optional step skipped: ${currentStep.title}`, "info");
-      advanceStep(currentStep.id, "skipped");
+      if (singleStepId.current === currentStep.id) {
+        completeSingleStep(currentStep.id, "skipped");
+      } else {
+        advanceStep(currentStep.id, "skipped");
+      }
       executingStep.current = null;
       return;
     }
@@ -960,7 +1203,11 @@ export function useWorkflow(
         currentStep.action === "upload-file" ||
         currentStep.action === "select" ||
         currentStep.action === "select-option") &&
-      !mappedValue
+      !mappedValue &&
+      !(
+        currentStep.id === "select-appointment-date" &&
+        currentStep.selectionType === "date"
+      )
     ) {
       const reason = `No data available for ${currentStep.title} (${currentStep.valueKey ?? "value"}).`;
       addLog(reason, "error");
@@ -1002,7 +1249,11 @@ export function useWorkflow(
           addLog(`Human action required: ${currentStep.title}`, "warning");
         } else {
           addLog(`Step completed: ${currentStep.title}`, "success");
-          advanceStep(currentStep.id);
+          if (singleStepId.current === currentStep.id) {
+            completeSingleStep(currentStep.id);
+          } else {
+            advanceStep(currentStep.id);
+          }
         }
         executingStep.current = null;
       })
@@ -1187,6 +1438,7 @@ export function useWorkflow(
     setRunning(false);
     setPaused(false);
     setHumanPrompt(null);
+    singleStepId.current = null;
     executingStep.current = null;
 
     setStartedFlows((current) => ({
@@ -1265,6 +1517,8 @@ export function useWorkflow(
      * Actions
      */
     startFlow,
+    startFromStep,
+    runOnlyStep,
     stopFlow,
     togglePause,
     humanPrompt,

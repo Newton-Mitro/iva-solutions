@@ -3,9 +3,7 @@ import {
   CheckCircle2,
   ChevronRight,
   ClipboardCheck,
-  Clock3,
   FileCheck2,
-  FilePlus2,
   Globe2,
   LockKeyhole,
   LogIn,
@@ -23,7 +21,6 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   // ─────────────────────────────────────────────
   // SIGN IN
   // ─────────────────────────────────────────────
-
   {
     id: "open-ivac",
     phase: "phase_one",
@@ -197,10 +194,6 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     action: "click",
   },
 
-  // ─────────────────────────────────────────────
-  // MISSION / IVAC CENTER
-  // ─────────────────────────────────────────────
-
   {
     id: "appointment-confirm-all-correct",
     phase: "phase_one",
@@ -221,16 +214,17 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     action: "click",
   },
 
+  // ─────────────────────────────────────────────
+  // MISSION / IVAC CENTER
+  // ─────────────────────────────────────────────
+
   {
     id: "select-mission",
     phase: "phase_one",
     title: "Select mission",
     icon: MapPin,
-    selectors: [
-      'select[name="mission"]',
-      'select[name="mission_id"]',
-      'select[name="mission_type"]',
-    ],
+    selectors: ["button"],
+    text: "Select a mission",
     action: "select",
     valueKey: "appointment.mission",
   },
@@ -240,38 +234,34 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     phase: "phase_one",
     title: "Select IVAC center",
     icon: MapPin,
-    selectors: [
-      'select[name="ivac_center"]',
-      'select[name="ivac_center_id"]',
-      'select[name="center"]',
-    ],
+    selectors: ["button"],
+    text: "Select your IVAC center",
     action: "select",
     valueKey: "appointment.ivacCenter",
   },
 
   {
-    id: "appointment-next-details",
+    id: "appointment-confirm-mission-ivac-center",
     phase: "phase_one",
-    title: "Proceed to appointment details",
+    title: "Confirm Mission & IVAC Center",
     icon: ChevronRight,
-    selectors: ['button:has-text("Next")', 'button[type="submit"]'],
+    selectors: ['button[type="submit"]'],
+    text: "Confirm Mission & IVAC Center",
     action: "click",
   },
 
   // ─────────────────────────────────────────────
-  // APPOINTMENT DATE / TIME
+  // BOOK AN APPOINTMENT DATE
   // ─────────────────────────────────────────────
 
   {
-    id: "wait-appointment-slots",
+    id: "wait-appointment-calendar",
     phase: "phase_one",
-    title: "Wait for appointment slots",
+    title: "Wait for appointment dates",
     icon: Timer,
     selectors: [
-      "[data-appointment-date]",
-      'input[type="date"]',
-      ".appointment-date",
-      ".available-date",
+      'button[aria-label="Previous month"]',
+      'button[aria-label="Next month"]',
     ],
     action: "wait",
   },
@@ -281,96 +271,19 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     phase: "phase_one",
     title: "Select appointment date",
     icon: CalendarDays,
-    selectors: [
-      "[data-appointment-date]",
-      'input[type="date"]',
-      ".appointment-date",
-      ".available-date",
-    ],
-    action: "click",
+    selectors: ["button"],
+    selectionType: "date",
+    action: "select",
     valueKey: "appointment.date",
   },
 
   {
-    id: "select-appointment-time",
+    id: "continue-booking",
     phase: "phase_one",
-    title: "Select appointment time",
-    icon: Clock3,
-    selectors: [
-      "[data-appointment-time]",
-      'select[name="appointment_time"]',
-      'input[name="appointment_time"]',
-      ".appointment-time",
-      ".available-time",
-    ],
-    action: "click",
-    valueKey: "appointment.time",
-  },
-
-  {
-    id: "appointment-next-confirmation",
-    phase: "phase_one",
-    title: "Proceed to confirmation",
+    title: "Continue booking",
     icon: ChevronRight,
-    selectors: ['button:has-text("Next")', 'button[type="submit"]'],
+    selectors: ['button[type="submit"]'],
+    text: "Continue Booking",
     action: "click",
-  },
-
-  // ─────────────────────────────────────────────
-  // CONFIRMATION
-  // ─────────────────────────────────────────────
-
-  {
-    id: "wait-confirmation-page",
-    phase: "phase_one",
-    title: "Wait for confirmation page",
-    icon: Timer,
-    selectors: [
-      "[data-confirmation]",
-      ".confirmation",
-      ".appointment-confirmation",
-    ],
-    action: "wait",
-  },
-
-  {
-    id: "confirm-appointment",
-    phase: "phase_one",
-    title: "Confirm appointment",
-    icon: CheckCircle2,
-    selectors: ['button:has-text("Confirm")', 'button[type="submit"]'],
-    action: "click",
-  },
-
-  {
-    id: "wait-confirmation-message",
-    phase: "phase_one",
-    title: "Wait for confirmation",
-    icon: CheckCircle2,
-    selectors: [
-      '[role="alert"]',
-      ".alert-success",
-      ".success-message",
-      "[data-confirmation-message]",
-    ],
-    action: "wait",
-  },
-
-  // ─────────────────────────────────────────────
-  // CAPTURE APPOINTMENT DETAILS
-  // ─────────────────────────────────────────────
-
-  {
-    id: "capture-appointment-details",
-    phase: "phase_one",
-    title: "Capture appointment details",
-    icon: ClipboardCheck,
-    selectors: [
-      "[data-appointment-details]",
-      ".appointment-details",
-      ".confirmation-details",
-    ],
-    action: "capture",
-    valueKey: "appointment.details",
   },
 ];

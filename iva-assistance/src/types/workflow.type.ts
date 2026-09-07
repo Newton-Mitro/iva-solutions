@@ -89,6 +89,11 @@ export type WorkflowStepDefinition = {
   valueKey?: WorkflowValueKey;
 
   /**
+   * Selection strategy for custom controls.
+   */
+  selectionType?: "date" | "text";
+
+  /**
    * Optional timeout for waiting for an element/state.
    *
    * Defaults should be handled by the workflow executor.

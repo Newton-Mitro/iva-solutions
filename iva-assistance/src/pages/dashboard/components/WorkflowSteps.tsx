@@ -4,7 +4,10 @@ import { StepIcon } from "./Shared";
 
 type Props = {
   steps: WorkflowStep[];
+  started?: boolean;
   onHumanAction?: (value?: string) => void;
+  onStartFromStep?: (stepId: string) => void;
+  onRunOnlyStep?: (stepId: string) => void;
   onSkip?: (stepId: string) => void;
   onRetry?: (stepId: string) => void;
   onContinue?: (stepId: string) => void;
@@ -12,7 +15,10 @@ type Props = {
 
 export default function WorkflowSteps({
   steps,
+  started = false,
   onHumanAction,
+  onStartFromStep,
+  onRunOnlyStep,
   onSkip,
   onRetry,
   onContinue,
@@ -53,6 +59,29 @@ export default function WorkflowSteps({
 
               <StepStatus status={step.status} />
             </div>
+
+            {!started && step.status !== "running" && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {onStartFromStep && (
+                  <button
+                    type="button"
+                    onClick={() => onStartFromStep(step.id)}
+                    className="rounded-md border border-blue-500/30 px-2.5 py-1.5 text-[9px] font-semibold text-blue-600 hover:bg-blue-500/10 dark:text-blue-400"
+                  >
+                    Start here
+                  </button>
+                )}
+                {onRunOnlyStep && (
+                  <button
+                    type="button"
+                    onClick={() => onRunOnlyStep(step.id)}
+                    className="rounded-md border border-emerald-500/30 px-2.5 py-1.5 text-[9px] font-semibold text-emerald-600 hover:bg-emerald-500/10 dark:text-emerald-400"
+                  >
+                    Run only
+                  </button>
+                )}
+              </div>
+            )}
 
             {step.status === "running" && (
               <div className="mt-2">

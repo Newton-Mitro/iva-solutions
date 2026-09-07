@@ -108,6 +108,8 @@ export function Dashboard({
                     workflow.setWorkflowPhase(phase)
                   }
                   onStart={workflow.startFlow}
+                  onStartFromStep={workflow.startFromStep}
+                  onRunOnlyStep={workflow.runOnlyStep}
                   onStop={workflow.stopFlow}
                   onReset={workflow.reset}
                   onHumanAction={workflow.submitHumanAction}

@@ -23,6 +23,8 @@ type Props = {
 
   onPhaseChange: (phase: WorkflowPhase) => void;
   onStart: () => void;
+  onStartFromStep?: (stepId: string) => void;
+  onRunOnlyStep?: (stepId: string) => void;
   onReset: () => void;
   onStop?: () => void;
   onHumanAction?: (value?: string) => void;
@@ -37,6 +39,8 @@ export default function WorkflowCard({
   started,
   onPhaseChange,
   onStart,
+  onStartFromStep,
+  onRunOnlyStep,
   onReset,
   onStop,
   onHumanAction,
@@ -229,7 +233,10 @@ export default function WorkflowCard({
                   <div className="mt-3 rounded-lg border border-(--app-border) bg-(--app-background)/40 p-2.5">
                     <WorkflowSteps
                       steps={phaseSteps}
+                      started={started}
                       onHumanAction={onHumanAction}
+                      onStartFromStep={onStartFromStep}
+                      onRunOnlyStep={onRunOnlyStep}
                       onSkip={onSkip}
                       onRetry={onRetry}
                       onContinue={onContinue}
