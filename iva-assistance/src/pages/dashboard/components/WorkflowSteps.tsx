@@ -6,9 +6,17 @@ type Props = {
   steps: WorkflowStep[];
   onHumanAction?: (value?: string) => void;
   onSkip?: (stepId: string) => void;
+  onRetry?: (stepId: string) => void;
+  onContinue?: (stepId: string) => void;
 };
 
-export default function WorkflowSteps({ steps, onHumanAction, onSkip }: Props) {
+export default function WorkflowSteps({
+  steps,
+  onHumanAction,
+  onSkip,
+  onRetry,
+  onContinue,
+}: Props) {
   return (
     <div className="space-y-0">
       {steps.map((step, index) => (
@@ -80,6 +88,38 @@ export default function WorkflowSteps({ steps, onHumanAction, onSkip }: Props) {
               >
                 Skip
               </button>
+            )}
+
+            {step.status === "failed" && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {onRetry && (
+                  <button
+                    type="button"
+                    onClick={() => onRetry(step.id)}
+                    className="rounded-md bg-blue-600 px-2.5 py-1.5 text-[9px] font-semibold text-white"
+                  >
+                    Retry
+                  </button>
+                )}
+                {onContinue && (
+                  <button
+                    type="button"
+                    onClick={() => onContinue(step.id)}
+                    className="rounded-md border border-amber-500/30 px-2.5 py-1.5 text-[9px] font-semibold text-amber-600 dark:text-amber-400"
+                  >
+                    Continue
+                  </button>
+                )}
+                {onSkip && (
+                  <button
+                    type="button"
+                    onClick={() => onSkip(step.id)}
+                    className="rounded-md border border-(--app-border) px-2.5 py-1.5 text-[9px] font-semibold ivac-text-muted"
+                  >
+                    Skip
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>

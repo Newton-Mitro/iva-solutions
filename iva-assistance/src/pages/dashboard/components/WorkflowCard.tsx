@@ -27,6 +27,8 @@ type Props = {
   onStop?: () => void;
   onHumanAction?: (value?: string) => void;
   onSkip?: (stepId: string) => void;
+  onRetry?: (stepId: string) => void;
+  onContinue?: (stepId: string) => void;
 };
 
 export default function WorkflowCard({
@@ -39,6 +41,8 @@ export default function WorkflowCard({
   onStop,
   onHumanAction,
   onSkip,
+  onRetry,
+  onContinue,
 }: Props) {
   const [open, setOpen] = useState(true);
 
@@ -227,6 +231,8 @@ export default function WorkflowCard({
                       steps={phaseSteps}
                       onHumanAction={onHumanAction}
                       onSkip={onSkip}
+                      onRetry={onRetry}
+                      onContinue={onContinue}
                     />
                   </div>
                 )}

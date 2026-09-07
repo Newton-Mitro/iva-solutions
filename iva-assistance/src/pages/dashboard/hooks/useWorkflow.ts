@@ -764,6 +764,31 @@ export function useWorkflow(
     setPaused(false);
   }
 
+  function retryStep(stepId: string) {
+    const step = steps.find((item) => item.id === stepId);
+    if (!step || step.status !== "failed") {
+      return;
+    }
+
+    updateStep(stepId, { status: "running", progress: 0 });
+    executingStep.current = null;
+    setPaused(false);
+    setRunning(true);
+    addLog(`Retrying step: ${step.title}`, "info");
+  }
+
+  function continueStep(stepId: string) {
+    const step = steps.find((item) => item.id === stepId);
+    if (!step || step.status !== "failed") {
+      return;
+    }
+
+    addLog(`Continuing after failed step: ${step.title}`, "warning");
+    executingStep.current = null;
+    setRunning(advanceStep(stepId, "completed"));
+    setPaused(false);
+  }
+
   /**
    * ============================================================
    * START FLOW
@@ -1170,6 +1195,8 @@ export function useWorkflow(
     completeStep,
     failStep,
     skipStep,
+    retryStep,
+    continueStep,
 
     /**
      * Selected workflow/tab

@@ -112,6 +112,8 @@ export function Dashboard({
                   onReset={workflow.reset}
                   onHumanAction={workflow.submitHumanAction}
                   onSkip={workflow.skipStep}
+                  onRetry={workflow.retryStep}
+                  onContinue={workflow.continueStep}
                 />
                 <ActivityLog
                   logs={workflow.logs}
