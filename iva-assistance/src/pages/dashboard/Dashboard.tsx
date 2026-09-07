@@ -6,12 +6,12 @@ import DashboardEmpty from "./components/DashboardEmpty";
 import ApplicationSelector from "./components/ApplicationSelector";
 import WorkflowCard from "./components/WorkflowCard";
 import ActivityLog from "./components/ActivityLog";
-import WebfileInfoCard from "./components/WebfileInfoCard";
 import { useDashboardData } from "./hooks/useDashboardData";
 import { useWorkflow } from "./hooks/useWorkflow";
 import SettingsPage from "../settings/SettingsPage";
 import { WorkflowPhase } from "../../types/workflow.type";
 import ApplicationDetailsCard from "./components/ApplicationDetailsCard";
+import type { FormMode } from "../../types/management.type";
 
 export function Dashboard({
   user,
@@ -34,7 +34,6 @@ export function Dashboard({
     {
       application,
       account,
-      webfiles: applicationWebfiles,
       appointment: applicationAppointment,
     },
     {
@@ -43,6 +42,10 @@ export function Dashboard({
     },
   );
   const [showManagement, setShowManagement] = useState(false);
+  const [managementRequest, setManagementRequest] = useState<{
+    mode: FormMode;
+    applicationId: string;
+  } | null>(null);
   const [showSettings, setShowSettings] = useState(false);
 
   if (showSettings) {
@@ -78,11 +81,24 @@ export function Dashboard({
               account={account}
               appointment={applicationAppointment}
               applicationReady={
-                account != null && applicationWebfiles.length > 0
+                account != null && application.primary_webfile != null
               }
+              onEditApplication={() => {
+                setManagementRequest({
+                  mode: "application",
+                  applicationId: application.id,
+                });
+                setShowManagement(true);
+              }}
+              onEditAccount={() => {
+                setManagementRequest({
+                  mode: "account",
+                  applicationId: application.id,
+                });
+                setShowManagement(true);
+              }}
             />
-            <WebfileInfoCard webfiles={applicationWebfiles} />
-            {account != null && applicationWebfiles.length > 0 && (
+            {account != null && application.primary_webfile && (
               <>
                 <WorkflowCard
                   phase={workflow.workflowPhase}
@@ -118,6 +134,7 @@ export function Dashboard({
       {showManagement && (
         <ManagementPanel
           userId={user.uid}
+          initialRequest={managementRequest}
           onClose={() => setShowManagement(false)}
         />
       )}

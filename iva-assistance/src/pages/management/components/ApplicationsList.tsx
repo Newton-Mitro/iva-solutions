@@ -2,7 +2,6 @@ import { FileText } from "lucide-react";
 import { ApplicationItem } from "./items/ApplicationItem";
 import { AccountSection } from "./sections/AccountSection";
 import { AppointmentCard } from "./sections/AppointmentCard";
-import { WebfilesSection } from "./sections/WebfilesSection";
 import { Card } from "../../../components/ui/Card";
 import { AddButton } from "../../../components/ui/Button";
 import { RecordItem } from "../../../types/management.type";
@@ -10,7 +9,6 @@ import { RecordItem } from "../../../types/management.type";
 interface ApplicationsListProps {
   automationAccounts: RecordItem[];
   applications: RecordItem[];
-  webfiles: RecordItem[];
   appointments: RecordItem[];
   payments: RecordItem[];
   selectedApplicationId: string;
@@ -21,15 +19,11 @@ interface ApplicationsListProps {
   onAddApplication: () => void;
   onEditApplication: (app: RecordItem) => void;
   onDeleteApplication: (id: string) => void;
-  onAddWebfile: () => void;
-  onEditWebfile: (webfile: RecordItem) => void;
-  onDeleteWebfile: (id: string) => void;
 }
 
 export function ApplicationsList({
   automationAccounts,
   applications,
-  webfiles,
   appointments,
   payments,
   selectedApplicationId,
@@ -40,15 +34,9 @@ export function ApplicationsList({
   onAddApplication,
   onEditApplication,
   onDeleteApplication,
-  onAddWebfile,
-  onEditWebfile,
-  onDeleteWebfile,
 }: ApplicationsListProps) {
   const applicationAccount = automationAccounts.find(
     (account) => account.applicationId === selectedApplicationId,
-  );
-  const relatedWebfiles = webfiles.filter(
-    (webfile) => webfile.ivacApplicationId === selectedApplicationId,
   );
   const relatedAppointment = appointments.find(
     (appointment) => appointment.ivacApplicationId === selectedApplicationId,
@@ -96,12 +84,6 @@ export function ApplicationsList({
                   onDelete={() => onDeleteAccount(applicationAccount!.id)}
                 />
                 <AppointmentCard appointment={relatedAppointment} />
-                <WebfilesSection
-                  webfiles={relatedWebfiles}
-                  onAdd={onAddWebfile}
-                  onEdit={onEditWebfile}
-                  onDelete={onDeleteWebfile}
-                />
               </div>
             )}
           </div>

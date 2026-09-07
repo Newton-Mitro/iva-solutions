@@ -1,4 +1,4 @@
-import { LayoutDashboard, Settings } from "lucide-react";
+import { Settings, UserPlus } from "lucide-react";
 
 export default function DashboardHeader({
   email,
@@ -36,9 +36,9 @@ export default function DashboardHeader({
           <button
             onClick={onRecords}
             aria-label="Open records"
-            className="ivac-hover rounded-lg px-2 py-1.5 text-[10px] font-semibold ivac-primary"
+            className="ivac-hover rounded-lg p-2 text-[var(--app-text-muted)]"
           >
-            <LayoutDashboard size={17} />
+            <UserPlus size={17} />
           </button>
           <button
             onClick={onSettings}

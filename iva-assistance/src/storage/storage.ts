@@ -4,10 +4,7 @@ export type LocalRecord = Record<string, unknown> & {
   updatedAt?: string;
 };
 
-export type LocalCollection =
-  | "automationAccounts"
-  | "ivacApplications"
-  | "webfiles";
+export type LocalCollection = "automationAccounts" | "ivacApplications";
 
 import type {
   WorkflowLog,

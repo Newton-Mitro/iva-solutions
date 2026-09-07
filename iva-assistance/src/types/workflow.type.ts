@@ -5,7 +5,6 @@ import type {
   Application,
   Appointment,
   AutomationAccount,
-  Webfile,
 } from "./application.type";
 
 import { phaseOneWorkFlow } from "../workflows/phase-one-workflow";
@@ -127,13 +126,12 @@ export type WorkflowValueKey =
   | "account.mobile"
   | "account.ivacPassword"
 
-  // Webfile
-  | "webfile.primary.webfileNumber"
-  | "webfile.primary.fileId"
-  | "webfile.other.webfileNumbers"
-  | "webfile.other.fileIds"
-  | "appointment.primaryWebfile"
-  | "appointment.otherWebfiles"
+  // Application webfiles
+  | "application.primaryWebfile"
+  | "application.otherWebfileOne"
+  | "application.otherWebfileTwo"
+  | "application.otherWebfileThree"
+  | "application.otherWebfileFour"
 
   // Appointment configuration
   | "appointment.mission"
@@ -157,8 +155,6 @@ export type WorkflowContext = {
   application?: Application;
 
   account?: AutomationAccount;
-
-  webfiles: Webfile[];
 
   appointment?: Appointment;
 };

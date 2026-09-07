@@ -2,6 +2,7 @@ import { Button } from "../../../../components/ui/Button";
 import { Card } from "../../../../components/ui/Card";
 import { Field } from "../../../../components/ui/Field";
 import { RecordItem, text } from "../../../../types/management.type";
+import { WebfileDocument } from "../../../../types/application.type";
 
 interface ApplicationFormProps {
   busy: boolean;
@@ -24,6 +25,10 @@ export function ApplicationForm({
   const record = initialRecord ?? {};
   const value = (key: string) =>
     initialRecord?.[key] === undefined ? "" : text(record, key);
+  const fileName = (key: string) => {
+    const document = initialRecord?.[key] as WebfileDocument | undefined;
+    return document?.originalName;
+  };
 
   return (
     <form
@@ -98,6 +103,56 @@ export function ApplicationForm({
                   <option value="Rajshahi">Rajshahi</option>
                 </select>
               </label>
+            </div>
+
+            <div className="border-t border-(--app-border) pt-2">
+              <p className="text-[8px] font-bold uppercase tracking-wider ivac-text-muted">
+                Webfiles
+              </p>
+              <div className="mt-1.5 grid grid-cols-2 gap-2">
+                <Field
+                  name="primary_webfile"
+                  label="Primary webfile"
+                  type="file"
+                  accept="application/pdf,image/*"
+                  required={!fileName("primary_webfile")}
+                />
+                <Field
+                  name="other_webfile_one"
+                  label="Other webfile 1"
+                  type="file"
+                  accept="application/pdf,image/*"
+                />
+                <Field
+                  name="other_webfile_two"
+                  label="Other webfile 2"
+                  type="file"
+                  accept="application/pdf,image/*"
+                />
+                <Field
+                  name="other_webfile_three"
+                  label="Other webfile 3"
+                  type="file"
+                  accept="application/pdf,image/*"
+                />
+                <Field
+                  name="other_webfile_four"
+                  label="Other webfile 4"
+                  type="file"
+                  accept="application/pdf,image/*"
+                />
+              </div>
+              {[
+                ["primary_webfile", fileName("primary_webfile")],
+                ["other_webfile_one", fileName("other_webfile_one")],
+                ["other_webfile_two", fileName("other_webfile_two")],
+                ["other_webfile_three", fileName("other_webfile_three")],
+                ["other_webfile_four", fileName("other_webfile_four")],
+              ].some(([, name]) => name) && (
+                <p className="mt-1 text-[7px] ivac-text-muted">
+                  Existing files are kept when no replacement is selected.
+                </p>
+              )}
             </div>
           </div>
         </div>

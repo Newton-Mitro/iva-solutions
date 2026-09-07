@@ -4,7 +4,6 @@ import {
   Application,
   Appointment,
   AutomationAccount,
-  Webfile,
 } from "../../../types/application.type";
 import { subscribeToLocalRecords } from "../../../storage/storage";
 import { subscribeToRecords } from "../../../firebase/data";
@@ -12,7 +11,6 @@ import { subscribeToRecords } from "../../../firebase/data";
 export function useDashboardData(user: FirebaseUser) {
   const [applications, setApplications] = useState<Application[]>([]);
   const [accounts, setAccounts] = useState<AutomationAccount[]>([]);
-  const [webfiles, setWebfiles] = useState<Webfile[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
 
   const [selectedApplicationId, setSelectedApplicationId] = useState("");
@@ -43,12 +41,6 @@ export function useDashboardData(user: FirebaseUser) {
       (records) => setAccounts(records as AutomationAccount[]),
     );
 
-    const unsubscribeWebfiles = subscribeToLocalRecords(
-      user.uid,
-      "webfiles",
-      (records) => setWebfiles(records as Webfile[]),
-    );
-
     const unsubscribeAppointments = subscribeToRecords<Appointment>(
       user.uid,
       "appointments",
@@ -59,7 +51,6 @@ export function useDashboardData(user: FirebaseUser) {
     return () => {
       unsubscribeApplications?.();
       unsubscribeAccounts?.();
-      unsubscribeWebfiles?.();
       unsubscribeAppointments?.();
     };
   }, [user.uid]);
@@ -78,10 +69,17 @@ export function useDashboardData(user: FirebaseUser) {
     [accounts, application?.id],
   );
 
-  // Webfiles belonging to application
+  // Webfiles are stored as fixed slots on the application.
   const applicationWebfiles = useMemo(
-    () => webfiles.filter((item) => item.ivacApplicationId === application?.id),
-    [webfiles, application?.id],
+    () =>
+      [
+        application?.primary_webfile,
+        application?.other_webfile_one,
+        application?.other_webfile_two,
+        application?.other_webfile_three,
+        application?.other_webfile_four,
+      ].filter((webfile) => Boolean(webfile)),
+    [application],
   );
 
   // One appointment per application

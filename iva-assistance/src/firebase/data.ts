@@ -8,7 +8,6 @@ import { db } from "./firestore";
 
 export type CollectionName =
   | "automationAccounts"
-  | "webfiles"
   | "ivacApplications"
   | "appointments"
   | "payments"

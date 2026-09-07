@@ -1,8 +1,6 @@
 export type Gender = "male" | "female" | "other";
 export type Mission = "India" | "Bangladesh";
 export type IvacCenter = "Dhaka" | "Chittagong" | "Rajshahi";
-export type WebfileType = "primary" | "other";
-
 export type ApplicationStatus =
   | "pending"
   | "webfile"
@@ -23,13 +21,10 @@ export type AutomationLogStatus =
   | "error"
   | "skipped";
 
-export type Webfile = {
+export type WebfileDocument = {
   id: string;
-  ivacApplicationId: string;
-  originalName?: string;
+  originalName: string;
   filePath?: string;
-  type: WebfileType;
-  status?: string;
 };
 
 export type Appointment = {
@@ -59,7 +54,11 @@ export type Application = {
   gender?: Gender;
   passportNumber: string;
 
-  webfiles: Webfile[];
+  primary_webfile: WebfileDocument;
+  other_webfile_one?: WebfileDocument;
+  other_webfile_two?: WebfileDocument;
+  other_webfile_three?: WebfileDocument;
+  other_webfile_four?: WebfileDocument;
   appointment?: Appointment;
   automationAccount?: AutomationAccount;
 

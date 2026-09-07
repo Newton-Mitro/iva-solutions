@@ -156,32 +156,38 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   // ─────────────────────────────────────────────
 
   {
-    id: "select-primary-webfile",
+    id: "upload-primary-webfile",
     phase: "phase_one",
-    title: "Select primary webfile",
+    title: "Upload primary webfile",
     icon: FileCheck2,
     selectors: [
       'input[name="primary_webfile"]',
-      'input[type="radio"]',
-      "[data-webfile]",
+      'input[type="file"][data-webfile="primary"]',
     ],
-    action: "click",
-    valueKey: "appointment.primaryWebfile",
+    action: "upload-file",
+    valueKey: "application.primaryWebfile",
   },
 
-  {
-    id: "select-other-webfiles",
-    phase: "phase_one",
-    title: "Select other webfiles",
+  ...(
+    [
+      ["one", "One", "application.otherWebfileOne"],
+      ["two", "Two", "application.otherWebfileTwo"],
+      ["three", "Three", "application.otherWebfileThree"],
+      ["four", "Four", "application.otherWebfileFour"],
+    ] as const
+  ).map(([id, label, valueKey]) => ({
+    id: `select-other-webfile-${id}`,
+    phase: "phase_one" as const,
+    title: `Upload other webfile ${label}`,
     icon: FilePlus2,
     selectors: [
-      'input[name="webfiles[]"]',
-      'input[type="checkbox"][data-webfile]',
-      '[data-webfile] input[type="checkbox"]',
+      `input[name="other_webfile_${id}"]`,
+      `input[type="file"][data-webfile="other-${id}"]`,
     ],
-    action: "click",
-    valueKey: "appointment.otherWebfiles",
-  },
+    action: "upload-file" as const,
+    optional: true,
+    valueKey,
+  })),
 
   // ─────────────────────────────────────────────
   // MISSION / IVAC CENTER

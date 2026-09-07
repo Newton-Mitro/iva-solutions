@@ -51,15 +51,16 @@ function getWorkflowValue(
       return context.account?.mobile;
     case "account.ivacPassword":
       return context.account?.ivacPassword;
-    case "webfile.primary.fileId":
-    case "appointment.primaryWebfile":
-      return context.webfiles.find((webfile) => webfile.type === "primary")?.id;
-    case "webfile.other.fileIds":
-    case "appointment.otherWebfiles":
-      return context.webfiles
-        .filter((webfile) => webfile.type === "other")
-        .map((webfile) => webfile.id)
-        .join(",");
+    case "application.primaryWebfile":
+      return context.application?.primary_webfile?.id;
+    case "application.otherWebfileOne":
+      return context.application?.other_webfile_one?.id;
+    case "application.otherWebfileTwo":
+      return context.application?.other_webfile_two?.id;
+    case "application.otherWebfileThree":
+      return context.application?.other_webfile_three?.id;
+    case "application.otherWebfileFour":
+      return context.application?.other_webfile_four?.id;
     case "appointment.mission":
     case "appointment.missionId":
       return context.application?.mission;
@@ -139,7 +140,7 @@ export type WorkflowLog = {
 };
 
 export function useWorkflow(
-  context: WorkflowContext = { webfiles: [] },
+  context: WorkflowContext = {},
   persistence?: { userId?: string; applicationId?: string },
 ) {
   /**
@@ -830,7 +831,15 @@ export function useWorkflow(
       addLog(`${workflowPhase} flow started`, "info");
       addLog(`Step started: ${steps[firstPendingIndex].title}`, "info");
       addLog(
-        `Using application ${context.application?.fullName ?? "(unnamed)"}, account ${context.account?.email ?? "(missing)"}, and ${context.webfiles.length} webfile(s).`,
+        `Using application ${context.application?.fullName ?? "(unnamed)"}, account ${context.account?.email ?? "(missing)"}, and ${
+          [
+            context.application?.primary_webfile,
+            context.application?.other_webfile_one,
+            context.application?.other_webfile_two,
+            context.application?.other_webfile_three,
+            context.application?.other_webfile_four,
+          ].filter(Boolean).length
+        } webfile(s).`,
         "info",
       );
 
@@ -875,6 +884,13 @@ export function useWorkflow(
     const mappedValue = currentStep.valueKey
       ? getWorkflowValue(context, currentStep.valueKey)
       : undefined;
+
+    if (currentStep.optional && !mappedValue) {
+      addLog(`Optional step skipped: ${currentStep.title}`, "info");
+      advanceStep(currentStep.id, "skipped");
+      executingStep.current = null;
+      return;
+    }
 
     if (
       (currentStep.action === "fill" ||

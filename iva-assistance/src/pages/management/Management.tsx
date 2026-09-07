@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { AccountForm } from "./components/forms/AccountForm";
 import { ApplicationForm } from "./components/forms/ApplicationForm";
-import { WebfileForm } from "./components/forms/WebfileForm";
 import { ApplicationsList } from "./components/ApplicationsList";
 import {
   FormMode,
@@ -11,20 +10,22 @@ import {
 } from "../../types/management.type";
 import {
   createLocalRecord,
-  deleteLocalFile,
   deleteLocalRecord,
-  LocalCollection,
   saveLocalFile,
+  LocalCollection,
   subscribeToLocalRecords,
   updateLocalRecord,
 } from "../../storage/storage";
 import { subscribeToRecords } from "../../firebase/data";
+import { WebfileDocument } from "../../types/application.type";
 
 export default function ManagementPanel({
   userId,
+  initialRequest,
   onClose,
 }: {
   userId: string;
+  initialRequest?: { mode: FormMode; applicationId: string } | null;
   onClose: () => void;
 }) {
   // Editable setup data is local; booking outcomes remain in Firestore.
@@ -32,7 +33,6 @@ export default function ManagementPanel({
     [],
   );
   const [applications, setApplications] = useState<RecordItem[]>([]);
-  const [webfiles, setWebfiles] = useState<RecordItem[]>([]);
   const [appointments, setAppointments] = useState<RecordItem[]>([]);
   const [payments, setPayments] = useState<RecordItem[]>([]);
 
@@ -43,6 +43,7 @@ export default function ManagementPanel({
   const [editing, setEditing] = useState<RecordItem | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const handledInitialRequest = useRef(false);
 
   // Subscribe to local setup data and remote booking outcomes.
   useEffect(() => {
@@ -52,9 +53,6 @@ export default function ManagementPanel({
       ),
       subscribeToLocalRecords(userId, "ivacApplications", (records) =>
         setApplications(records as RecordItem[]),
-      ),
-      subscribeToLocalRecords(userId, "webfiles", (records) =>
-        setWebfiles(records as RecordItem[]),
       ),
       subscribeToRecords(userId, "appointments", setAppointments, (err) =>
         console.error("Appointments subscription error:", err),
@@ -66,6 +64,33 @@ export default function ManagementPanel({
     return () => unsubscribers.forEach((unsub) => unsub());
   }, [userId]);
 
+  useEffect(() => {
+    if (
+      handledInitialRequest.current ||
+      !initialRequest ||
+      !applications.some(
+        (application) => application.id === initialRequest.applicationId,
+      )
+    ) {
+      return;
+    }
+
+    const record =
+      initialRequest.mode === "application"
+        ? applications.find(
+            (application) => application.id === initialRequest.applicationId,
+          )
+        : automationAccounts.find(
+            (account) => account.applicationId === initialRequest.applicationId,
+          );
+
+    setSelectedApplicationId(initialRequest.applicationId);
+    setFormMode(initialRequest.mode);
+    setEditing(record ?? null);
+    setShowForm(true);
+    handledInitialRequest.current = true;
+  }, [applications, automationAccounts, initialRequest]);
+
   /**
    * Handle form submission for all record types
    */
@@ -74,44 +99,49 @@ export default function ManagementPanel({
     setError("");
     const values = new FormData(form);
     try {
-      if (formMode === "webfile") {
-        const file = values.get("file");
-        if (!editing && (!(file instanceof File) || file.size === 0))
-          throw new Error("Choose a file first.");
-        if (file instanceof File && file.size > 10 * 1024 * 1024)
-          throw new Error("Files must be smaller than 10 MB.");
-        const record = {
-          webfileNumber: values.get("webfileNumber"),
-          ...(file instanceof File
-            ? {
-                filePath: file.webkitRelativePath || file.name,
-                originalName: file.name,
-              }
-            : {}),
-          type: values.get("type") || "primary",
-          status: values.get("status") || "pending",
-        };
-        if (editing) {
-          await updateLocalRecord(userId, "webfiles", editing.id, record);
-          if (file instanceof File) {
-            await saveLocalFile(editing.id, file);
+      const collection = getCollectionFromMode(formMode);
+      const record: Record<string, unknown> = Object.fromEntries(
+        values.entries(),
+      );
+      if (formMode === "application") {
+        const webfileFields = [
+          "primary_webfile",
+          "other_webfile_one",
+          "other_webfile_two",
+          "other_webfile_three",
+          "other_webfile_four",
+        ];
+        for (const field of webfileFields) {
+          const file = values.get(field);
+          if (!(file instanceof File) || file.size === 0) {
+            delete record[field];
+            continue;
           }
-        } else {
-          const created = await createLocalRecord(userId, "webfiles", {
-            ...record,
-            ivacApplicationId: selectedApplicationId,
-          });
-          if (file instanceof File) {
-            await saveLocalFile(created.id, file);
+          if (file.size > 10 * 1024 * 1024) {
+            throw new Error("Files must be smaller than 10 MB.");
           }
+          const fileId = crypto.randomUUID();
+          const document: WebfileDocument = {
+            id: fileId,
+            originalName: file.name,
+            filePath: file.webkitRelativePath || file.name,
+          };
+          record[field] = document;
+          await saveLocalFile(fileId, file);
         }
-      } else {
-        const record = Object.fromEntries(values.entries());
-        const collection = getCollectionFromMode(formMode);
-        if (editing)
-          await updateLocalRecord(userId, collection, editing.id, record);
-        else await createLocalRecord(userId, collection, record);
+        const existingPrimary = editing?.primary_webfile as
+          | WebfileDocument
+          | undefined;
+        if (!record.primary_webfile && !existingPrimary) {
+          throw new Error("Choose a primary webfile.");
+        }
+        if (!record.primary_webfile && existingPrimary) {
+          record.primary_webfile = existingPrimary;
+        }
       }
+      if (editing)
+        await updateLocalRecord(userId, collection, editing.id, record);
+      else await createLocalRecord(userId, collection, record);
       setShowForm(false);
       setEditing(null);
     } catch (saveError) {
@@ -133,7 +163,6 @@ export default function ManagementPanel({
     setError("");
     try {
       await deleteLocalRecord(userId, collection, id);
-      if (collection === "webfiles") await deleteLocalFile(id);
     } catch (deleteError) {
       setError(
         deleteError instanceof Error
@@ -171,8 +200,8 @@ export default function ManagementPanel({
                 Management Panel
               </h1>
               <p className="text-[9px] ivac-text-muted">
-                Manage applications, webfiles, appointments, payments and
-                automation accounts.
+                Manage applications, appointments, payments and automation
+                accounts.
               </p>
             </div>
           </div>
@@ -211,23 +240,10 @@ export default function ManagementPanel({
           />
         )}
 
-        {/* Webfile form overlay */}
-        {showForm && formMode === "webfile" && selectedApplicationId && (
-          <WebfileForm
-            applicationId={selectedApplicationId}
-            busy={busy}
-            error={error}
-            initialRecord={editing}
-            onCancel={() => setShowForm(false)}
-            onSubmit={handleSave}
-          />
-        )}
-
         {/* Application workspace */}
         <ApplicationsList
           automationAccounts={automationAccounts}
           applications={applications}
-          webfiles={webfiles}
           appointments={appointments}
           payments={payments}
           selectedApplicationId={selectedApplicationId}
@@ -240,9 +256,6 @@ export default function ManagementPanel({
           onDeleteApplication={(id) =>
             void handleDelete("ivacApplications", id)
           }
-          onAddWebfile={() => openForm("webfile")}
-          onEditWebfile={(webfile) => openForm("webfile", webfile)}
-          onDeleteWebfile={(id) => void handleDelete("webfiles", id)}
         />
       </main>
     </div>

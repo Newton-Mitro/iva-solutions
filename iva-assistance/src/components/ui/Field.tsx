@@ -8,6 +8,7 @@ export function Field({
   required,
   defaultValue,
   placeholder,
+  accept,
 }: {
   name: string;
   label: string;
@@ -15,6 +16,7 @@ export function Field({
   required?: boolean;
   defaultValue?: string;
   placeholder?: string;
+  accept?: string;
 }) {
   return (
     <label className="block text-[9px] font-semibold">
@@ -26,6 +28,7 @@ export function Field({
         required={required}
         defaultValue={defaultValue}
         placeholder={placeholder}
+        accept={accept}
       />
     </label>
   );
