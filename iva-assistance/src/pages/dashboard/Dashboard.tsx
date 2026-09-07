@@ -9,6 +9,7 @@ import ActivityLog from "./components/ActivityLog";
 import { useDashboardData } from "./hooks/useDashboardData";
 import { useWorkflow } from "./hooks/useWorkflow";
 import SettingsPage from "../settings/SettingsPage";
+import AboutPage from "../AboutPage";
 import { WorkflowPhase } from "../../types/workflow.type";
 import ApplicationDetailsCard from "./components/ApplicationDetailsCard";
 import type { FormMode } from "../../types/management.type";
@@ -47,6 +48,7 @@ export function Dashboard({
     applicationId: string;
   } | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
 
   if (showSettings) {
     return (
@@ -59,12 +61,17 @@ export function Dashboard({
     );
   }
 
+  if (showAbout) {
+    return <AboutPage onBack={() => setShowAbout(false)} />;
+  }
+
   return (
     <div className="ivac-app">
       <DashboardHeader
         email={user.email}
         onRecords={() => setShowManagement(true)}
         onSettings={() => setShowSettings(true)}
+        onAbout={() => setShowAbout(true)}
       />
 
       <main className="mx-auto w-full max-w-2xl space-y-3 px-3 pb-28 pt-3">

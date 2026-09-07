@@ -1,13 +1,15 @@
-import { Settings, UserPlus } from "lucide-react";
+import { Info, Settings, UserPlus } from "lucide-react";
 
 export default function DashboardHeader({
   email,
   onRecords,
   onSettings,
+  onAbout,
 }: {
   email: string | null;
   onRecords: () => void;
   onSettings: () => void;
+  onAbout: () => void;
 }) {
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--app-border)] bg-[var(--app-surface)]">
@@ -46,6 +48,13 @@ export default function DashboardHeader({
             aria-label="Open settings"
           >
             <Settings size={17} />
+          </button>
+          <button
+            onClick={onAbout}
+            className="ivac-hover rounded-lg p-2 text-[var(--app-text-muted)]"
+            aria-label="Open about page"
+          >
+            <Info size={17} />
           </button>
         </div>
       </div>
