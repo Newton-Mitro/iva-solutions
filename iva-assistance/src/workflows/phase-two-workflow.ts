@@ -33,6 +33,6 @@ export const phaseTwoWorkflow: WorkflowStepDefinition[] = [
     icon: RefreshCw,
     selectors: ["body"],
     action: "replace-html",
-    valueKey: "account.ivacPassword",
+    valueKey: "account.email",
   },
 ];

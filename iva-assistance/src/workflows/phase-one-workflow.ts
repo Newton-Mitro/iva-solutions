@@ -9,6 +9,7 @@ import {
   Globe2,
   LockKeyhole,
   LogIn,
+  MessageSquare,
   MapPin,
   Phone,
   ShieldCheck,
@@ -54,14 +55,14 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "sign-verify-human",
+    id: "appointment-human-verification",
     phase: "phase_one",
-    title: "Human verification required",
+    title: "Complete human verification",
     icon: ShieldCheck,
     selectors: [
-      'input[aria-label="Verify you are human"]',
+      'input[type="checkbox"][aria-label="Verify you are human"]',
+      'input[aria-label*="Verify you are human" i]',
       'input[type="checkbox"][aria-label*="human" i]',
-      'input[type="checkbox"][aria-label*="verify" i]',
     ],
     action: "click",
   },
@@ -75,6 +76,27 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     action: "click",
   },
 
+  {
+    id: "signin-otp",
+    phase: "phase_one",
+    title: "Enter OTP",
+    child: "Enter the OTP received for this phase.",
+    icon: MessageSquare,
+    manual: true,
+    manualInput: "otp",
+    selectors: ['input[id^="otp-"]', 'input[autocomplete="one-time-code"]'],
+    action: "focus",
+  },
+
+  {
+    id: "verify-signin-otp",
+    phase: "phase_one",
+    title: "Verify OTP",
+    icon: LogIn,
+    selectors: ['button[type="submit"]'],
+    action: "click",
+  },
+
   // ─────────────────────────────────────────────
   // NOTICES
   // ─────────────────────────────────────────────
@@ -84,12 +106,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     phase: "phase_one",
     title: "Close first notice",
     icon: X,
-    selectors: [
-      '[role="dialog"] button',
-      '[role="dialog"] button[aria-label*="close" i]',
-      '[role="dialog"] .btn-close',
-      ".modal button.close",
-    ],
+    selectors: ['button[aria-label="Close notice"]', '[role="dialog"] button'],
     action: "click",
   },
 
@@ -98,12 +115,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     phase: "phase_one",
     title: "Close second notice",
     icon: X,
-    selectors: [
-      '[role="dialog"] button',
-      '[role="dialog"] button[aria-label*="close" i]',
-      '[role="dialog"] .btn-close',
-      ".modal button.close",
-    ],
+    selectors: ['button[aria-label="Close popup"]', '[role="dialog"] button'],
     action: "click",
   },
 
@@ -116,11 +128,8 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     phase: "phase_one",
     title: "Book appointment",
     icon: ClipboardCheck,
-    selectors: [
-      'button:has-text("Book Appointment")',
-      'a:has-text("Book Appointment")',
-      '[role="button"]:has-text("Book Appointment")',
-    ],
+    selectors: ["button"],
+    text: "Take Your Appointment",
     action: "click",
   },
 
@@ -129,26 +138,28 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     phase: "phase_one",
     title: "Proceed to webfile selection",
     icon: ChevronRight,
-    selectors: ['button:has-text("Next")', 'button[type="submit"]'],
+    selectors: ["button"],
+    text: "Next Step",
     action: "click",
   },
+
+  // go to page https://appointment.ivacbd.com/appointment/file-upload
 
   // ─────────────────────────────────────────────
   // HUMAN VERIFICATION
   // ─────────────────────────────────────────────
 
   {
-    id: "appointment-human-verification",
+    id: "appointment-webfile-human-verification",
     phase: "phase_one",
     title: "Complete human verification",
     icon: ShieldCheck,
     selectors: [
-      'input[aria-label*="human" i]',
-      'input[aria-label*="verify" i]',
-      'iframe[title*="challenge" i]',
-      'iframe[title*="captcha" i]',
+      'input[type="checkbox"][aria-label="Verify you are human"]',
+      'input[aria-label*="Verify you are human" i]',
+      'input[type="checkbox"][aria-label*="human" i]',
     ],
-    action: "wait",
+    action: "click",
   },
 
   // ─────────────────────────────────────────────
@@ -161,6 +172,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     title: "Upload primary webfile",
     icon: FileCheck2,
     selectors: [
+      'input[type="file"][accept=".pdf,application/pdf"]',
       'input[name="primary_webfile"]',
       'input[type="file"][data-webfile="primary"]',
     ],
@@ -168,30 +180,46 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     valueKey: "application.primaryWebfile",
   },
 
-  ...(
-    [
-      ["one", "One", "application.otherWebfileOne"],
-      ["two", "Two", "application.otherWebfileTwo"],
-      ["three", "Three", "application.otherWebfileThree"],
-      ["four", "Four", "application.otherWebfileFour"],
-    ] as const
-  ).map(([id, label, valueKey]) => ({
-    id: `select-other-webfile-${id}`,
-    phase: "phase_one" as const,
-    title: `Upload other webfile ${label}`,
-    icon: FilePlus2,
+  // ─────────────────────────────────────────────
+  // HUMAN VERIFICATION
+  // ─────────────────────────────────────────────
+
+  {
+    id: "appointment-webfile-human-verification",
+    phase: "phase_one",
+    title: "Complete human verification",
+    icon: ShieldCheck,
     selectors: [
-      `input[name="other_webfile_${id}"]`,
-      `input[type="file"][data-webfile="other-${id}"]`,
+      'input[type="checkbox"][aria-label="Verify you are human"]',
+      'input[aria-label*="Verify you are human" i]',
+      'input[type="checkbox"][aria-label*="human" i]',
     ],
-    action: "upload-file" as const,
-    optional: true,
-    valueKey,
-  })),
+    action: "click",
+  },
 
   // ─────────────────────────────────────────────
   // MISSION / IVAC CENTER
   // ─────────────────────────────────────────────
+
+  {
+    id: "appointment-confirm-all-correct",
+    phase: "phase_one",
+    title: "Confirm all information is correct",
+    icon: ChevronRight,
+    selectors: ["button"],
+    text: "Confirm All Information is Correct",
+    action: "click",
+  },
+
+  {
+    id: "appointment-save-and-continue",
+    phase: "phase_one",
+    title: "Save & Continue",
+    icon: ChevronRight,
+    selectors: ['button[type="button"]'],
+    text: "Save & Continue",
+    action: "click",
+  },
 
   {
     id: "select-mission",

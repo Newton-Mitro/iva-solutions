@@ -491,6 +491,7 @@ export function useWorkflow(
       world: "MAIN",
       func: async (config: {
         selectors: string[];
+        text?: string;
         action:
           | "navigate"
           | "focus"
@@ -508,6 +509,7 @@ export function useWorkflow(
         value?: string;
         file?: { name: string; type: string; data: string };
         manual: boolean;
+        manualInput?: "otp" | "verification";
         waitForMs: number;
       }): Promise<DomActionResult> => {
         const startedAt = Date.now();
@@ -520,10 +522,12 @@ export function useWorkflow(
             .find((candidate) => {
               const item = candidate as HTMLElement;
               return (
-                candidate === document.body ||
-                candidate === document.documentElement ||
-                item.offsetParent !== null ||
-                candidate instanceof HTMLIFrameElement
+                (!config.text ||
+                  item.textContent?.trim() === config.text.trim()) &&
+                (candidate === document.body ||
+                  candidate === document.documentElement ||
+                  item.offsetParent !== null ||
+                  candidate instanceof HTMLIFrameElement)
               );
             }) as HTMLElement | undefined;
 
@@ -548,6 +552,38 @@ export function useWorkflow(
         }
 
         element.scrollIntoView({ block: "center", behavior: "smooth" });
+
+        if (
+          config.manual &&
+          config.manualInput === "otp" &&
+          config.value !== undefined
+        ) {
+          const inputs = config.selectors
+            .flatMap((selector) =>
+              Array.from(document.querySelectorAll(selector)),
+            )
+            .filter(
+              (candidate): candidate is HTMLInputElement =>
+                candidate instanceof HTMLInputElement,
+            );
+
+          if (inputs.length === 0) {
+            return { found: false, message: "OTP inputs were not found." };
+          }
+
+          const digits = config.value.replace(/\D/g, "");
+          inputs.slice(0, digits.length).forEach((input, index) => {
+            const setter = Object.getOwnPropertyDescriptor(
+              HTMLInputElement.prototype,
+              "value",
+            )?.set;
+            setter?.call(input, digits[index]);
+            input.dispatchEvent(new Event("input", { bubbles: true }));
+            input.dispatchEvent(new Event("change", { bubbles: true }));
+          });
+
+          return { found: true };
+        }
 
         if (config.action === "wait" || config.action === "capture") {
           return { found: true };
@@ -676,10 +712,12 @@ export function useWorkflow(
       args: [
         {
           selectors: step.selectors,
+          text: step.text,
           action: step.action,
           value,
           file,
           manual: Boolean(step.manual),
+          manualInput: step.manualInput,
           waitForMs: 20000,
         },
       ],
