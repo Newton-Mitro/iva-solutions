@@ -105,6 +105,17 @@ export function ApplicationForm({
               </label>
             </div>
 
+            <Field
+              name="prefer_appointment_dates"
+              label="Preferred appointment dates"
+              defaultValue={value("prefer_appointment_dates")}
+              placeholder="2026-09-09, 2026-09-10"
+            />
+            <p className="-mt-1 text-[7px] ivac-text-muted">
+              Enter dates in order, separated by commas. The first available
+              date is tried first.
+            </p>
+
             <div className="border-t border-(--app-border) pt-2">
               <p className="text-[8px] font-bold uppercase tracking-wider ivac-text-muted">
                 Webfiles

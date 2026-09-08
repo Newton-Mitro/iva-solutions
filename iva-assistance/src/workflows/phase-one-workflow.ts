@@ -57,11 +57,11 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     title: "Complete human verification",
     icon: ShieldCheck,
     selectors: [
-      'input[type="checkbox"][aria-label="Verify you are human"]',
-      'input[aria-label*="Verify you are human" i]',
-      'input[type="checkbox"][aria-label*="human" i]',
+      'input[type="checkbox"][aria-label*="Verify you are human" i]',
+      'iframe[title*="Turnstile" i]',
+      'iframe[src*="challenges.cloudflare.com" i]',
     ],
-    action: "click",
+    action: "wait",
   },
 
   {
@@ -116,14 +116,10 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     action: "click",
   },
 
-  // ─────────────────────────────────────────────
-  // BOOK APPOINTMENT
-  // ─────────────────────────────────────────────
-
   {
     id: "book-appointment",
     phase: "phase_one",
-    title: "Book appointment",
+    title: "Click Book appointment button",
     icon: ClipboardCheck,
     selectors: ["button"],
     text: "Take Your Appointment",
@@ -140,28 +136,24 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     action: "click",
   },
 
-  // go to page https://appointment.ivacbd.com/appointment/file-upload
-
   // ─────────────────────────────────────────────
-  // HUMAN VERIFICATION
+  // UPLOAD WEBFILES
   // ─────────────────────────────────────────────
 
   {
     id: "appointment-webfile-confirmation-human-verification",
     phase: "phase_one",
     title: "Complete human verification",
+    manual: true,
+    manualInput: "verification",
     icon: ShieldCheck,
     selectors: [
       'input[type="checkbox"][aria-label="Verify you are human"]',
       'input[aria-label*="Verify you are human" i]',
       'input[type="checkbox"][aria-label*="human" i]',
     ],
-    action: "click",
+    action: "focus",
   },
-
-  // ─────────────────────────────────────────────
-  // WEBFILES
-  // ─────────────────────────────────────────────
 
   {
     id: "upload-primary-webfile",
@@ -176,23 +168,123 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     ],
     action: "upload-file",
     valueKey: "application.primaryWebfile",
+    fileIndex: 0,
   },
 
-  // ─────────────────────────────────────────────
-  // HUMAN VERIFICATION
-  // ─────────────────────────────────────────────
-
   {
-    id: "appointment-webfile-human-verification",
+    id: "appointment-other-webfile-one-human-verification",
     phase: "phase_one",
-    title: "Complete human verification",
+    title: "Complete human verification for other webfile 1",
+    manual: true,
+    manualInput: "verification",
     icon: ShieldCheck,
     selectors: [
       'input[type="checkbox"][aria-label="Verify you are human"]',
       'input[aria-label*="Verify you are human" i]',
       'input[type="checkbox"][aria-label*="human" i]',
     ],
-    action: "click",
+    action: "focus",
+    valueKey: "application.otherWebfileOne",
+    optional: true,
+  },
+
+  {
+    id: "upload-other-webfile-one",
+    phase: "phase_one",
+    title: "Upload other webfile 1",
+    icon: FileCheck2,
+    selectors: ['input[type="file"]'],
+    action: "upload-file",
+    valueKey: "application.otherWebfileOne",
+    optional: true,
+    fileIndex: 1,
+  },
+
+  {
+    id: "appointment-other-webfile-two-human-verification",
+    phase: "phase_one",
+    title: "Complete human verification for other webfile 2",
+    manual: true,
+    manualInput: "verification",
+    icon: ShieldCheck,
+    selectors: [
+      'input[type="checkbox"][aria-label="Verify you are human"]',
+      'input[aria-label*="Verify you are human" i]',
+      'input[type="checkbox"][aria-label*="human" i]',
+    ],
+    action: "focus",
+    valueKey: "application.otherWebfileTwo",
+    optional: true,
+  },
+
+  {
+    id: "upload-other-webfile-two",
+    phase: "phase_one",
+    title: "Upload other webfile 2",
+    icon: FileCheck2,
+    selectors: ['input[type="file"]'],
+    action: "upload-file",
+    valueKey: "application.otherWebfileTwo",
+    optional: true,
+    fileIndex: 2,
+  },
+
+  {
+    id: "appointment-other-webfile-three-human-verification",
+    phase: "phase_one",
+    title: "Complete human verification for other webfile 3",
+    manual: true,
+    manualInput: "verification",
+    icon: ShieldCheck,
+    selectors: [
+      'input[type="checkbox"][aria-label="Verify you are human"]',
+      'input[aria-label*="Verify you are human" i]',
+      'input[type="checkbox"][aria-label*="human" i]',
+    ],
+    action: "focus",
+    valueKey: "application.otherWebfileThree",
+    optional: true,
+  },
+
+  {
+    id: "upload-other-webfile-three",
+    phase: "phase_one",
+    title: "Upload other webfile 3",
+    icon: FileCheck2,
+    selectors: ['input[type="file"]'],
+    action: "upload-file",
+    valueKey: "application.otherWebfileThree",
+    optional: true,
+    fileIndex: 3,
+  },
+
+  {
+    id: "appointment-other-webfile-four-human-verification",
+    phase: "phase_one",
+    title: "Complete human verification for other webfile 4",
+    manual: true,
+    manualInput: "verification",
+    icon: ShieldCheck,
+    selectors: [
+      'input[type="checkbox"][aria-label="Verify you are human"]',
+      'input[aria-label*="Verify you are human" i]',
+      'input[type="checkbox"][aria-label*="human" i]',
+    ],
+    action: "focus",
+    valueKey: "application.otherWebfileFour",
+    optional: true,
+  },
+
+  {
+    id: "upload-other-webfile-four",
+    phase: "phase_one",
+    title: "Upload other webfile 4",
+    icon: FileCheck2,
+    selectors: ['input[type="file"]'],
+    action: "upload-file",
+    valueKey: "application.otherWebfileFour",
+    optional: true,
+    fileIndex: 4,
   },
 
   {
@@ -288,7 +380,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     selectors: ["button"],
     selectionType: "date",
     action: "select",
-    valueKey: "appointment.date",
+    valueKey: "application.preferAppointmentDates",
   },
 
   {

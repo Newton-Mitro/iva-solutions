@@ -64,6 +64,7 @@ export type Application = {
 
   mission?: Mission;
   ivacCenter?: IvacCenter;
+  prefer_appointment_dates: string;
   status: ApplicationStatus;
 };
 

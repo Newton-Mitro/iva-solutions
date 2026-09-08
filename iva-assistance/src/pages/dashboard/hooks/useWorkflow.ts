@@ -61,6 +61,8 @@ function getWorkflowValue(
       return context.application?.other_webfile_three?.id;
     case "application.otherWebfileFour":
       return context.application?.other_webfile_four?.id;
+    case "application.preferAppointmentDates":
+      return context.application?.prefer_appointment_dates;
     case "appointment.mission":
     case "appointment.missionId":
       return context.application?.mission;
@@ -513,34 +515,43 @@ export function useWorkflow(
         manualInput?: "otp" | "verification";
         selectionType?: "date" | "text";
         waitForMs: number;
+        fileIndex?: number;
       }): Promise<DomActionResult> => {
         const startedAt = Date.now();
 
-        const findElement = () =>
-          config.selectors
-            .flatMap((selector) =>
-              Array.from(document.querySelectorAll(selector)),
-            )
-            .find((candidate) => {
-              const item = candidate as HTMLElement;
-              const isFileUploadTarget =
-                config.action === "upload-file" &&
-                candidate instanceof HTMLInputElement &&
-                candidate.type === "file";
-              return (
-                (!config.text ||
-                  item.textContent?.trim().includes(config.text.trim())) &&
-                (isFileUploadTarget ||
-                  candidate === document.body ||
-                  candidate === document.documentElement ||
-                  item.offsetParent !== null ||
-                  candidate instanceof HTMLIFrameElement) &&
-                (config.action !== "click" ||
-                  !(
-                    candidate instanceof HTMLButtonElement && candidate.disabled
-                  ))
-              );
-            }) as HTMLElement | undefined;
+        const findElement = () => {
+          const candidates = config.selectors.flatMap((selector) =>
+            Array.from(document.querySelectorAll(selector)),
+          );
+          const fileCandidates = candidates.filter(
+            (candidate): candidate is HTMLInputElement =>
+              candidate instanceof HTMLInputElement &&
+              candidate.type === "file",
+          );
+          const indexedCandidates =
+            config.action === "upload-file" && config.fileIndex !== undefined
+              ? [fileCandidates[config.fileIndex]].filter(Boolean)
+              : candidates;
+
+          return indexedCandidates.find((candidate) => {
+            const item = candidate as HTMLElement;
+            const isFileUploadTarget =
+              config.action === "upload-file" &&
+              candidate instanceof HTMLInputElement &&
+              candidate.type === "file";
+            return (
+              (!config.text ||
+                item.textContent?.trim().includes(config.text.trim())) &&
+              (isFileUploadTarget ||
+                candidate === document.body ||
+                candidate === document.documentElement ||
+                item.offsetParent !== null ||
+                candidate instanceof HTMLIFrameElement) &&
+              (config.action !== "click" ||
+                !(candidate instanceof HTMLButtonElement && candidate.disabled))
+            );
+          }) as HTMLElement | undefined;
+        };
 
         while (
           document.readyState !== "complete" &&
@@ -650,15 +661,24 @@ export function useWorkflow(
               const todayKey = `${today.getFullYear()}-${String(
                 today.getMonth() + 1,
               ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-              const savedDates = (config.value ?? "")
+              const monthNames = [
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December",
+              ];
+              const preferredDates = (config.value ?? "")
                 .split(",")
                 .map((date) => date.trim())
-                .filter(Boolean)
-                .filter((date) => {
-                  if (date === todayKey) {
-                    return false;
-                  }
-
+                .map((date) => {
                   const isoParts = date.match(
                     /^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/,
                   );
@@ -666,48 +686,132 @@ export function useWorkflow(
                     /^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/,
                   );
                   if (!isoParts && !localParts) {
-                    return true;
+                    return undefined;
                   }
 
-                  const year = isoParts?.[1] ?? localParts?.[3];
+                  const year = Number(isoParts?.[1] ?? localParts?.[3]);
                   const month = Number(isoParts?.[2] ?? localParts?.[1]);
                   const day = Number(isoParts?.[3] ?? localParts?.[2]);
-                  return (
-                    `${year}-${String(month).padStart(2, "0")}-${String(
+                  return {
+                    key: `${year}-${String(month).padStart(2, "0")}-${String(
                       day,
-                    ).padStart(2, "0")}` !== todayKey
+                    ).padStart(2, "0")}`,
+                    year,
+                    month,
+                    day,
+                  };
+                })
+                .filter(
+                  (
+                    date,
+                  ): date is {
+                    key: string;
+                    year: number;
+                    month: number;
+                    day: number;
+                  } => Boolean(date) && date?.key !== todayKey,
+                );
+
+              const getVisibleMonth = () => {
+                const monthPattern = new RegExp(
+                  `(${monthNames.join("|")})\\s+(\\d{4})`,
+                );
+                const match = Array.from(document.querySelectorAll("*"))
+                  .filter((candidate) => {
+                    const item = candidate as HTMLElement;
+                    return (
+                      item.offsetParent !== null && item.children.length === 0
+                    );
+                  })
+                  .map((candidate) => candidate.textContent?.trim() ?? "")
+                  .map((text) => text.match(monthPattern))
+                  .find(Boolean);
+
+                if (!match) {
+                  return {
+                    year: today.getFullYear(),
+                    month: today.getMonth() + 1,
+                  };
+                }
+
+                return {
+                  month: monthNames.indexOf(match[1]) + 1,
+                  year: Number(match[2]),
+                };
+              };
+
+              const getDateButton = (date: { key: string; day: number }) =>
+                Array.from(
+                  document.querySelectorAll<HTMLButtonElement>("button"),
+                ).find((candidate) => {
+                  const item = candidate as HTMLElement;
+                  return (
+                    !candidate.disabled &&
+                    item.offsetParent !== null &&
+                    candidate.textContent?.trim() === String(date.day) &&
+                    !candidate.getAttribute("aria-label") &&
+                    candidate.dataset.ivacAutomationTried !== "true" &&
+                    candidate.dataset.ivacAutomationDate !== date.key
                   );
                 });
-              const savedDays = savedDates
-                .map((date) => date.match(/(?:^|[-/])([0-9]{1,2})$/)?.[1])
-                .filter((day): day is string => Boolean(day))
-                .map((day) => String(Number(day)));
-              const openDateButtons = Array.from(
-                document.querySelectorAll<HTMLButtonElement>("button"),
-              ).filter(
-                (candidate) =>
-                  candidate !== element &&
-                  !candidate.disabled &&
-                  candidate.offsetParent !== null &&
-                  /^\d{1,2}$/.test(candidate.textContent?.trim() ?? "") &&
-                  !candidate.getAttribute("aria-label") &&
-                  candidate.dataset.ivacAutomationTried !== "true",
-              );
-              const dateButton =
-                openDateButtons.find((candidate) =>
-                  savedDays.includes(candidate.textContent?.trim() ?? ""),
-                ) ?? openDateButtons[0];
 
-              if (!dateButton) {
-                return {
-                  found: false,
-                  message: "No open appointment date was found.",
-                };
+              const getMonthButton = (direction: "next" | "previous") =>
+                document.querySelector<HTMLButtonElement>(
+                  `button[aria-label="${direction === "next" ? "Next" : "Previous"} month"]`,
+                );
+
+              for (const date of preferredDates) {
+                for (let attempt = 0; attempt < 24; attempt += 1) {
+                  const visible = getVisibleMonth();
+                  const visibleIndex = visible.year * 12 + visible.month;
+                  const targetIndex = date.year * 12 + date.month;
+                  const dateButton =
+                    visibleIndex === targetIndex
+                      ? getDateButton(date)
+                      : undefined;
+
+                  if (dateButton) {
+                    dateButton.dataset.ivacAutomationTried = "true";
+                    dateButton.dataset.ivacAutomationDate = date.key;
+                    dateButton.click();
+                    return { found: true };
+                  }
+
+                  if (visibleIndex === targetIndex) {
+                    break;
+                  }
+
+                  const direction =
+                    targetIndex > visibleIndex ? "next" : "previous";
+                  const monthButton = getMonthButton(direction);
+                  if (!monthButton || monthButton.disabled) {
+                    break;
+                  }
+                  monthButton.click();
+                  await new Promise((resolve) => setTimeout(resolve, 150));
+                }
               }
 
-              dateButton.click();
-              dateButton.dataset.ivacAutomationTried = "true";
-              return { found: true };
+              if (!preferredDates.length) {
+                const fallbackDate = Array.from(
+                  document.querySelectorAll<HTMLButtonElement>("button"),
+                ).find(
+                  (candidate) =>
+                    !candidate.disabled &&
+                    candidate.offsetParent !== null &&
+                    /^\d{1,2}$/.test(candidate.textContent?.trim() ?? "") &&
+                    !candidate.getAttribute("aria-label"),
+                );
+                if (fallbackDate) {
+                  fallbackDate.click();
+                  return { found: true };
+                }
+              }
+
+              return {
+                found: false,
+                message: "No preferred appointment date is available.",
+              };
             }
 
             if (config.selectionType === "text" && config.value) {
@@ -862,6 +966,7 @@ export function useWorkflow(
           manual: Boolean(step.manual),
           manualInput: step.manualInput,
           selectionType: step.selectionType,
+          fileIndex: step.fileIndex,
           waitForMs: 20000,
         },
       ],

@@ -163,6 +163,11 @@ export default function ApplicationDetailsCard({
             <MetaItem label="Mission" value={application.mission || "-"} />
 
             <MetaItem label="IVAC" value={application.ivacCenter || "-"} />
+
+            <MetaItem
+              label="Preferred dates"
+              value={application.prefer_appointment_dates || "-"}
+            />
             <button
               type="button"
               onClick={onEditApplication}

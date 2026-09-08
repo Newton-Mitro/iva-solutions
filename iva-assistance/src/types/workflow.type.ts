@@ -101,6 +101,11 @@ export type WorkflowStepDefinition = {
   timeout?: number;
 
   /**
+   * Zero-based file input position for upload actions.
+   */
+  fileIndex?: number;
+
+  /**
    * Whether the step can be skipped when its target
    * element is not present.
    */
@@ -137,6 +142,7 @@ export type WorkflowValueKey =
   | "application.otherWebfileTwo"
   | "application.otherWebfileThree"
   | "application.otherWebfileFour"
+  | "application.preferAppointmentDates"
 
   // Appointment configuration
   | "appointment.mission"
