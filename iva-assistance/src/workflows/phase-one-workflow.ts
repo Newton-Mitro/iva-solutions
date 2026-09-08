@@ -147,7 +147,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   // ─────────────────────────────────────────────
 
   {
-    id: "appointment-webfile-human-verification",
+    id: "appointment-webfile-confirmation-human-verification",
     phase: "phase_one",
     title: "Complete human verification",
     icon: ShieldCheck,
@@ -172,6 +172,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
       'input[type="file"][accept=".pdf,application/pdf"]',
       'input[name="primary_webfile"]',
       'input[type="file"][data-webfile="primary"]',
+      'input[type="file"]',
     ],
     action: "upload-file",
     valueKey: "application.primaryWebfile",
@@ -209,7 +210,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     phase: "phase_one",
     title: "Save & Continue",
     icon: ChevronRight,
-    selectors: ['button[type="button"]'],
+    selectors: ["button"],
     text: "Save & Continue",
     action: "click",
   },
@@ -264,6 +265,19 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
       'button[aria-label="Next month"]',
     ],
     action: "wait",
+  },
+
+  {
+    id: "appointment-booking-human-verification",
+    phase: "phase_one",
+    title: "Complete booking verification",
+    child:
+      "Complete the security verification in the IVAC page, then continue.",
+    icon: ShieldCheck,
+    manual: true,
+    manualInput: "verification",
+    selectors: ["#cf-turnstile", 'input[name="cf-turnstile-response"]'],
+    action: "focus",
   },
 
   {

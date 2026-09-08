@@ -523,13 +523,22 @@ export function useWorkflow(
             )
             .find((candidate) => {
               const item = candidate as HTMLElement;
+              const isFileUploadTarget =
+                config.action === "upload-file" &&
+                candidate instanceof HTMLInputElement &&
+                candidate.type === "file";
               return (
                 (!config.text ||
                   item.textContent?.trim().includes(config.text.trim())) &&
-                (candidate === document.body ||
+                (isFileUploadTarget ||
+                  candidate === document.body ||
                   candidate === document.documentElement ||
                   item.offsetParent !== null ||
-                  candidate instanceof HTMLIFrameElement)
+                  candidate instanceof HTMLIFrameElement) &&
+                (config.action !== "click" ||
+                  !(
+                    candidate instanceof HTMLButtonElement && candidate.disabled
+                  ))
               );
             }) as HTMLElement | undefined;
 
@@ -681,7 +690,8 @@ export function useWorkflow(
                   !candidate.disabled &&
                   candidate.offsetParent !== null &&
                   /^\d{1,2}$/.test(candidate.textContent?.trim() ?? "") &&
-                  !candidate.getAttribute("aria-label"),
+                  !candidate.getAttribute("aria-label") &&
+                  candidate.dataset.ivacAutomationTried !== "true",
               );
               const dateButton =
                 openDateButtons.find((candidate) =>
@@ -696,6 +706,7 @@ export function useWorkflow(
               }
 
               dateButton.click();
+              dateButton.dataset.ivacAutomationTried = "true";
               return { found: true };
             }
 
@@ -735,7 +746,11 @@ export function useWorkflow(
                   '[role="option"], [role="menuitem"], [data-value], button',
                 ),
               ).find((candidate) => {
-                if (candidate === element || candidate.offsetParent === null) {
+                if (
+                  candidate === element ||
+                  candidate.offsetParent === null ||
+                  (candidate instanceof HTMLButtonElement && candidate.disabled)
+                ) {
                   return false;
                 }
 
