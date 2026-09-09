@@ -3,8 +3,16 @@ import type { FormEvent } from "react";
 import { configureAuth, signIn, signUp } from "../firebase/auth";
 import { firebaseConfigured } from "../firebase/config";
 
-export default function AuthScreen() {
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+type AuthScreenProps = {
+  initialMode?: "signin" | "signup";
+  onBack?: () => void;
+};
+
+export default function AuthScreen({
+  initialMode = "signin",
+  onBack,
+}: AuthScreenProps) {
+  const [mode, setMode] = useState<"signin" | "signup">(initialMode);
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -64,16 +72,16 @@ export default function AuthScreen() {
               />
             </div>
             <div>
-              <p className="text-sm font-bold">Indian Visa Assistance</p>
+              <p className="text-sm font-bold">ইন্ডিয়ান ভিসা অ্যাসিস্ট্যান্স</p>
               <p className="text-[11px] ivac-text-muted">
-                Firebase connection required
+                Firebase সংযোগ প্রয়োজন
               </p>
             </div>
           </div>
-          <h1 className="text-xl font-bold">Connect your project</h1>
+          <h1 className="text-xl font-bold">আপনার project সংযুক্ত করুন</h1>
           <p className="mt-2 text-xs leading-5 ivac-text-secondary">
-            Copy <strong>.env.example</strong> to <strong>.env</strong> and add
-            your Firebase Web app values before signing in.
+            সাইন ইন করার আগে <strong>.env.example</strong> কপি করে
+            <strong>.env</strong> ফাইলে Firebase Web app-এর তথ্য দিন।
           </p>
         </section>
       </main>
@@ -94,42 +102,42 @@ export default function AuthScreen() {
             />
           </div>
           <div>
-            <p className="text-sm font-bold">Indian Visa Assistance</p>
+            <p className="text-sm font-bold">ইন্ডিয়ান ভিসা অ্যাসিস্ট্যান্স</p>
             <p className="text-[11px] ivac-text-muted">
-              Secure automation console
+              নিরাপদ automation console
             </p>
           </div>
         </div>
         <h1 className="text-xl font-bold">
-          {mode === "signin" ? "Welcome back" : "Create your account"}
+          {mode === "signin" ? "আবার স্বাগতম" : "আপনার account খুলুন"}
         </h1>
         <p className="mt-1 text-xs ivac-text-secondary">
           {mode === "signin"
-            ? "Sign in to access your applications and runs."
-            : "Your records stay isolated to your account."}
+            ? "আপনার আবেদন ও workflow দেখতে সাইন ইন করুন।"
+            : "আপনার records আপনার account-এই আলাদা থাকবে।"}
         </p>
         {mode === "signup" && (
           <>
             <label className="mt-6 block text-[11px] font-semibold">
-              User name
+              নাম
               <input
                 className="ivac-input mt-1"
                 type="text"
                 required
                 value={userName}
                 onChange={(event) => setUserName(event.target.value)}
-                placeholder="Your full name"
+                placeholder="আপনার পুরো নাম"
               />
             </label>
             <label className="mt-3 block text-[11px] font-semibold">
-              Phone
+              ফোন
               <input
                 className="ivac-input mt-1"
                 type="tel"
                 required
                 value={phone}
                 onChange={(event) => setPhone(event.target.value)}
-                placeholder="+1234567890"
+                placeholder="+৮৮০..."
               />
             </label>
           </>
@@ -141,7 +149,7 @@ export default function AuthScreen() {
               : "mt-6 block text-[11px] font-semibold"
           }
         >
-          Email
+          ইমেইল
           <input
             className="ivac-input mt-1"
             type="email"
@@ -152,7 +160,7 @@ export default function AuthScreen() {
           />
         </label>
         <label className="mt-3 block text-[11px] font-semibold">
-          Password
+          পাসওয়ার্ড
           <input
             className="ivac-input mt-1"
             type="password"
@@ -160,7 +168,7 @@ export default function AuthScreen() {
             minLength={6}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="At least 6 characters"
+            placeholder="কমপক্ষে ৬টি অক্ষর"
           />
         </label>
         {error && (
@@ -170,13 +178,13 @@ export default function AuthScreen() {
         )}
         <button
           disabled={busy}
-          className="mt-5 w-full rounded-lg bg-blue-600 px-3 py-2.5 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-60"
+          className="mt-5 w-full rounded-lg bg-(--app-primary) px-3 py-2.5 text-xs font-bold text-white hover:bg-(--app-primary-hover) disabled:opacity-60"
         >
           {busy
             ? "Please wait..."
             : mode === "signin"
-              ? "Sign in"
-              : "Create account"}
+              ? "সাইন ইন"
+              : "account খুলুন"}
         </button>
         <button
           type="button"
@@ -184,12 +192,21 @@ export default function AuthScreen() {
             setMode(mode === "signin" ? "signup" : "signin");
             setError("");
           }}
-          className="mt-4 w-full text-center text-[11px] font-semibold text-blue-600"
+          className="mt-4 w-full text-center text-[11px] font-semibold text-(--app-primary)"
         >
           {mode === "signin"
-            ? "Create a new account"
-            : "Already have an account? Sign in"}
+            ? "নতুন account খুলুন"
+            : "আগেই account আছে? সাইন ইন করুন"}
         </button>
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="mt-3 w-full text-center text-[11px] font-semibold ivac-text-muted"
+          >
+            overview-এ ফিরুন
+          </button>
+        )}
       </form>
     </main>
   );

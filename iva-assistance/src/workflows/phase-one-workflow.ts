@@ -22,9 +22,9 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   // SIGN IN
   // ─────────────────────────────────────────────
   {
-    id: "open-ivac",
+    id: "open_ivac",
     phase: "phase_one",
-    title: "Open IVAC website",
+    title: "Open Indian Visa Application Centre Website",
     icon: Globe2,
     selectors: [],
     action: "navigate",
@@ -32,7 +32,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "signin-phone",
+    id: "enter_phone",
     phase: "phase_one",
     title: "Enter phone number",
     icon: Phone,
@@ -42,7 +42,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "signin-password",
+    id: "enter_password",
     phase: "phase_one",
     title: "Enter password",
     icon: LockKeyhole,
@@ -52,9 +52,9 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "appointment-human-verification",
+    id: "sign_in_human_verification",
     phase: "phase_one",
-    title: "Complete human verification",
+    title: "Click are you human checkbox",
     icon: ShieldCheck,
     selectors: [
       'input[type="checkbox"][aria-label*="Verify you are human" i]',
@@ -65,18 +65,18 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "sign-in-now",
+    id: "sign_in_now_button",
     phase: "phase_one",
-    title: "Sign in",
+    title: "Click Sign In Now button",
     icon: LogIn,
     selectors: ['button[type="submit"]', "button"],
     action: "click",
   },
 
   {
-    id: "signin-otp",
+    id: "enter_signin_otp",
     phase: "phase_one",
-    title: "Enter OTP",
+    title: "Enter Sign In OTP",
     child: "Enter the OTP received for this phase.",
     icon: MessageSquare,
     manual: true,
@@ -86,9 +86,9 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "verify-signin-otp",
+    id: "verify_signin_otp_button",
     phase: "phase_one",
-    title: "Verify OTP",
+    title: "Click Verify OTP button",
     icon: LogIn,
     selectors: ['button[type="submit"]'],
     action: "click",
@@ -99,27 +99,27 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   // ─────────────────────────────────────────────
 
   {
-    id: "close-first-notice",
+    id: "close_first_notice",
     phase: "phase_one",
-    title: "Close first notice",
+    title: "Close first notice dialog",
     icon: X,
     selectors: ['button[aria-label="Close notice"]', '[role="dialog"] button'],
     action: "click",
   },
 
   {
-    id: "close-second-notice",
+    id: "close_second_notice",
     phase: "phase_one",
-    title: "Close second notice",
+    title: "Close second notice dialog",
     icon: X,
     selectors: ['button[aria-label="Close popup"]', '[role="dialog"] button'],
     action: "click",
   },
 
   {
-    id: "book-appointment",
+    id: "book_appointment_button",
     phase: "phase_one",
-    title: "Click Book appointment button",
+    title: "Click Take Your Appointment button",
     icon: ClipboardCheck,
     selectors: ["button"],
     text: "Take Your Appointment",
@@ -127,9 +127,9 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "appointment-next-webfile",
+    id: "appointment_next_step_button",
     phase: "phase_one",
-    title: "Proceed to webfile selection",
+    title: "Click Next Step button",
     icon: ChevronRight,
     selectors: ["button"],
     text: "Next Step",
@@ -141,24 +141,22 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   // ─────────────────────────────────────────────
 
   {
-    id: "appointment-webfile-confirmation-human-verification",
+    id: "webfile_human_verification",
     phase: "phase_one",
-    title: "Complete human verification",
-    manual: true,
-    manualInput: "verification",
+    title: "Click are you human checkbox",
     icon: ShieldCheck,
     selectors: [
-      'input[type="checkbox"][aria-label="Verify you are human"]',
-      'input[aria-label*="Verify you are human" i]',
-      'input[type="checkbox"][aria-label*="human" i]',
+      'input[type="checkbox"][aria-label*="Verify you are human" i]',
+      'iframe[title*="Turnstile" i]',
+      'iframe[src*="challenges.cloudflare.com" i]',
     ],
-    action: "focus",
+    action: "wait",
   },
 
   {
     id: "upload-primary-webfile",
     phase: "phase_one",
-    title: "Upload primary webfile",
+    title: "Select primary webfile to upload",
     icon: FileCheck2,
     selectors: [
       'input[type="file"][accept=".pdf,application/pdf"]',
@@ -174,7 +172,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   {
     id: "appointment-other-webfile-one-human-verification",
     phase: "phase_one",
-    title: "Complete human verification for other webfile 1",
+    title: "Click are you human checkbox for other webfile 1",
     manual: true,
     manualInput: "verification",
     icon: ShieldCheck,
@@ -191,7 +189,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   {
     id: "upload-other-webfile-one",
     phase: "phase_one",
-    title: "Upload other webfile 1",
+    title: "Select other webfile 1 to upload",
     icon: FileCheck2,
     selectors: ['input[type="file"]'],
     action: "upload-file",
@@ -203,7 +201,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   {
     id: "appointment-other-webfile-two-human-verification",
     phase: "phase_one",
-    title: "Complete human verification for other webfile 2",
+    title: "Click are you human checkbox for other webfile 2",
     manual: true,
     manualInput: "verification",
     icon: ShieldCheck,
@@ -220,7 +218,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   {
     id: "upload-other-webfile-two",
     phase: "phase_one",
-    title: "Upload other webfile 2",
+    title: "Select other webfile 2 to upload",
     icon: FileCheck2,
     selectors: ['input[type="file"]'],
     action: "upload-file",
@@ -232,7 +230,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   {
     id: "appointment-other-webfile-three-human-verification",
     phase: "phase_one",
-    title: "Complete human verification for other webfile 3",
+    title: "Click are you human checkbox for other webfile 3",
     manual: true,
     manualInput: "verification",
     icon: ShieldCheck,
@@ -249,7 +247,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   {
     id: "upload-other-webfile-three",
     phase: "phase_one",
-    title: "Upload other webfile 3",
+    title: "Select other webfile 3 to upload",
     icon: FileCheck2,
     selectors: ['input[type="file"]'],
     action: "upload-file",
@@ -261,7 +259,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   {
     id: "appointment-save-and-continue",
     phase: "phase_one",
-    title: "Save & Continue",
+    title: "Click Save & Continue button",
     icon: ChevronRight,
     selectors: ["button"],
     text: "Save & Continue",
@@ -275,7 +273,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   {
     id: "select-ivac-center",
     phase: "phase_one",
-    title: "Select IVAC center",
+    title: "Click Select IVAC center button",
     icon: MapPin,
     selectors: [
       'button:has(span:text("Select your IVAC center"))',
@@ -301,7 +299,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   {
     id: "appointment-confirm-mission-ivac-center",
     phase: "phase_one",
-    title: "Confirm Mission & IVAC Center",
+    title: "Click Confirm Mission & IVAC Center button",
     icon: ChevronRight,
     selectors: ['button[type="submit"]'],
     text: "Confirm Mission & IVAC Center",
@@ -327,7 +325,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   {
     id: "appointment-booking-human-verification",
     phase: "phase_one",
-    title: "Complete booking verification",
+    title: "Click are you human checkbox",
     child:
       "Complete the security verification in the IVAC page, then continue.",
     icon: ShieldCheck,
@@ -351,7 +349,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   {
     id: "continue-booking",
     phase: "phase_one",
-    title: "Continue booking",
+    title: "Click Continue booking button",
     icon: ChevronRight,
     selectors: ['button[type="submit"]'],
     text: "Continue Booking",
