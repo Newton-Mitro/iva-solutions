@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { configureAuth, signIn, signUp } from "../firebase/auth";
 import { firebaseConfigured } from "../firebase/config";
@@ -6,13 +6,19 @@ import { firebaseConfigured } from "../firebase/config";
 type AuthScreenProps = {
   initialMode?: "signin" | "signup";
   onBack?: () => void;
+  onModeChange?: (mode: "signin" | "signup") => void;
 };
 
 export default function AuthScreen({
   initialMode = "signin",
   onBack,
+  onModeChange,
 }: AuthScreenProps) {
   const [mode, setMode] = useState<"signin" | "signup">(initialMode);
+
+  useEffect(() => {
+    setMode(initialMode);
+  }, [initialMode]);
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -61,8 +67,8 @@ export default function AuthScreen({
 
   if (!firebaseConfigured)
     return (
-      <main className="flex min-h-screen items-center justify-center p-6">
-        <section className="ivac-card w-full max-w-sm rounded-2xl p-6 shadow-sm">
+      <main className="flex min-h-screen items-center justify-center bg-[var(--app-bg)] p-6">
+        <section className="w-full max-w-sm rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-6 shadow-sm">
           <div className="mb-6 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center">
               <img
@@ -72,14 +78,18 @@ export default function AuthScreen({
               />
             </div>
             <div>
-              <p className="text-sm font-bold">ইন্ডিয়ান ভিসা অ্যাসিস্ট্যান্স</p>
-              <p className="text-[11px] ivac-text-muted">
+              <p className="text-sm font-bold text-[var(--app-text)]">
+                ইন্ডিয়ান ভিসা অ্যাসিস্ট্যান্স
+              </p>
+              <p className="text-[11px] text-[var(--app-text-muted)]">
                 Firebase সংযোগ প্রয়োজন
               </p>
             </div>
           </div>
-          <h1 className="text-xl font-bold">আপনার project সংযুক্ত করুন</h1>
-          <p className="mt-2 text-xs leading-5 ivac-text-secondary">
+          <h1 className="text-xl font-bold text-[var(--app-text)]">
+            আপনার project সংযুক্ত করুন
+          </h1>
+          <p className="mt-2 text-xs leading-5 text-[var(--app-text-secondary)]">
             সাইন ইন করার আগে <strong>.env.example</strong> কপি করে
             <strong>.env</strong> ফাইলে Firebase Web app-এর তথ্য দিন।
           </p>
@@ -88,10 +98,10 @@ export default function AuthScreen({
     );
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-6">
+    <main className="flex min-h-screen items-center justify-center bg-[var(--app-bg)] p-6">
       <form
         onSubmit={submit}
-        className="ivac-card w-full max-w-sm rounded-2xl p-6 shadow-sm"
+        className="w-full max-w-sm rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-6 shadow-sm"
       >
         <div className="mb-8 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center">
@@ -189,7 +199,9 @@ export default function AuthScreen({
         <button
           type="button"
           onClick={() => {
-            setMode(mode === "signin" ? "signup" : "signin");
+            const nextMode = mode === "signin" ? "signup" : "signin";
+            setMode(nextMode);
+            onModeChange?.(nextMode);
             setError("");
           }}
           className="mt-4 w-full text-center text-[11px] font-semibold text-(--app-primary)"

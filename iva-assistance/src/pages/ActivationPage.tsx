@@ -12,7 +12,7 @@ export default function ActivationPage({
   onActivated: (license: LicenseRecord) => void;
 }) {
   return (
-    <main className="flex min-h-screen items-center justify-center p-6">
+    <main className="flex min-h-screen items-center justify-center bg-[var(--app-bg)] p-6 text-[var(--app-text)]">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
           <img
@@ -20,8 +20,10 @@ export default function ActivationPage({
             alt="Indian Visa Assistance"
             className="mx-auto h-12 w-12"
           />
-          <h1 className="mt-3 text-xl font-bold">Activate your workspace</h1>
-          <p className="mt-1 text-xs ivac-text-secondary">
+          <h1 className="mt-3 text-xl font-bold text-[var(--app-text)]">
+            Activate your workspace
+          </h1>
+          <p className="mt-1 text-xs text-[var(--app-text-secondary)]">
             A valid license is required before you can manage applications.
           </p>
         </div>
@@ -29,7 +31,7 @@ export default function ActivationPage({
         <button
           type="button"
           onClick={() => void signOutUser()}
-          className="ivac-hover mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2.5 text-xs font-semibold ivac-text-secondary dark:border-slate-700"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-2.5 text-xs font-semibold text-[var(--app-text-secondary)] transition hover:bg-[var(--app-surface-2)] dark:border-slate-700"
         >
           <LogOut size={14} />
           Sign out
