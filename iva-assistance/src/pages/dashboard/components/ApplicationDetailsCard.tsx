@@ -11,16 +11,16 @@ import {
 import { useState } from "react";
 import {
   Application,
-  Appointment,
   AutomationAccount,
   WebfileDocument,
 } from "../../../types/application.type";
+import type { Message } from "../../../types/message.type";
 import { StatusBadge } from "./Shared";
 
 type Props = {
   application: Application;
   account?: AutomationAccount;
-  appointment?: Appointment;
+  latestMessage?: Message | null;
   applicationReady: boolean;
   onEditApplication: () => void;
   onEditAccount: () => void;
@@ -29,7 +29,7 @@ type Props = {
 export default function ApplicationDetailsCard({
   application,
   account,
-  appointment,
+  latestMessage,
   applicationReady,
   onEditApplication,
   onEditAccount,
@@ -41,18 +41,29 @@ export default function ApplicationDetailsCard({
     { label: "Other 1", value: application.other_webfile_one },
     { label: "Other 2", value: application.other_webfile_two },
     { label: "Other 3", value: application.other_webfile_three },
-    { label: "Other 4", value: application.other_webfile_four },
   ].filter((item): item is { label: string; value: WebfileDocument } =>
     Boolean(item.value),
   );
 
   const webfileCount = webfiles.length;
+  const messageTime = latestMessage?.timestamp
+    ? latestMessage.timestamp.toDate
+      ? latestMessage.timestamp.toDate().toLocaleString([], {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : new Date(String(latestMessage.timestamp)).toLocaleString([], {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+    : "";
 
   return (
     <section className="ivac-card overflow-hidden rounded-xl border border-(--app-border)">
-      {/* =====================================================
-          TOP SUMMARY
-      ===================================================== */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -60,7 +71,6 @@ export default function ApplicationDetailsCard({
         aria-expanded={open}
       >
         <div className="flex items-center gap-2.5">
-          {/* Application icon */}
           <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-(--app-surface-2)">
             <FileText size={14} className="ivac-primary" />
 
@@ -71,31 +81,29 @@ export default function ApplicationDetailsCard({
             />
           </div>
 
-          {/* Identity */}
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <span className="truncate text-[10px] font-bold">
+              <span className="truncate text-[12px] font-bold">
                 {application.fullName || "Selected application"}
               </span>
 
               <StatusBadge status={application.status} />
             </div>
 
-            <span className="mt-0.5 block truncate text-[9px] ivac-text-muted">
+            <span className="mt-0.5 block truncate text-[10px] ivac-text-muted">
               {application.passportNumber || "No passport"} ·{" "}
               {application.mission || "No mission"} ·{" "}
               {application.ivacCenter || "No IVAC center"}
             </span>
           </div>
 
-          {/* Readiness */}
           <div className="flex shrink-0 items-center gap-1.5">
             {applicationReady && (
               <CheckCircle2 size={13} className="text-emerald-500" />
             )}
 
             <span
-              className={`hidden text-[7px] font-bold sm:block ${
+              className={`hidden text-[9px] font-bold sm:block ${
                 applicationReady ? "text-emerald-500" : "text-red-500"
               }`}
             >
@@ -111,9 +119,6 @@ export default function ApplicationDetailsCard({
           </div>
         </div>
 
-        {/* =================================================
-            QUICK STATS
-        ================================================= */}
         <div className="mt-2 grid grid-cols-3 divide-x divide-(--app-border) rounded-lg bg-(--app-surface-2)">
           <QuickStat
             icon={<KeyRound size={10} />}
@@ -123,126 +128,150 @@ export default function ApplicationDetailsCard({
           />
 
           <QuickStat
-            icon={<CalendarDays size={10} />}
-            label="Appointment"
-            value={
-              appointment
-                ? appointment.appointmentDate || "Scheduled"
-                : "Missing"
-            }
-            good={Boolean(appointment)}
-          />
-
-          <QuickStat
             icon={<FileText size={10} />}
             label="Webfiles"
             value={`${webfileCount}/5`}
             good={Boolean(application.primary_webfile)}
           />
+
+          <QuickStat
+            icon={<CalendarDays size={10} />}
+            label="Booking"
+            value={application.prefer_appointment_dates || "-"}
+            good={Boolean(application.prefer_appointment_dates)}
+          />
         </div>
       </button>
 
-      {/* =====================================================
-          DETAILS
-      ===================================================== */}
+      {latestMessage && (
+        <div className="border-t border-(--app-border) bg-gradient-to-r from-amber-50 to-orange-50 px-3 py-2.5 text-[9px] text-amber-900">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="text-[6px] font-bold uppercase tracking-[0.18em] text-amber-700/80">
+                Latest message
+              </p>
+              <p className="mt-1 text-[8px] font-semibold">
+                {latestMessage.sender === "agent" ? "Agent" : "Client"}
+              </p>
+            </div>
+
+            <span className="rounded-full bg-amber-200 px-1.5 py-0.5 font-bold tracking-wide text-amber-900 shadow-sm">
+              OTP {latestMessage.otp || "-"}
+            </span>
+          </div>
+
+          <p className="mt-1 max-h-10 overflow-hidden text-[9px] leading-relaxed text-amber-800">
+            {latestMessage.body || "No message body"}
+          </p>
+
+          {messageTime && (
+            <p className="mt-1 text-[8px] font-medium text-amber-700/80">
+              {messageTime}
+            </p>
+          )}
+        </div>
+      )}
+
       <div
         className={`grid transition-[grid-template-rows,opacity] duration-200 ${
           open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
         }`}
       >
         <div className="min-h-0 overflow-hidden border-t border-(--app-border)">
-          {/* Application details */}
-          <div className="flex flex-wrap items-center border-b border-(--app-border) px-3">
-            <MetaItem label="Name" value={application.fullName || "-"} />
+          <div className="grid gap-2 p-3 md:grid-cols-[1.2fr_0.8fr]">
+            <div className="rounded-lg border border-(--app-border) bg-(--app-surface-2)/70">
+              <div className="flex items-center justify-between border-b border-(--app-border) px-2.5 py-1.5">
+                <div className="flex items-center gap-1.5">
+                  <CalendarDays size={10} className="ivac-primary" />
+                  <span className="text-[8px] font-bold uppercase tracking-[0.18em] ivac-text-muted">
+                    Application details
+                  </span>
+                </div>
 
-            <MetaItem
-              label="Passport"
-              value={application.passportNumber || "-"}
-            />
+                <button
+                  type="button"
+                  onClick={onEditApplication}
+                  aria-label="Edit application"
+                  title="Edit application"
+                  className="ivac-hover rounded-md p-1 ivac-text-muted"
+                >
+                  <Pencil size={10} />
+                </button>
+              </div>
 
-            <MetaItem label="Mission" value={application.mission || "-"} />
+              <div className="grid grid-cols-2 gap-2 px-2.5 py-2">
+                <MetaItem
+                  label="Name"
+                  value={application.fullName || "-"}
+                  compact
+                />
+                <MetaItem
+                  label="Passport"
+                  value={application.passportNumber || "-"}
+                  compact
+                />
+                <MetaItem
+                  label="Mission"
+                  value={application.mission || "-"}
+                  compact
+                />
+                <MetaItem
+                  label="IVAC"
+                  value={application.ivacCenter || "-"}
+                  compact
+                />
+                <div className="col-span-2">
+                  <MetaItem
+                    label="Preferred date(s)"
+                    value={application.prefer_appointment_dates || "-"}
+                    compact
+                  />
+                </div>
+              </div>
+            </div>
 
-            <MetaItem label="IVAC" value={application.ivacCenter || "-"} />
+            <div className="rounded-lg border border-(--app-border) bg-(--app-surface-2)/70">
+              <DetailSection
+                icon={<KeyRound size={11} />}
+                title="Account"
+                accent="text-blue-500"
+                action={
+                  <button
+                    type="button"
+                    onClick={onEditAccount}
+                    aria-label={
+                      account ? "Edit IVAC account" : "Add IVAC account"
+                    }
+                    title={account ? "Edit IVAC account" : "Add IVAC account"}
+                    className="ivac-hover ml-auto rounded-md p-1 ivac-text-muted"
+                  >
+                    {account ? (
+                      <Pencil size={10} />
+                    ) : (
+                      <UserRoundPlus size={10} />
+                    )}
+                  </button>
+                }
+              >
+                <div className="flex min-w-0 items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-[8px] font-semibold">
+                      {account?.email || "Account not configured"}
+                    </p>
 
-            <MetaItem
-              label="Preferred dates"
-              value={application.prefer_appointment_dates || "-"}
-            />
-            <button
-              type="button"
-              onClick={onEditApplication}
-              aria-label="Edit application"
-              title="Edit application"
-              className="ivac-hover ml-auto rounded-md p-1.5 ivac-text-muted"
-            >
-              <Pencil size={10} />
-            </button>
+                    <p className="mt-0.5 truncate text-[7px] ivac-text-muted">
+                      {account?.mobile || "No mobile number"}
+                    </p>
+                  </div>
+
+                  {account?.accountStatus && (
+                    <StatusBadge status={account.accountStatus} />
+                  )}
+                </div>
+              </DetailSection>
+            </div>
           </div>
 
-          {/* =================================================
-              ACCOUNT
-          ================================================= */}
-          <DetailSection
-            icon={<KeyRound size={11} />}
-            title="Application Account"
-            accent="text-blue-500"
-            action={
-              <button
-                type="button"
-                onClick={onEditAccount}
-                aria-label={account ? "Edit IVAC account" : "Add IVAC account"}
-                title={account ? "Edit IVAC account" : "Add IVAC account"}
-                className="ivac-hover ml-auto rounded-md p-1 ivac-text-muted"
-              >
-                {account ? <Pencil size={10} /> : <UserRoundPlus size={10} />}
-              </button>
-            }
-          >
-            <div className="flex min-w-0 items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="truncate text-[8px] font-semibold">
-                  {account?.email || "Account not configured"}
-                </p>
-
-                <p className="mt-0.5 truncate text-[7px] ivac-text-muted">
-                  {account?.mobile || "No mobile number"}
-                </p>
-              </div>
-
-              {account?.accountStatus && (
-                <StatusBadge status={account.accountStatus} />
-              )}
-            </div>
-          </DetailSection>
-
-          {/* =================================================
-              APPOINTMENT
-          ================================================= */}
-          <DetailSection
-            icon={<CalendarDays size={11} />}
-            title="Appointment"
-            accent="text-violet-500"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-[8px] font-semibold">
-                  {appointment?.appointmentDate || "Not scheduled"}
-                </p>
-
-                <p className="mt-0.5 text-[7px] ivac-text-muted">
-                  {appointment?.appointmentTime || "No time selected"}
-                </p>
-              </div>
-
-              {appointment?.status && (
-                <StatusBadge status={appointment.status} />
-              )}
-            </div>
-          </DetailSection>
-
-          {/* =================================================
-              WEBFILES
-          ================================================= */}
           <DetailSection
             icon={<FileText size={11} />}
             title={`Webfiles · ${webfileCount}/5`}
@@ -319,12 +348,12 @@ function QuickStat({
       </span>
 
       <div className="min-w-0">
-        <p className="text-[6px] font-bold uppercase tracking-wide ivac-text-muted">
+        <p className="text-[8px] font-bold uppercase tracking-wide ivac-text-muted">
           {label}
         </p>
 
         <p
-          className={`truncate text-[7px] font-semibold ${
+          className={`truncate text-[9px] font-semibold ${
             good ? "text-emerald-500" : ""
           }`}
         >
@@ -357,7 +386,7 @@ function DetailSection({
       <div className="mb-1 flex items-center gap-1.5">
         <span className={accent}>{icon}</span>
 
-        <span className="text-[6px] font-bold uppercase tracking-wider ivac-text-muted">
+        <span className="text-[8px] font-bold uppercase tracking-wider ivac-text-muted">
           {title}
         </span>
 
@@ -369,14 +398,28 @@ function DetailSection({
   );
 }
 
-function MetaItem({ label, value }: { label: string; value: string }) {
+function MetaItem({
+  label,
+  value,
+  compact = false,
+}: {
+  label: string;
+  value: string;
+  compact?: boolean;
+}) {
   return (
-    <div className="min-w-0 flex-1 px-3 py-1.5 first:pl-0">
-      <p className="text-[6px] font-bold uppercase tracking-wider ivac-text-muted">
+    <div
+      className={compact ? "min-w-0" : "min-w-0 flex-1 px-3 py-1.5 first:pl-0"}
+    >
+      <p className="text-[8px] font-bold uppercase tracking-wider ivac-text-muted">
         {label}
       </p>
 
-      <p className="mt-0.5 truncate text-[8px] font-semibold">{value}</p>
+      <p
+        className={`mt-0.5 truncate ${compact ? "text-[9px] font-semibold" : "text-[10px] font-semibold"}`}
+      >
+        {value}
+      </p>
     </div>
   );
 }

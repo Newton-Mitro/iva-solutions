@@ -25,8 +25,7 @@ export function Dashboard({
     application,
     applications,
     account,
-    applicationWebfiles,
-    applicationAppointment,
+    latestMessage,
     setSelectedApplicationId,
     dataError,
   } = useDashboardData(user);
@@ -35,7 +34,6 @@ export function Dashboard({
     {
       application,
       account,
-      appointment: applicationAppointment,
     },
     {
       userId: user.uid,
@@ -86,7 +84,7 @@ export function Dashboard({
             <ApplicationDetailsCard
               application={application}
               account={account}
-              appointment={applicationAppointment}
+              latestMessage={latestMessage}
               applicationReady={
                 account != null && application.primary_webfile != null
               }

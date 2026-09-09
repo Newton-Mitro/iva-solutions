@@ -43,30 +43,30 @@ export default function ApplicationSelector({
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <span className="text-[8px] font-bold uppercase tracking-wider ivac-text-muted">
+            <span className="text-[10px] font-bold uppercase tracking-wider ivac-text-muted">
               Applications
             </span>
 
-            <span className="ivac-primary-bg ivac-primary rounded-full px-1.5 py-0.5 text-[7px] font-bold leading-none">
+            <span className="ivac-primary-bg ivac-primary rounded-full px-1.5 py-0.5 text-[8px] font-bold leading-none">
               {applications.length}
             </span>
           </div>
 
           <div className="mt-0.5 flex min-w-0 items-center gap-2">
             <div className="min-w-0 flex-1">
-              <h2 className="truncate text-[11px] font-bold leading-tight">
+              <h2 className="truncate text-[13px] font-bold leading-tight">
                 {application?.fullName ?? "No application selected"}
               </h2>
 
               {application ? (
-                <div className="mt-0.5 flex min-w-0 items-center gap-1 text-[8px] leading-tight ivac-text-muted">
+                <div className="mt-0.5 flex min-w-0 items-center gap-1 text-[9px] leading-tight ivac-text-muted">
                   <span>·</span>
                   <span className="truncate">
                     {application.passportNumber || "No passport"}
                   </span>
                 </div>
               ) : (
-                <p className="mt-0.5 truncate text-[8px] leading-tight ivac-text-muted">
+                <p className="mt-0.5 truncate text-[9px] leading-tight ivac-text-muted">
                   Select an application to start
                 </p>
               )}
@@ -111,7 +111,7 @@ export default function ApplicationSelector({
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search applications..."
                 aria-label="Search applications"
-                className="ivac-input h-7 w-full pr-2 text-[9px]"
+                className="ivac-input h-8 w-full pr-2 text-[10px]"
                 style={{ paddingLeft: "30px" }}
               />
             </div>
@@ -153,21 +153,21 @@ export default function ApplicationSelector({
                         {/* Details */}
                         <div className="min-w-0 flex-1">
                           <div
-                            className={`truncate text-[9px] font-bold leading-tight ${
+                            className={`truncate text-[11px] font-bold leading-tight ${
                               selected ? "text-blue-700 dark:text-blue-300" : ""
                             }`}
                           >
                             {item.fullName || "Unnamed applicant"}
                           </div>
 
-                          <div className="mt-0.5 flex items-center gap-1 text-[7px] leading-tight ivac-text-muted">
+                          <div className="mt-0.5 flex items-center gap-1 text-[9px] leading-tight ivac-text-muted">
                             <span className="truncate">
                               {item.passportNumber || "No passport"}
                             </span>
                           </div>
 
-                          <div className="mt-0.5 flex items-center gap-1 text-[7px] leading-tight ivac-text-muted">
-                            <MapPin size={7} className="shrink-0" />
+                          <div className="mt-0.5 flex items-center gap-1 text-[9px] leading-tight ivac-text-muted">
+                            <MapPin size={9} className="shrink-0" />
                             <span className="truncate">
                               {item.mission || "No mission"}
                             </span>
@@ -199,7 +199,7 @@ export default function ApplicationSelector({
           {/* Footer */}
           {applications.length > 0 && (
             <div className="border-t border-(--app-border) px-3 py-1.5">
-              <p className="text-[7px] ivac-text-muted">
+              <p className="text-[9px] ivac-text-muted">
                 {applications.length}{" "}
                 {applications.length === 1 ? "application" : "applications"}
               </p>

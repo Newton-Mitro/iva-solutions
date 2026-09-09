@@ -84,8 +84,11 @@ export function ApplicationForm({
                   name="mission"
                   defaultValue={text(record, "mission") || "India"}
                 >
-                  <option value="India">India</option>
-                  <option value="Bangladesh">Bangladesh</option>
+                  <option value="Dhaka">Dhaka</option>
+                  <option value="Chittagong">Chittagong</option>
+                  <option value="Rajshahi">Rajshahi</option>
+                  <option value="Sylhet">Sylhet</option>
+                  <option value="Khulna">Khulna</option>
                 </select>
               </label>
 
@@ -97,10 +100,15 @@ export function ApplicationForm({
                   name="ivacCenter"
                   defaultValue={text(record, "ivacCenter")}
                 >
-                  <option value="">Select center</option>
-                  <option value="Dhaka">Dhaka</option>
-                  <option value="Chittagong">Chittagong</option>
-                  <option value="Rajshahi">Rajshahi</option>
+                  <option value="IVAC, Dhaka (JFP)">IVAC, Dhaka (JFP)</option>
+                  <option value="IVAC, Chittagong (JFP)">
+                    IVAC, Chittagong (JFP)
+                  </option>
+                  <option value="IVAC, Rajshahi (JFP)">
+                    IVAC, Rajshahi (JFP)
+                  </option>
+                  <option value="IVAC, Sylhet (JFP)">IVAC, Sylhet (JFP)</option>
+                  <option value="IVAC, Khulna (JFP)">IVAC, Khulna (JFP)</option>
                 </select>
               </label>
             </div>
@@ -146,19 +154,12 @@ export function ApplicationForm({
                   type="file"
                   accept="application/pdf,image/*"
                 />
-                <Field
-                  name="other_webfile_four"
-                  label="Other webfile 4"
-                  type="file"
-                  accept="application/pdf,image/*"
-                />
               </div>
               {[
                 ["primary_webfile", fileName("primary_webfile")],
                 ["other_webfile_one", fileName("other_webfile_one")],
                 ["other_webfile_two", fileName("other_webfile_two")],
                 ["other_webfile_three", fileName("other_webfile_three")],
-                ["other_webfile_four", fileName("other_webfile_four")],
               ].some(([, name]) => name) && (
                 <p className="mt-1 text-[7px] ivac-text-muted">
                   Existing files are kept when no replacement is selected.

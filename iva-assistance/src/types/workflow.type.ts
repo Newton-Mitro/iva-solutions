@@ -1,11 +1,7 @@
 import { LucideIcon } from "lucide-react";
 import React from "react";
 
-import type {
-  Application,
-  Appointment,
-  AutomationAccount,
-} from "./application.type";
+import type { Application, AutomationAccount } from "./application.type";
 
 import { phaseOneWorkFlow } from "../workflows/phase-one-workflow";
 import { phaseTwoWorkflow } from "../workflows/phase-two-workflow";
@@ -166,8 +162,6 @@ export type WorkflowContext = {
   application?: Application;
 
   account?: AutomationAccount;
-
-  appointment?: Appointment;
 };
 
 /* -------------------------------------------------------------------------- */

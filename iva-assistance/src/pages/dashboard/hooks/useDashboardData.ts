@@ -2,18 +2,21 @@ import { useEffect, useMemo, useState } from "react";
 import type { User as FirebaseUser } from "firebase/auth";
 import {
   Application,
-  Appointment,
   AutomationAccount,
 } from "../../../types/application.type";
 import { subscribeToLocalRecords } from "../../../storage/storage";
 import { subscribeToRecords } from "../../../firebase/data";
+import { getUserData, subscribeToAuth } from "../../../firebase/auth";
+import { subscribeToLatestMessage } from "../../../firebase/messages";
+import type { Message } from "../../../types/message.type";
 
 export function useDashboardData(user: FirebaseUser) {
   const [applications, setApplications] = useState<Application[]>([]);
   const [accounts, setAccounts] = useState<AutomationAccount[]>([]);
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [latestMessage, setLatestMessage] = useState<Message | null>(null);
 
   const [selectedApplicationId, setSelectedApplicationId] = useState("");
+  const [agentPhone, setAgentPhone] = useState("");
 
   const [dataError, setDataError] = useState("");
 
@@ -41,17 +44,16 @@ export function useDashboardData(user: FirebaseUser) {
       (records) => setAccounts(records as AutomationAccount[]),
     );
 
-    const unsubscribeAppointments = subscribeToRecords<Appointment>(
-      user.uid,
-      "appointments",
-      setAppointments,
-      (error) => setDataError(error.message),
-    );
+    void getUserData(user.uid)
+      .then((snapshot) => {
+        const userData = snapshot.data();
+        setAgentPhone((userData?.phone as string | undefined) ?? "");
+      })
+      .catch(() => setAgentPhone(""));
 
     return () => {
       unsubscribeApplications?.();
       unsubscribeAccounts?.();
-      unsubscribeAppointments?.();
     };
   }, [user.uid]);
 
@@ -69,6 +71,24 @@ export function useDashboardData(user: FirebaseUser) {
     [accounts, application?.id],
   );
 
+  useEffect(() => {
+    if (!agentPhone || !account?.mobile) {
+      setLatestMessage(null);
+      return;
+    }
+
+    const clientPhone = account.mobile;
+
+    const unsubscribe = subscribeToLatestMessage(
+      agentPhone,
+      clientPhone,
+      setLatestMessage,
+      (error) => setDataError(error.message),
+    );
+
+    return () => unsubscribe();
+  }, [account?.mobile, agentPhone]);
+
   // Webfiles are stored as fixed slots on the application.
   const applicationWebfiles = useMemo(
     () =>
@@ -77,16 +97,8 @@ export function useDashboardData(user: FirebaseUser) {
         application?.other_webfile_one,
         application?.other_webfile_two,
         application?.other_webfile_three,
-        application?.other_webfile_four,
       ].filter((webfile) => Boolean(webfile)),
     [application],
-  );
-
-  // One appointment per application
-  const applicationAppointment = useMemo(
-    () =>
-      appointments.find((item) => item.ivacApplicationId === application?.id),
-    [appointments, application?.id],
   );
 
   return {
@@ -94,7 +106,7 @@ export function useDashboardData(user: FirebaseUser) {
     application,
     account,
     applicationWebfiles,
-    applicationAppointment,
+    latestMessage,
     selectedApplicationId,
     setSelectedApplicationId,
     dataError,

@@ -59,8 +59,6 @@ function getWorkflowValue(
       return context.application?.other_webfile_two?.id;
     case "application.otherWebfileThree":
       return context.application?.other_webfile_three?.id;
-    case "application.otherWebfileFour":
-      return context.application?.other_webfile_four?.id;
     case "application.preferAppointmentDates":
       return context.application?.prefer_appointment_dates;
     case "appointment.mission":
@@ -69,14 +67,6 @@ function getWorkflowValue(
     case "appointment.ivacCenter":
     case "appointment.ivacCenterId":
       return context.application?.ivacCenter;
-    case "appointment.date":
-      return context.application?.appointment?.appointmentDate;
-    case "appointment.time":
-      return context.application?.appointment?.appointmentTime;
-    case "appointment.details":
-      return context.application?.appointment?.id;
-    case "appointment.confirmationNumber":
-      return context.application?.appointment?.id;
     default:
       return undefined;
   }
@@ -815,20 +805,85 @@ export function useWorkflow(
             }
 
             if (config.selectionType === "text" && config.value) {
-              const textOption = Array.from(
-                document.querySelectorAll<HTMLButtonElement>("button"),
-              ).find(
-                (candidate) =>
-                  candidate !== element &&
-                  !candidate.disabled &&
-                  candidate.offsetParent !== null &&
-                  candidate.textContent?.trim().includes(config.value!),
-              );
+              const normalizedValue = config.value.trim();
+
+              const directOption = Array.from(
+                document.querySelectorAll<HTMLElement>("button"),
+              ).find((candidate) => {
+                if (
+                  candidate === element ||
+                  candidate.offsetParent === null ||
+                  (candidate instanceof HTMLButtonElement && candidate.disabled)
+                ) {
+                  return false;
+                }
+
+                const candidateText = candidate.textContent?.trim() ?? "";
+                const candidateValue =
+                  candidate.getAttribute("data-value") ??
+                  candidate.getAttribute("aria-label") ??
+                  "";
+
+                return (
+                  candidateText === normalizedValue ||
+                  candidateText.includes(normalizedValue) ||
+                  candidateValue === normalizedValue ||
+                  candidateValue.includes(normalizedValue)
+                );
+              });
+
+              if (directOption) {
+                directOption.click();
+                return { found: true };
+              }
+
+              if (element instanceof HTMLButtonElement && !element.disabled) {
+                element.click();
+              }
+
+              const optionStartedAt = Date.now();
+              let textOption: HTMLElement | undefined;
+              while (
+                !textOption &&
+                Date.now() - optionStartedAt < config.waitForMs
+              ) {
+                textOption = Array.from(
+                  document.querySelectorAll<HTMLElement>(
+                    '[role="option"], [role="menuitem"], [data-value], button',
+                  ),
+                ).find((candidate) => {
+                  if (
+                    candidate === element ||
+                    candidate.offsetParent === null ||
+                    (candidate instanceof HTMLButtonElement &&
+                      candidate.disabled)
+                  ) {
+                    return false;
+                  }
+
+                  const candidateText = candidate.textContent?.trim() ?? "";
+                  const candidateValue =
+                    candidate.getAttribute("data-value") ??
+                    candidate.getAttribute("aria-label") ??
+                    "";
+
+                  return (
+                    candidateText === normalizedValue ||
+                    candidateText.includes(normalizedValue) ||
+                    candidateValue === normalizedValue ||
+                    candidateValue.includes(normalizedValue)
+                  );
+                });
+
+                if (!textOption) {
+                  await new Promise((resolve) => setTimeout(resolve, 100));
+                }
+              }
 
               if (!textOption) {
                 return {
                   found: false,
-                  message: `Appointment time not found for ${config.value}.`,
+                  message: `Option not found for ${config.value}.`,
                 };
               }
 
@@ -1177,7 +1232,6 @@ export function useWorkflow(
             context.application?.other_webfile_one,
             context.application?.other_webfile_two,
             context.application?.other_webfile_three,
-            context.application?.other_webfile_four,
           ].filter(Boolean).length
         } webfile(s).`,
         "info",

@@ -12,7 +12,7 @@ import {
   updateProfile,
   type User,
 } from "firebase/auth";
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { firebaseApp } from "./config";
 import { db } from "./firestore";
 
@@ -74,5 +74,6 @@ export const changePassword = async (
   await updatePassword(user, newPassword);
 };
 export const signOutUser = () => signOut(auth);
+export const getUserData = async (uid: string) => getDoc(doc(db, "users", uid));
 export const subscribeToAuth = (listener: (user: User | null) => void) =>
   onIdTokenChanged(auth, listener);

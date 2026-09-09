@@ -27,14 +27,6 @@ export type WebfileDocument = {
   filePath?: string;
 };
 
-export type Appointment = {
-  id: string;
-  ivacApplicationId: string;
-  appointmentDate?: string;
-  appointmentTime?: string;
-  status?: AppointmentAttemptStatus;
-};
-
 export type AutomationAccount = {
   id: string;
   applicationId: string;
@@ -58,8 +50,6 @@ export type Application = {
   other_webfile_one?: WebfileDocument;
   other_webfile_two?: WebfileDocument;
   other_webfile_three?: WebfileDocument;
-  other_webfile_four?: WebfileDocument;
-  appointment?: Appointment;
   automationAccount?: AutomationAccount;
 
   mission?: Mission;

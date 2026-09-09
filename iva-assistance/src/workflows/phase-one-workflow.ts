@@ -259,45 +259,6 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "appointment-other-webfile-four-human-verification",
-    phase: "phase_one",
-    title: "Complete human verification for other webfile 4",
-    manual: true,
-    manualInput: "verification",
-    icon: ShieldCheck,
-    selectors: [
-      'input[type="checkbox"][aria-label="Verify you are human"]',
-      'input[aria-label*="Verify you are human" i]',
-      'input[type="checkbox"][aria-label*="human" i]',
-    ],
-    action: "focus",
-    valueKey: "application.otherWebfileFour",
-    optional: true,
-  },
-
-  {
-    id: "upload-other-webfile-four",
-    phase: "phase_one",
-    title: "Upload other webfile 4",
-    icon: FileCheck2,
-    selectors: ['input[type="file"]'],
-    action: "upload-file",
-    valueKey: "application.otherWebfileFour",
-    optional: true,
-    fileIndex: 4,
-  },
-
-  {
-    id: "appointment-confirm-all-correct",
-    phase: "phase_one",
-    title: "Confirm all information is correct",
-    icon: ChevronRight,
-    selectors: ["button"],
-    text: "Confirm All Information is Correct",
-    action: "click",
-  },
-
-  {
     id: "appointment-save-and-continue",
     phase: "phase_one",
     title: "Save & Continue",
@@ -312,24 +273,28 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   // ─────────────────────────────────────────────
 
   {
-    id: "select-mission",
-    phase: "phase_one",
-    title: "Select mission",
-    icon: MapPin,
-    selectors: ["button"],
-    text: "Select a mission",
-    action: "select",
-    valueKey: "appointment.mission",
-  },
-
-  {
     id: "select-ivac-center",
     phase: "phase_one",
     title: "Select IVAC center",
     icon: MapPin,
-    selectors: ["button"],
+    selectors: [
+      'button:has(span:text("Select your IVAC center"))',
+      'button:has(> div > div > span:text("Select your IVAC center"))',
+      "button",
+    ],
     text: "Select your IVAC center",
-    action: "select",
+    action: "click",
+    valueKey: "appointment.ivacCenter",
+  },
+
+  {
+    id: "select-ivac-center-value",
+    phase: "phase_one",
+    title: "Select IVAC center Value",
+    icon: MapPin,
+    selectors: ['button[style*="background"][class*="FFF4E6"]', "button"],
+    text: "IVAC, Dhaka (JFP)",
+    action: "click",
     valueKey: "appointment.ivacCenter",
   },
 
