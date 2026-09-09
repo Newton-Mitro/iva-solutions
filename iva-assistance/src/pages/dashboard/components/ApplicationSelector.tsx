@@ -62,7 +62,6 @@ export default function ApplicationSelector({
 
               {application ? (
                 <div className="mt-0.5 flex min-w-0 items-center gap-1 text-[9px] leading-tight ivac-text-muted">
-                  <span>·</span>
                   <span className="truncate">
                     {application.passportNumber || "No passport"}
                   </span>
