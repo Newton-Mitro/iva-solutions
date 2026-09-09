@@ -73,7 +73,7 @@ export default function WorkflowSteps({
                   <button
                     type="button"
                     onClick={() => onStartFromStep(step.id)}
-                    className="rounded-md border border-blue-500/30 px-2 py-1 text-[8px] font-semibold text-blue-600 hover:bg-blue-500/10 dark:text-blue-400"
+                    className="rounded-md border border-[var(--app-primary)]/30 px-2 py-1 text-[8px] font-semibold text-[var(--app-primary)] hover:bg-[var(--app-primary)]/10"
                   >
                     Start here
                   </button>
@@ -99,7 +99,7 @@ export default function WorkflowSteps({
 
                 <div className="h-1.5 overflow-hidden rounded-full bg-[var(--app-surface-2)]">
                   <div
-                    className="h-full rounded-full bg-blue-600 transition-all"
+                    className="h-full rounded-full bg-[var(--app-primary)] transition-all"
                     style={{
                       width: `${step.progress ?? 0}%`,
                     }}
@@ -217,7 +217,7 @@ function HumanAction({
         <button
           type="button"
           onClick={() => onSubmit()}
-          className="rounded-md bg-blue-600 px-2 py-1 text-[8px] font-semibold text-white"
+          className="rounded-md bg-[var(--app-primary)] px-2 py-1 text-[8px] font-semibold text-white hover:bg-[var(--app-primary-hover)]"
         >
           Continue after verification
         </button>
@@ -296,7 +296,7 @@ function HumanAction({
         <button
           type="submit"
           disabled={!value.trim()}
-          className="rounded-md bg-blue-600 px-2 py-1 text-[8px] font-semibold text-white disabled:opacity-40"
+          className="rounded-md bg-[var(--app-primary)] px-2 py-1 text-[8px] font-semibold text-white hover:bg-[var(--app-primary-hover)] disabled:opacity-40"
         >
           Continue
         </button>

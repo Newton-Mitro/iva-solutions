@@ -21,7 +21,7 @@ export default function DashboardEmpty({ error, onClose }: Props) {
 
         <button
           onClick={onClose}
-          className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-[10px] font-bold text-white"
+          className="mt-4 rounded-lg bg-[var(--app-primary)] px-4 py-2 text-[10px] font-bold text-white transition-colors hover:bg-[var(--app-primary-hover)]"
         >
           Open Records
         </button>

@@ -135,6 +135,68 @@ html[data-theme="dark"] {
   }
 }
 
+@layer components {
+  .ivac-card {
+    @apply border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm;
+  }
+
+  .ivac-input {
+    @apply w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-2.5 text-[11px] text-[var(--app-text)] transition duration-150 placeholder:text-[var(--app-text-muted)] focus:border-[var(--app-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--app-primary)]/20;
+  }
+
+  .ivac-hover {
+    @apply transition-colors duration-150 hover:bg-[var(--app-surface-2)];
+  }
+
+  .ivac-primary {
+    color: var(--app-primary);
+  }
+
+  .ivac-primary-bg {
+    background-color: var(--app-primary-bg);
+  }
+
+  .ivac-surface-2 {
+    background-color: var(--app-surface-2);
+  }
+
+  .ivac-surface-3 {
+    background-color: var(--app-surface-3);
+  }
+
+  .ivac-text-muted {
+    color: var(--app-text-muted);
+  }
+
+  .ivac-text-secondary {
+    color: var(--app-text-secondary);
+  }
+
+  .ivac-success {
+    color: var(--app-success);
+  }
+
+  .ivac-success-bg {
+    background-color: var(--app-success-bg);
+  }
+
+  .ivac-warning {
+    color: var(--app-warning);
+  }
+
+  .ivac-warning-bg {
+    background-color: var(--app-warning-bg);
+  }
+
+  .ivac-danger {
+    color: var(--app-danger);
+  }
+
+  .ivac-danger-bg {
+    background-color: var(--app-danger-bg);
+  }
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

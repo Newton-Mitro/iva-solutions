@@ -14,15 +14,16 @@ interface ButtonProps {
 
 const variants: Record<ButtonVariant, string> = {
   primary:
-    "bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60 font-bold",
+    "bg-[var(--app-primary)] text-white hover:bg-[var(--app-primary-hover)] disabled:opacity-60 shadow-sm font-semibold",
   secondary:
-    "border border-[var(--app-border)] text-[var(--app-text)] hover:bg-[var(--app-surface-2)] font-semibold",
-  danger: "text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20",
+    "border border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] hover:bg-[var(--app-surface-2)] font-medium",
+  danger:
+    "border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 dark:border-red-900/60 dark:bg-red-950/20 dark:text-red-400",
 };
 
 const sizes: Record<"sm" | "md", string> = {
-  sm: "px-1.5 py-0.5 text-[8px]",
-  md: "px-2 py-1.5 text-[9px]",
+  sm: "px-2.5 py-1.5 text-[10px]",
+  md: "px-3.5 py-2.5 text-[11px]",
 };
 
 /**
@@ -42,7 +43,7 @@ export function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`rounded ${sizes[size]} ${variants[variant]} ${className}`.trim()}
+      className={`inline-flex items-center justify-center gap-2 rounded-xl transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-[var(--app-primary)]/20 disabled:cursor-not-allowed ${sizes[size]} ${variants[variant]} ${className}`.trim()}
     >
       {children}
     </button>

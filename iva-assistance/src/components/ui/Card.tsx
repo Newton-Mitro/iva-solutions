@@ -9,7 +9,7 @@ export function Card({
   className?: string;
 }) {
   return (
-    <div className={`ivac-card rounded-lg p-2 ${className}`.trim()}>
+    <div className={`ivac-card rounded-xl p-3 ${className}`.trim()}>
       {children}
     </div>
   );

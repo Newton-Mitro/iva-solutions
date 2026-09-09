@@ -146,7 +146,7 @@ export default function LicenseActivation({
 
           <button
             type="submit"
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2.5 text-[10px] font-bold text-white transition-colors hover:bg-blue-700"
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--app-primary)] px-3 py-2.5 text-[10px] font-bold text-white transition-colors hover:bg-[var(--app-primary-hover)]"
           >
             <BadgeCheck size={14} />
             Activate license

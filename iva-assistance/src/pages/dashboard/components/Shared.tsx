@@ -51,9 +51,9 @@ export function StepIcon({ status, icon: Icon }: AutomationStep) {
     );
   if (status === "running")
     return (
-      <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white">
+      <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--app-primary)] text-white">
         <Icon size={15} />
-        <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 animate-pulse rounded-full bg-amber-400 ring-2 ring-[var(--app-surface)]" />
+        <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 animate-pulse rounded-full bg-[var(--app-warning)] ring-2 ring-[var(--app-surface)]" />
       </div>
     );
   if (status === "failed")

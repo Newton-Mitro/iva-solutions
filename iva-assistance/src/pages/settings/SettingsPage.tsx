@@ -495,7 +495,7 @@ export default function SettingsPage({
             <button
               type="submit"
               disabled={passwordState.busy}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-2 text-[10px] font-bold text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--app-primary)] py-2 text-[10px] font-bold text-white transition-colors hover:bg-[var(--app-primary-hover)] disabled:opacity-60"
             >
               <KeyRound size={12} />
               {passwordState.busy ? "Updating..." : "Update password"}
@@ -613,7 +613,7 @@ export default function SettingsPage({
               font-bold
               text-white
               transition-all duration-200
-              ${saved ? "bg-emerald-600" : "bg-blue-600 hover:bg-blue-700"}
+              ${saved ? "bg-emerald-600" : "bg-[var(--app-primary)] hover:bg-[var(--app-primary-hover)]"}
             `}
           >
             {saved ? <Check size={13} /> : <Save size={13} />}
