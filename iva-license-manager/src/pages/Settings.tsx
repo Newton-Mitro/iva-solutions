@@ -17,6 +17,7 @@ export default function SettingsPage() {
       trialDays: currentSettings.trialDays,
       validationIntervalHours: currentSettings.validationIntervalHours,
       offlineGracePeriodHours: currentSettings.offlineGracePeriodHours,
+      license_check_required: currentSettings.license_check_required,
       updatedAt: new Date().toISOString(),
     };
     await saveSettings(n);
@@ -63,6 +64,16 @@ export default function SettingsPage() {
               setS({ ...s, offlineGracePeriodHours: Number(e.target.value) })
             }
           />
+        </label>
+        <label className="settings-toggle">
+          <input
+            type="checkbox"
+            checked={s.license_check_required}
+            onChange={(e) =>
+              setS({ ...s, license_check_required: e.target.checked })
+            }
+          />
+          Require license checks in IVA Assistance
         </label>
         <div className="settings-note">
           These values are stored in Firestore under settings/license.

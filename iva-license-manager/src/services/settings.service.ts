@@ -9,7 +9,8 @@ const defaults: LicenseSettings = {
   trialDays: 7,
   validationIntervalHours: 24,
   offlineGracePeriodHours: 24,
-  updatedAt: new Date().toISOString()
+  license_check_required: true,
+  updatedAt: new Date().toISOString(),
 };
 
 export async function getSettings() {

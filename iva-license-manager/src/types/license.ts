@@ -1,5 +1,10 @@
 export type LicenseType = "trial" | "monthly" | "yearly" | "lifetime";
-export type LicenseStatus = "pending" | "active" | "expired" | "suspended" | "revoked";
+export type LicenseStatus =
+  | "pending"
+  | "active"
+  | "expired"
+  | "suspended"
+  | "revoked";
 export type ActivationStatus = "active" | "deactivated" | "blocked";
 
 export type License = {
@@ -35,8 +40,15 @@ export type LicenseActivation = {
 };
 
 export type LicenseEventType =
-  | "created" | "activated" | "validated" | "deactivated"
-  | "expired" | "suspended" | "revoked" | "renewed" | "activation_blocked";
+  | "created"
+  | "activated"
+  | "validated"
+  | "deactivated"
+  | "expired"
+  | "suspended"
+  | "revoked"
+  | "renewed"
+  | "activation_blocked";
 
 export type LicenseEvent = {
   id: string;
@@ -53,5 +65,6 @@ export type LicenseSettings = {
   trialDays: number;
   validationIntervalHours: number;
   offlineGracePeriodHours: number;
+  license_check_required: boolean;
   updatedAt: string;
 };

@@ -22,6 +22,10 @@ export type LicenseRecord = {
   status: "active";
 };
 
+type LicenseSettingsDocument = {
+  license_check_required?: unknown;
+};
+
 type LicenseDocument = {
   licenseKey: string;
   type: string;
@@ -41,6 +45,16 @@ const licenses = collection(db, "licenses");
 const activations = collection(db, "licenseActivations");
 const events = collection(db, "licenseEvents");
 const deviceStorageKey = "ivac_license_device_id";
+
+export async function isLicenseCheckRequired(): Promise<boolean> {
+  const settings = await getDoc(doc(db, "settings", "license"));
+  if (!settings.exists()) return true;
+
+  return (
+    (settings.data() as LicenseSettingsDocument).license_check_required !==
+    false
+  );
+}
 
 const toIso = (value: unknown) => {
   if (value instanceof Timestamp) return value.toDate().toISOString();

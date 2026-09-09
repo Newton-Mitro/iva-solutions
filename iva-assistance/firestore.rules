@@ -10,18 +10,20 @@ service cloud.firestore {
     }
 
     match /licenses/{licenseId} {
-      allow read: if signedIn();
-      allow write: if false;
+      allow read, create, update, delete: if signedIn();
     }
 
     match /licenseActivations/{activationId} {
-      allow read, create, update: if signedIn();
-      allow delete: if false;
+      allow read, create, update, delete: if signedIn();
     }
 
     match /licenseEvents/{eventId} {
-      allow create: if signedIn();
-      allow read, update, delete: if false;
+      allow read, create: if signedIn();
+      allow update, delete: if false;
+    }
+
+    match /settings/{settingId} {
+      allow read, write: if signedIn();
     }
   }
 }
