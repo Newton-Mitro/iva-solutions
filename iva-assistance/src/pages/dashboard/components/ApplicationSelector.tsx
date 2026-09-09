@@ -1,6 +1,8 @@
-import { Check, ChevronDown, FileText, MapPin, Search } from "lucide-react";
+import { ChevronDown, FileText, Search } from "lucide-react";
 import { useState } from "react";
 import { Application } from "../../../types/application.type";
+import { ApplicationSelectorEmptyState } from "./ApplicationSelectorEmptyState";
+import { ApplicationSelectorItem } from "./ApplicationSelectorItem";
 import { StatusBadge } from "./Shared";
 
 type Props = {
@@ -123,74 +125,21 @@ export default function ApplicationSelector({
                     const selected = item.id === application?.id;
 
                     return (
-                      <button
+                      <ApplicationSelectorItem
                         key={item.id}
-                        type="button"
-                        onClick={() => {
-                          onSelect(item.id);
-                          setOpen(false);
-                        }}
-                        className={`group flex w-full items-center gap-2 rounded-lg border px-2 py-1.5 text-left transition ${
-                          selected
-                            ? "border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/30"
-                            : "border-transparent ivac-hover"
-                        }`}
-                      >
-                        {/* Icon */}
-                        <div
-                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${
-                            selected
-                              ? "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400"
-                              : "ivac-surface-2 ivac-text-muted"
-                          }`}
-                        >
-                          {selected ? (
-                            <Check size={12} />
-                          ) : (
-                            <FileText size={12} />
-                          )}
-                        </div>
-
-                        {/* Details */}
-                        <div className="min-w-0 flex-1">
-                          <div
-                            className={`truncate text-[11px] font-bold leading-tight ${
-                              selected ? "text-blue-700 dark:text-blue-300" : ""
-                            }`}
-                          >
-                            {item.fullName || "Unnamed applicant"}
-                          </div>
-
-                          <div className="mt-0.5 flex items-center gap-1 text-[9px] leading-tight ivac-text-muted">
-                            <span className="truncate">
-                              {item.passportNumber || "No passport"}
-                            </span>
-                          </div>
-
-                          <div className="mt-0.5 flex items-center gap-1 text-[9px] leading-tight ivac-text-muted">
-                            <MapPin size={9} className="shrink-0" />
-                            <span className="truncate">
-                              {item.mission || "No mission"}
-                            </span>
-                            <span>·</span>
-                            <span className="truncate">
-                              {item.ivacCenter || "No center"}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="shrink-0">
-                          <StatusBadge status={item.status} />
-                        </div>
-                      </button>
+                        item={item}
+                        selected={selected}
+                        onSelect={onSelect}
+                        onClose={() => setOpen(false)}
+                      />
                     );
                   })}
                 </div>
               ) : (
-                <EmptyState text="No matching applications" />
+                <ApplicationSelectorEmptyState text="No matching applications" />
               )
             ) : (
-              <EmptyState
+              <ApplicationSelectorEmptyState
                 title="No applications"
                 text="Add an application to get started"
               />
@@ -209,25 +158,5 @@ export default function ApplicationSelector({
         </div>
       </div>
     </section>
-  );
-}
-
-function EmptyState({
-  title = "No results",
-  text,
-}: {
-  title?: string;
-  text: string;
-}) {
-  return (
-    <div className="flex min-h-20 flex-col items-center justify-center rounded-lg border border-dashed border-(--app-border) px-3 text-center">
-      <div className="ivac-surface-2 ivac-text-muted flex h-7 w-7 items-center justify-center rounded-full">
-        <FileText size={12} />
-      </div>
-
-      <p className="mt-1 text-[9px] font-semibold">{title}</p>
-
-      <p className="mt-0.5 text-[7px] ivac-text-muted">{text}</p>
-    </div>
   );
 }

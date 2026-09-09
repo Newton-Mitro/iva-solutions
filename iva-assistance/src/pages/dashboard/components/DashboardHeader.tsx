@@ -1,4 +1,5 @@
 import { Info, Settings, UserPlus } from "lucide-react";
+import { DashboardHeaderActionButton } from "./DashboardHeaderActionButton";
 
 export default function DashboardHeader({
   email,
@@ -35,27 +36,21 @@ export default function DashboardHeader({
           <span className="hidden max-w-28 truncate text-[9px] text-[var(--app-text-muted)] sm:block">
             {email}
           </span>
-          <button
+          <DashboardHeaderActionButton
+            icon={UserPlus}
+            label="Open records"
             onClick={onRecords}
-            aria-label="Open records"
-            className="ivac-hover rounded-lg p-2 text-[var(--app-text-muted)]"
-          >
-            <UserPlus size={17} />
-          </button>
-          <button
+          />
+          <DashboardHeaderActionButton
+            icon={Settings}
+            label="Open settings"
             onClick={onSettings}
-            className="ivac-hover rounded-lg p-2 text-[var(--app-text-muted)]"
-            aria-label="Open settings"
-          >
-            <Settings size={17} />
-          </button>
-          <button
+          />
+          <DashboardHeaderActionButton
+            icon={Info}
+            label="Open about page"
             onClick={onAbout}
-            className="ivac-hover rounded-lg p-2 text-[var(--app-text-muted)]"
-            aria-label="Open about page"
-          >
-            <Info size={17} />
-          </button>
+          />
         </div>
       </div>
     </header>
