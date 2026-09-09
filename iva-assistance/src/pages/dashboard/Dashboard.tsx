@@ -13,6 +13,8 @@ import AboutPage from "../AboutPage";
 import { WorkflowPhase } from "../../types/workflow.type";
 import ApplicationDetailsCard from "./components/ApplicationDetailsCard";
 import type { FormMode } from "../../types/management.type";
+import type { WebfileDocument } from "../../types/application.type";
+import { deleteLocalFile, removeLocalRecordField } from "../../storage/storage";
 
 export function Dashboard({
   user,
@@ -47,6 +49,29 @@ export function Dashboard({
   } | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
+
+  async function handleRemoveWebfile(
+    field:
+      | "primary_webfile"
+      | "other_webfile_one"
+      | "other_webfile_two"
+      | "other_webfile_three",
+    file: WebfileDocument,
+  ) {
+    if (!application) return;
+
+    try {
+      await removeLocalRecordField(
+        user.uid,
+        "ivacApplications",
+        application.id,
+        field,
+      );
+      await deleteLocalFile(file.id);
+    } catch (error) {
+      console.error("Unable to remove webfile.", error);
+    }
+  }
 
   if (showSettings) {
     return (
@@ -102,6 +127,7 @@ export function Dashboard({
                 });
                 setShowManagement(true);
               }}
+              onRemoveWebfile={handleRemoveWebfile}
             />
             {account != null && application.primary_webfile && (
               <>
@@ -109,6 +135,7 @@ export function Dashboard({
                   phase={workflow.workflowPhase}
                   steps={workflow.steps}
                   started={workflow.running}
+                  latestMessage={latestMessage}
                   onPhaseChange={(phase: WorkflowPhase) =>
                     workflow.setWorkflowPhase(phase)
                   }

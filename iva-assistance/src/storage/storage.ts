@@ -65,6 +65,21 @@ export const updateLocalRecord = async (
   return saved;
 };
 
+export const removeLocalRecordField = async (
+  userId: string,
+  collection: LocalCollection,
+  recordId: string,
+  field: string,
+) => {
+  const records = await readRecords(userId, collection);
+  if (!records[recordId]) throw new Error("Record no longer exists.");
+  const updated = { ...records[recordId] };
+  delete updated[field];
+  updated.updatedAt = now();
+  await writeRecords(userId, collection, { ...records, [recordId]: updated });
+  return updated;
+};
+
 export const deleteLocalRecord = async (
   userId: string,
   collection: LocalCollection,

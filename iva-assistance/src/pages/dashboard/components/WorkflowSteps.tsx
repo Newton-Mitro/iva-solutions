@@ -1,10 +1,12 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { Message } from "../../../types/message.type";
 import { WorkflowStep } from "../../../types/workflow.type";
 import { StepIcon } from "./Shared";
 
 type Props = {
   steps: WorkflowStep[];
   started?: boolean;
+  latestMessage?: Message | null;
   onHumanAction?: (value?: string) => void;
   onStartFromStep?: (stepId: string) => void;
   onRunOnlyStep?: (stepId: string) => void;
@@ -16,6 +18,7 @@ type Props = {
 export default function WorkflowSteps({
   steps,
   started = false,
+  latestMessage,
   onHumanAction,
   onStartFromStep,
   onRunOnlyStep,
@@ -26,7 +29,11 @@ export default function WorkflowSteps({
   return (
     <div className="space-y-0">
       {steps.map((step, index) => (
-        <div key={step.id} className="relative flex gap-3">
+        <div
+          key={step.id}
+          data-step-id={step.id}
+          className="relative flex gap-3"
+        >
           {index !== steps.length - 1 && (
             <div
               className={`absolute left-[15px] top-8 h-[calc(100%-8px)] w-px ${
@@ -66,7 +73,7 @@ export default function WorkflowSteps({
                   <button
                     type="button"
                     onClick={() => onStartFromStep(step.id)}
-                    className="rounded-md border border-blue-500/30 px-2.5 py-1.5 text-[9px] font-semibold text-blue-600 hover:bg-blue-500/10 dark:text-blue-400"
+                    className="rounded-md border border-blue-500/30 px-2 py-1 text-[8px] font-semibold text-blue-600 hover:bg-blue-500/10 dark:text-blue-400"
                   >
                     Start here
                   </button>
@@ -75,7 +82,7 @@ export default function WorkflowSteps({
                   <button
                     type="button"
                     onClick={() => onRunOnlyStep(step.id)}
-                    className="rounded-md border border-emerald-500/30 px-2.5 py-1.5 text-[9px] font-semibold text-emerald-600 hover:bg-emerald-500/10 dark:text-emerald-400"
+                    className="rounded-md border border-emerald-500/30 px-2 py-1 text-[8px] font-semibold text-emerald-600 hover:bg-emerald-500/10 dark:text-emerald-400"
                   >
                     Run only
                   </button>
@@ -104,6 +111,7 @@ export default function WorkflowSteps({
             {step.status === "running" && step.manualInput && onHumanAction && (
               <HumanAction
                 step={step}
+                latestMessage={latestMessage}
                 onSubmit={onHumanAction}
                 onSkip={onSkip}
               />
@@ -113,7 +121,7 @@ export default function WorkflowSteps({
               <button
                 type="button"
                 onClick={() => onSkip(step.id)}
-                className="mt-2 rounded-md border border-(--app-border) px-2.5 py-1.5 text-[9px] font-semibold ivac-text-muted"
+                className="mt-2 rounded-md border border-(--app-border) px-2 py-1 text-[8px] font-semibold ivac-text-muted"
               >
                 Skip
               </button>
@@ -125,7 +133,7 @@ export default function WorkflowSteps({
                   <button
                     type="button"
                     onClick={() => onRetry(step.id)}
-                    className="rounded-md bg-blue-600 px-2.5 py-1.5 text-[9px] font-semibold text-white"
+                    className="rounded-md bg-blue-600 px-2 py-1 text-[8px] font-semibold text-white"
                   >
                     Retry
                   </button>
@@ -134,7 +142,7 @@ export default function WorkflowSteps({
                   <button
                     type="button"
                     onClick={() => onContinue(step.id)}
-                    className="rounded-md border border-amber-500/30 px-2.5 py-1.5 text-[9px] font-semibold text-amber-600 dark:text-amber-400"
+                    className="rounded-md border border-amber-500/30 px-2 py-1 text-[8px] font-semibold text-amber-600 dark:text-amber-400"
                   >
                     Continue
                   </button>
@@ -143,7 +151,7 @@ export default function WorkflowSteps({
                   <button
                     type="button"
                     onClick={() => onSkip(step.id)}
-                    className="rounded-md border border-(--app-border) px-2.5 py-1.5 text-[9px] font-semibold ivac-text-muted"
+                    className="rounded-md border border-(--app-border) px-2 py-1 text-[8px] font-semibold ivac-text-muted"
                   >
                     Skip
                   </button>
@@ -159,15 +167,49 @@ export default function WorkflowSteps({
 
 function HumanAction({
   step,
+  latestMessage,
   onSubmit,
   onSkip,
 }: {
   step: WorkflowStep;
+  latestMessage?: Message | null;
   onSubmit: (value?: string) => void;
   onSkip?: (stepId: string) => void;
 }) {
   const [value, setValue] = useState("");
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
+
+  useEffect(() => {
+    if (!latestMessage?.otp || step.manualInput !== "otp") {
+      return;
+    }
+
+    const now = Date.now();
+    const messageTime = latestMessage.timestamp?.toDate
+      ? latestMessage.timestamp.toDate().getTime()
+      : new Date(String(latestMessage.timestamp)).getTime();
+
+    if (!Number.isFinite(messageTime)) {
+      return;
+    }
+
+    const inWindow =
+      messageTime >= now - 20000 && messageTime <= now + 3 * 60 * 1000;
+
+    if (!inWindow) {
+      return;
+    }
+
+    const otpDigits = latestMessage.otp.replace(/\D/g, "").slice(0, 6);
+    if (!otpDigits) {
+      return;
+    }
+
+    setValue(otpDigits);
+    requestAnimationFrame(() => {
+      inputRefs.current[Math.min(otpDigits.length, 6) - 1]?.focus();
+    });
+  }, [latestMessage, step.manualInput]);
 
   if (step.manualInput === "verification") {
     return (
@@ -175,7 +217,7 @@ function HumanAction({
         <button
           type="button"
           onClick={() => onSubmit()}
-          className="rounded-md bg-blue-600 px-2.5 py-1.5 text-[9px] font-semibold text-white"
+          className="rounded-md bg-blue-600 px-2 py-1 text-[8px] font-semibold text-white"
         >
           Continue after verification
         </button>
@@ -183,7 +225,7 @@ function HumanAction({
           <button
             type="button"
             onClick={() => onSkip(step.id)}
-            className="rounded-md border border-(--app-border) px-2.5 py-1.5 text-[9px] font-semibold ivac-text-muted"
+            className="rounded-md border border-(--app-border) px-2 py-1 text-[8px] font-semibold ivac-text-muted"
           >
             Skip
           </button>
@@ -194,7 +236,7 @@ function HumanAction({
 
   return (
     <form
-      className="mt-2 flex gap-1.5"
+      className="mt-2 flex gap-1"
       onSubmit={(event) => {
         event.preventDefault();
         const otp = value.replace(/\s/g, "");
@@ -203,7 +245,7 @@ function HumanAction({
         }
       }}
     >
-      <div className="flex min-w-0 flex-1 gap-1">
+      <div className="flex min-w-0 flex-1 gap-0.5">
         {Array.from({ length: 6 }, (_, index) => (
           <input
             key={index}
@@ -246,15 +288,15 @@ function HumanAction({
             autoComplete={index === 0 ? "one-time-code" : "off"}
             maxLength={1}
             aria-label={`${step.title} digit ${index + 1}`}
-            className="h-7 w-7 rounded-md border border-(--app-border) bg-(--app-background) text-center text-[10px] outline-none focus:border-blue-500"
+            className="h-6 w-6 rounded-md border border-(--app-border) bg-(--app-background) text-center text-[9px] outline-none focus:border-blue-500"
           />
         ))}
       </div>
-      <div className="flex gap-1.5">
+      <div className="flex gap-1">
         <button
           type="submit"
           disabled={!value.trim()}
-          className="rounded-md bg-blue-600 px-2.5 py-1.5 text-[9px] font-semibold text-white disabled:opacity-40"
+          className="rounded-md bg-blue-600 px-2 py-1 text-[8px] font-semibold text-white disabled:opacity-40"
         >
           Continue
         </button>
@@ -262,7 +304,7 @@ function HumanAction({
           <button
             type="button"
             onClick={() => onSkip(step.id)}
-            className="rounded-md border border-(--app-border) px-2.5 py-1.5 text-[9px] font-semibold ivac-text-muted"
+            className="rounded-md border border-(--app-border) px-2 py-1 text-[8px] font-semibold ivac-text-muted"
           >
             Skip
           </button>

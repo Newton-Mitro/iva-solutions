@@ -14,7 +14,7 @@ export default function ApplicationSelector({
   applications,
   onSelect,
 }: Props) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
   const query = search.trim().toLowerCase();
@@ -128,6 +128,7 @@ export default function ApplicationSelector({
                         type="button"
                         onClick={() => {
                           onSelect(item.id);
+                          setOpen(false);
                         }}
                         className={`group flex w-full items-center gap-2 rounded-lg border px-2 py-1.5 text-left transition ${
                           selected

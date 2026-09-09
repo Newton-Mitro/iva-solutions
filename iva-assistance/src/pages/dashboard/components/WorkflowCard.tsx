@@ -8,7 +8,8 @@ import {
   RotateCcw,
   Square,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { Message } from "../../../types/message.type";
 import WorkflowSteps from "./WorkflowSteps";
 import {
   flowTabs,
@@ -20,6 +21,7 @@ type Props = {
   phase: WorkflowPhase;
   steps: WorkflowStep[];
   started: boolean;
+  latestMessage?: Message | null;
 
   onPhaseChange: (phase: WorkflowPhase) => void;
   onStart: () => void;
@@ -49,10 +51,54 @@ export default function WorkflowCard({
   onContinue,
 }: Props) {
   const [open, setOpen] = useState(true);
+  const stepsContainerRef = useRef<HTMLDivElement | null>(null);
 
   const current = flowTabs.find((item) => item.id === phase);
   const phaseIndex = flowTabs.findIndex((item) => item.id === phase);
   const phaseSteps = steps;
+
+  useEffect(() => {
+    const container = stepsContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const hasActiveStep = phaseSteps.some((step) => step.status === "running");
+    const hasErrorStep = phaseSteps.some((step) => step.status === "failed");
+
+    if (!hasActiveStep && !hasErrorStep) {
+      container.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+      return;
+    }
+
+    const runningStep =
+      phaseSteps.find((step) => step.status === "running") ??
+      phaseSteps.find((step) => step.status === "failed") ??
+      phaseSteps.find((step) => step.status === "paused");
+
+    if (!runningStep) {
+      return;
+    }
+
+    const target = container.querySelector<HTMLElement>(
+      `[data-step-id="${CSS.escape(runningStep.id)}"]`,
+    );
+
+    if (!target) {
+      return;
+    }
+
+    const containerRect = container.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const offset = targetRect.top - containerRect.top - 20;
+
+    if (Math.abs(offset) > 2) {
+      container.scrollBy({
+        top: offset,
+        behavior: "smooth",
+      });
+    }
+  }, [phaseSteps]);
 
   const completedCount = phaseSteps.filter(
     (step) => step.status === "completed" || step.status === "skipped",
@@ -207,17 +253,21 @@ export default function WorkflowCard({
                       <h3 className="mt-0.5 truncate text-xs font-bold">
                         {current?.title}
                       </h3>
-
-                      <p className="mt-1 text-[9px] leading-4 ivac-text-muted">
-                        {getPhaseDescription(phase)}
-                      </p>
                     </div>
                   </div>
 
                   {/* Reset */}
                   <button
                     type="button"
-                    onClick={onReset}
+                    onClick={() => {
+                      onReset();
+                      requestAnimationFrame(() => {
+                        stepsContainerRef.current?.scrollTo({
+                          top: 0,
+                          behavior: "smooth",
+                        });
+                      });
+                    }}
                     title="Reset workflow"
                     className="ivac-hover flex shrink-0 items-center gap-1 rounded-lg px-2 py-1.5 text-[8px] font-semibold ivac-text-muted"
                   >
@@ -231,16 +281,21 @@ export default function WorkflowCard({
                 ================================================== */}
                 {phaseSteps.length > 0 && (
                   <div className="mt-3 rounded-lg border border-(--app-border) bg-(--app-background)/40 p-2.5">
-                    <WorkflowSteps
-                      steps={phaseSteps}
-                      started={started}
-                      onHumanAction={onHumanAction}
-                      onStartFromStep={onStartFromStep}
-                      onRunOnlyStep={onRunOnlyStep}
-                      onSkip={onSkip}
-                      onRetry={onRetry}
-                      onContinue={onContinue}
-                    />
+                    <div
+                      ref={stepsContainerRef}
+                      className="max-h-[320px] overflow-y-auto pr-1"
+                    >
+                      <WorkflowSteps
+                        steps={phaseSteps}
+                        started={started}
+                        onHumanAction={onHumanAction}
+                        onStartFromStep={onStartFromStep}
+                        onRunOnlyStep={onRunOnlyStep}
+                        onSkip={onSkip}
+                        onRetry={onRetry}
+                        onContinue={onContinue}
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -338,21 +393,4 @@ export default function WorkflowCard({
       </div>
     </section>
   );
-}
-
-/* ================================================================
-   PHASE DESCRIPTION
-================================================================ */
-
-function getPhaseDescription(phase: WorkflowPhase): string {
-  switch (phase) {
-    case "phase_one":
-      return "Create and configure the Indian Visa Application account.";
-
-    case "phase_two":
-      return "Sign in to the registered Indian Visa Application account.";
-
-    default:
-      return "Manage the current automation workflow.";
-  }
 }

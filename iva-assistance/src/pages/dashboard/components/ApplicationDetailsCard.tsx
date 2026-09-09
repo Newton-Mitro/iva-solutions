@@ -5,6 +5,7 @@ import {
   FileText,
   KeyRound,
   Pencil,
+  Trash2,
   Upload,
   UserRoundPlus,
 } from "lucide-react";
@@ -24,7 +25,14 @@ type Props = {
   applicationReady: boolean;
   onEditApplication: () => void;
   onEditAccount: () => void;
+  onRemoveWebfile: (field: WebfileField, file: WebfileDocument) => void;
 };
+
+type WebfileField =
+  | "primary_webfile"
+  | "other_webfile_one"
+  | "other_webfile_two"
+  | "other_webfile_three";
 
 export default function ApplicationDetailsCard({
   application,
@@ -33,16 +41,45 @@ export default function ApplicationDetailsCard({
   applicationReady,
   onEditApplication,
   onEditAccount,
+  onRemoveWebfile,
 }: Props) {
   const [open, setOpen] = useState(false);
 
-  const webfiles = [
-    { label: "Primary", value: application.primary_webfile },
-    { label: "Other 1", value: application.other_webfile_one },
-    { label: "Other 2", value: application.other_webfile_two },
-    { label: "Other 3", value: application.other_webfile_three },
-  ].filter((item): item is { label: string; value: WebfileDocument } =>
-    Boolean(item.value),
+  const webfiles = (
+    [
+      {
+        field: "primary_webfile",
+        label: "Primary",
+        value: application.primary_webfile,
+      },
+      {
+        field: "other_webfile_one",
+        label: "Other 1",
+        value: application.other_webfile_one,
+      },
+      {
+        field: "other_webfile_two",
+        label: "Other 2",
+        value: application.other_webfile_two,
+      },
+      {
+        field: "other_webfile_three",
+        label: "Other 3",
+        value: application.other_webfile_three,
+      },
+    ] as Array<{
+      field: WebfileField;
+      label: string;
+      value?: WebfileDocument;
+    }>
+  ).filter(
+    (
+      item,
+    ): item is {
+      field: WebfileField;
+      label: string;
+      value: WebfileDocument;
+    } => Boolean(item.value),
   );
 
   const webfileCount = webfiles.length;
@@ -144,10 +181,10 @@ export default function ApplicationDetailsCard({
       </button>
 
       {latestMessage && (
-        <div className="border-t border-(--app-border) bg-gradient-to-r from-amber-50 to-orange-50 px-3 py-2.5 text-[9px] text-amber-900">
+        <div className="border-t border-(--app-border) bg-(--app-warning-bg) px-3 py-2.5 text-[9px] text-(--app-text)">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <p className="text-[6px] font-bold uppercase tracking-[0.18em] text-amber-700/80">
+              <p className="text-[6px] font-bold uppercase tracking-[0.18em] text-(--app-warning)">
                 Latest message
               </p>
               <p className="mt-1 text-[8px] font-semibold">
@@ -155,17 +192,17 @@ export default function ApplicationDetailsCard({
               </p>
             </div>
 
-            <span className="rounded-full bg-amber-200 px-1.5 py-0.5 font-bold tracking-wide text-amber-900 shadow-sm">
+            <span className="rounded-full bg-(--app-surface) px-1.5 py-0.5 font-bold tracking-wide text-(--app-text) shadow-sm ring-1 ring-(--app-border)">
               OTP {latestMessage.otp || "-"}
             </span>
           </div>
 
-          <p className="mt-1 max-h-10 overflow-hidden text-[9px] leading-relaxed text-amber-800">
+          <p className="mt-1 max-h-10 overflow-hidden text-[9px] leading-relaxed text-(--app-text-secondary)">
             {latestMessage.body || "No message body"}
           </p>
 
           {messageTime && (
-            <p className="mt-1 text-[8px] font-medium text-amber-700/80">
+            <p className="mt-1 text-[8px] font-medium text-(--app-text-muted)">
               {messageTime}
             </p>
           )}
@@ -301,6 +338,24 @@ export default function ApplicationDetailsCard({
                     <span className="min-w-0 flex-1 truncate text-[7px] font-medium">
                       {webfile.value.originalName}
                     </span>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            `Remove ${webfile.label.toLowerCase()} webfile?`,
+                          )
+                        ) {
+                          onRemoveWebfile(webfile.field, webfile.value);
+                        }
+                      }}
+                      aria-label={`Remove ${webfile.label} webfile`}
+                      title={`Remove ${webfile.label} webfile`}
+                      className="ivac-hover shrink-0 rounded p-1 text-red-500"
+                    >
+                      <Trash2 size={9} />
+                    </button>
 
                     {webfile.label === "Primary" && (
                       <CheckCircle2
