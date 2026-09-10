@@ -1,5 +1,4 @@
 import {
-  Check,
   ChevronDown,
   Circle,
   Pause,
@@ -11,11 +10,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import type { Message } from "../../../types/message.type";
 import WorkflowSteps from "./WorkflowSteps";
-import {
-  flowTabs,
-  WorkflowPhase,
-  WorkflowStep,
-} from "../../../types/workflow.type";
+import { WorkflowPhase, WorkflowStep } from "../../../types/workflow.type";
 
 type Props = {
   phase: WorkflowPhase;
@@ -36,10 +31,8 @@ type Props = {
 };
 
 export default function WorkflowCard({
-  phase,
   steps,
   started,
-  onPhaseChange,
   onStart,
   onStartFromStep,
   onRunOnlyStep,
@@ -53,8 +46,6 @@ export default function WorkflowCard({
   const [open, setOpen] = useState(true);
   const stepsContainerRef = useRef<HTMLDivElement | null>(null);
 
-  const current = flowTabs.find((item) => item.id === phase);
-  const phaseIndex = flowTabs.findIndex((item) => item.id === phase);
   const phaseSteps = steps;
 
   useEffect(() => {
@@ -140,10 +131,6 @@ export default function WorkflowCard({
 
         {/* Header Right */}
         <div className="flex shrink-0 items-center gap-2">
-          <span className="ivac-primary-bg ivac-primary rounded-full px-2 py-1 text-[8px] font-bold">
-            Phase {phaseIndex + 1}/{flowTabs.length}
-          </span>
-
           <div
             className={`flex h-6 w-6 items-center justify-center rounded-md transition-colors ${
               open ? "bg-(--app-muted)" : ""
@@ -171,51 +158,6 @@ export default function WorkflowCard({
           <div className="border-t border-(--app-border)" />
 
           <div className="space-y-3 p-3.5">
-            {/* =====================================================
-                PHASE NAVIGATION
-            ====================================================== */}
-            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
-              {flowTabs.map((tab, index) => {
-                const active = tab.id === phase;
-                const completed = index < phaseIndex;
-
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => onPhaseChange(tab.id)}
-                    className={`
-                        group flex shrink-0 items-center gap-1.5
-                        rounded-lg px-2.5 py-1.5
-                        text-[9px] font-bold
-                        transition-all duration-150
-                        active:scale-95
-                        ${
-                          active
-                            ? "ivac-primary-bg ivac-primary shadow-sm"
-                            : completed
-                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                              : "ivac-surface-2 ivac-text-muted hover:opacity-80"
-                        }
-                      `}
-                  >
-                    {completed ? (
-                      <Check size={10} strokeWidth={3} />
-                    ) : active ? (
-                      <Circle size={8} fill="currentColor" strokeWidth={0} />
-                    ) : (
-                      <Circle size={8} />
-                    )}
-
-                    {tab.title}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* =====================================================
-                CURRENT FLOW
-            ====================================================== */}
             <div className="ivac-primary-bg/40 overflow-hidden rounded-xl border border-(--app-border)">
               {/* Progress strip */}
               <div className="h-0.5 w-full bg-(--app-border)">
@@ -238,21 +180,11 @@ export default function WorkflowCard({
                     </div>
 
                     <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[8px] font-bold uppercase tracking-wider ivac-primary">
-                          Current stage
+                      {phaseSteps.length > 0 && (
+                        <span className="text-[8px] ivac-text-muted">
+                          {completedCount}/{phaseSteps.length} steps complete
                         </span>
-
-                        {phaseSteps.length > 0 && (
-                          <span className="text-[8px] ivac-text-muted">
-                            • {completedCount}/{phaseSteps.length}
-                          </span>
-                        )}
-                      </div>
-
-                      <h3 className="mt-0.5 truncate text-xs font-bold">
-                        {current?.title}
-                      </h3>
+                      )}
                     </div>
                   </div>
 
