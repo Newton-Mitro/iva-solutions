@@ -1,6 +1,5 @@
 import {
   CalendarDays,
-  CheckCircle2,
   ChevronRight,
   ClipboardCheck,
   FileCheck2,
@@ -21,8 +20,9 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   // ─────────────────────────────────────────────
   // SIGN IN
   // ─────────────────────────────────────────────
+
   {
-    id: "open_ivac",
+    id: "phase-one-open-ivac",
     phase: "phase_one",
     title: "Open Indian Visa Application Centre Website",
     icon: Globe2,
@@ -32,7 +32,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "enter_phone",
+    id: "phase-one-enter-phone",
     phase: "phase_one",
     title: "Enter phone number",
     icon: Phone,
@@ -42,7 +42,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "enter_password",
+    id: "phase-one-enter-password",
     phase: "phase_one",
     title: "Enter password",
     icon: LockKeyhole,
@@ -52,7 +52,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "sign_in_human_verification",
+    id: "phase-one-sign-in-human-verification",
     phase: "phase_one",
     title: "Click are you human checkbox",
     icon: ShieldCheck,
@@ -65,7 +65,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "sign_in_now_button",
+    id: "phase-one-sign-in-button",
     phase: "phase_one",
     title: "Click Sign In Now button",
     icon: LogIn,
@@ -74,7 +74,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "enter_signin_otp",
+    id: "phase-one-enter-sign-in-otp",
     phase: "phase_one",
     title: "Enter Sign In OTP",
     child: "Enter the OTP received for this phase.",
@@ -86,7 +86,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "verify_signin_otp_button",
+    id: "phase-one-verify-sign-in-otp",
     phase: "phase_one",
     title: "Click Verify OTP button",
     icon: LogIn,
@@ -99,7 +99,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   // ─────────────────────────────────────────────
 
   {
-    id: "close_first_notice",
+    id: "phase-one-close-first-notice",
     phase: "phase_one",
     title: "Close first notice dialog",
     icon: X,
@@ -108,7 +108,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "close_second_notice",
+    id: "phase-one-close-second-notice",
     phase: "phase_one",
     title: "Close second notice dialog",
     icon: X,
@@ -117,7 +117,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "book_appointment_button",
+    id: "phase-one-open-appointment",
     phase: "phase_one",
     title: "Click Take Your Appointment button",
     icon: ClipboardCheck,
@@ -127,7 +127,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "appointment_next_step_button",
+    id: "phase-one-appointment-next-step",
     phase: "phase_one",
     title: "Click Next Step button",
     icon: ChevronRight,
@@ -141,9 +141,9 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   // ─────────────────────────────────────────────
 
   {
-    id: "webfile_human_verification",
+    id: "phase-one-primary-webfile-verification",
     phase: "phase_one",
-    title: "Click are you human checkbox",
+    title: "Complete primary webfile human verification",
     icon: ShieldCheck,
     selectors: [
       'input[type="checkbox"][aria-label*="Verify you are human" i]',
@@ -154,7 +154,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "upload-primary-webfile",
+    id: "phase-one-upload-primary-webfile",
     phase: "phase_one",
     title: "Select primary webfile to upload",
     icon: FileCheck2,
@@ -170,7 +170,20 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "appointment-other-webfile-one-human-verification",
+    id: "phase-one-primary-webfile-upload-complete",
+    phase: "phase_one",
+    title: "Wait for primary webfile upload to complete",
+    icon: ShieldCheck,
+    selectors: [],
+    action: "wait",
+  },
+
+  // ─────────────────────────────────────────────
+  // OTHER WEBFILE 1
+  // ─────────────────────────────────────────────
+
+  {
+    id: "phase-one-other-webfile-one-verification",
     phase: "phase_one",
     title: "Click are you human checkbox for other webfile 1",
     manual: true,
@@ -187,7 +200,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "upload-other-webfile-one",
+    id: "phase-one-upload-other-webfile-one",
     phase: "phase_one",
     title: "Select other webfile 1 to upload",
     icon: FileCheck2,
@@ -198,8 +211,12 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     fileIndex: 1,
   },
 
+  // ─────────────────────────────────────────────
+  // OTHER WEBFILE 2
+  // ─────────────────────────────────────────────
+
   {
-    id: "appointment-other-webfile-two-human-verification",
+    id: "phase-one-other-webfile-two-verification",
     phase: "phase_one",
     title: "Click are you human checkbox for other webfile 2",
     manual: true,
@@ -216,7 +233,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "upload-other-webfile-two",
+    id: "phase-one-upload-other-webfile-two",
     phase: "phase_one",
     title: "Select other webfile 2 to upload",
     icon: FileCheck2,
@@ -227,8 +244,12 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     fileIndex: 2,
   },
 
+  // ─────────────────────────────────────────────
+  // OTHER WEBFILE 3
+  // ─────────────────────────────────────────────
+
   {
-    id: "appointment-other-webfile-three-human-verification",
+    id: "phase-one-other-webfile-three-verification",
     phase: "phase_one",
     title: "Click are you human checkbox for other webfile 3",
     manual: true,
@@ -245,7 +266,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "upload-other-webfile-three",
+    id: "phase-one-upload-other-webfile-three",
     phase: "phase_one",
     title: "Select other webfile 3 to upload",
     icon: FileCheck2,
@@ -256,8 +277,22 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     fileIndex: 3,
   },
 
+  // ─────────────────────────────────────────────
+  // SAVE INFORMATION
+  // ─────────────────────────────────────────────
+
   {
-    id: "appointment-save-and-continue",
+    id: "phase-one-confirm-information",
+    phase: "phase_one",
+    title: "Click Confirm All Information is Correct button",
+    icon: ChevronRight,
+    selectors: ["button"],
+    text: "Confirm All Information is Correct",
+    action: "click",
+  },
+
+  {
+    id: "phase-one-save-and-continue",
     phase: "phase_one",
     title: "Click Save & Continue button",
     icon: ChevronRight,
@@ -273,27 +308,11 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   {
     id: "select-ivac-center",
     phase: "phase_one",
-    title: "Click Select IVAC center button",
+    title: "Wait for Mission and IVAC center Selection",
     icon: MapPin,
-    selectors: [
-      'button:has(span:text("Select your IVAC center"))',
-      'button:has(> div > div > span:text("Select your IVAC center"))',
-      "button",
-    ],
+    selectors: ["button"],
     text: "Select your IVAC center",
-    action: "click",
-    valueKey: "appointment.ivacCenter",
-  },
-
-  {
-    id: "select-ivac-center-value",
-    phase: "phase_one",
-    title: "Select IVAC center Value",
-    icon: MapPin,
-    selectors: ['button[style*="background"][class*="FFF4E6"]', "button"],
-    text: "IVAC, Dhaka (JFP)",
-    action: "click",
-    valueKey: "appointment.ivacCenter",
+    action: "wait",
   },
 
   {
@@ -301,7 +320,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
     phase: "phase_one",
     title: "Click Confirm Mission & IVAC Center button",
     icon: ChevronRight,
-    selectors: ['button[type="submit"]'],
+    selectors: ["button"],
     text: "Confirm Mission & IVAC Center",
     action: "click",
   },
@@ -311,7 +330,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   // ─────────────────────────────────────────────
 
   {
-    id: "wait-appointment-calendar",
+    id: "phase-one-wait-appointment-calendar",
     phase: "phase_one",
     title: "Wait for appointment dates",
     icon: Timer,
@@ -323,7 +342,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "appointment-booking-human-verification",
+    id: "phase-one-appointment-booking-verification",
     phase: "phase_one",
     title: "Click are you human checkbox",
     child:
@@ -336,7 +355,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "select-appointment-date",
+    id: "phase-one-select-appointment-date",
     phase: "phase_one",
     title: "Select appointment date",
     icon: CalendarDays,
@@ -347,7 +366,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   },
 
   {
-    id: "continue-booking",
+    id: "phase-one-continue-booking",
     phase: "phase_one",
     title: "Click Continue booking button",
     icon: ChevronRight,

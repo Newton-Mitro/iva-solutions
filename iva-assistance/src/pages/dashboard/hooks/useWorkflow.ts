@@ -509,10 +509,28 @@ export function useWorkflow(
       }): Promise<DomActionResult> => {
         const startedAt = Date.now();
 
+        const normalizeText = (value: string | null | undefined) =>
+          (value ?? "").replace(/\s+/g, " ").trim().toLowerCase();
+
         const findElement = () => {
-          const candidates = config.selectors.flatMap((selector) =>
-            Array.from(document.querySelectorAll(selector)),
+          const selectorList = config.text
+            ? [
+                ...config.selectors,
+                "button",
+                '[role="option"]',
+                "li",
+                "div[role='option']",
+              ]
+            : config.selectors;
+
+          const candidates = Array.from(
+            new Set(
+              selectorList.flatMap((selector) =>
+                Array.from(document.querySelectorAll(selector)),
+              ),
+            ),
           );
+
           const fileCandidates = candidates.filter(
             (candidate): candidate is HTMLInputElement =>
               candidate instanceof HTMLInputElement &&
@@ -523,19 +541,53 @@ export function useWorkflow(
               ? [fileCandidates[config.fileIndex]].filter(Boolean)
               : candidates;
 
-          return indexedCandidates.find((candidate) => {
+          const textMatchCandidates = indexedCandidates.filter((candidate) => {
+            const item = candidate as HTMLElement;
+            const valueText = normalizeText(
+              item.innerText ??
+                item.textContent ??
+                item.getAttribute("aria-label") ??
+                "",
+            );
+            const targetText = normalizeText(config.text ?? "");
+
+            if (!config.text) {
+              return true;
+            }
+
+            return valueText.includes(targetText);
+          });
+
+          const exactTextCandidates = textMatchCandidates.filter(
+            (candidate) => {
+              const item = candidate as HTMLElement;
+              const valueText = normalizeText(
+                item.innerText ??
+                  item.textContent ??
+                  item.getAttribute("aria-label") ??
+                  "",
+              );
+              const targetText = normalizeText(config.text ?? "");
+              return valueText === targetText || valueText.includes(targetText);
+            },
+          );
+
+          const preferred = exactTextCandidates.length
+            ? exactTextCandidates
+            : textMatchCandidates;
+
+          return preferred.find((candidate) => {
             const item = candidate as HTMLElement;
             const isFileUploadTarget =
               config.action === "upload-file" &&
               candidate instanceof HTMLInputElement &&
               candidate.type === "file";
             return (
-              (!config.text ||
-                item.textContent?.trim().includes(config.text.trim())) &&
               (isFileUploadTarget ||
                 candidate === document.body ||
                 candidate === document.documentElement ||
                 item.offsetParent !== null ||
+                item.getClientRects().length > 0 ||
                 candidate instanceof HTMLIFrameElement) &&
               (config.action !== "click" ||
                 !(candidate instanceof HTMLButtonElement && candidate.disabled))
