@@ -531,6 +531,22 @@ export function useWorkflow(
             ),
           );
 
+          if (config.text) {
+            console.log("[IVAC debug] text search", {
+              text: config.text,
+              selectors: selectorList,
+              candidateCount: candidates.length,
+              candidates: candidates.map((candidate) => ({
+                tag: candidate.tagName,
+                text:
+                  (candidate as HTMLElement).innerText ??
+                  (candidate as HTMLElement).textContent ??
+                  (candidate as HTMLElement).getAttribute("aria-label") ??
+                  "",
+              })),
+            });
+          }
+
           const fileCandidates = candidates.filter(
             (candidate): candidate is HTMLInputElement =>
               candidate instanceof HTMLInputElement &&
@@ -1173,6 +1189,7 @@ export function useWorkflow(
       return;
     }
 
+    executingStep.current = null;
     addLog(`Step skipped: ${step.title}`, "warning");
     if (singleStepId.current === stepId) {
       completeSingleStep(stepId, "skipped");
@@ -1595,6 +1612,19 @@ export function useWorkflow(
    */
 
   function failStep(stepId: string, reason = "Unknown failure.") {
+    const currentStatus = steps.find((step) => step.id === stepId)?.status;
+    if (
+      currentStatus &&
+      currentStatus !== "running" &&
+      currentStatus !== "failed"
+    ) {
+      return;
+    }
+
+    if (executingStep.current && executingStep.current !== stepId) {
+      return;
+    }
+
     updateStep(stepId, {
       status: "failed",
     });

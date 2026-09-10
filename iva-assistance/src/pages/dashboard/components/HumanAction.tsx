@@ -19,11 +19,10 @@ export function ManualStepAction({
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   useEffect(() => {
-    if (!latestMessage?.otp || step.manualInput !== "otp") {
+    if (!latestMessage || step.manualInput !== "otp") {
       return;
     }
 
-    const now = Date.now();
     const messageTime = latestMessage.timestamp?.toDate
       ? latestMessage.timestamp.toDate().getTime()
       : new Date(String(latestMessage.timestamp)).getTime();
@@ -32,10 +31,12 @@ export function ManualStepAction({
       return;
     }
 
-    const inWindow =
-      messageTime >= now - 20000 && messageTime <= now + 3 * 60 * 1000;
+    const now = Date.now();
+    const windowStart = now - 20_000;
+    const windowEnd = now + 3 * 60 * 1000;
+    const inWindow = messageTime >= windowStart && messageTime <= windowEnd;
 
-    if (!inWindow) {
+    if (!inWindow || !latestMessage.otp) {
       return;
     }
 
@@ -46,7 +47,8 @@ export function ManualStepAction({
 
     setValue(otpDigits);
     requestAnimationFrame(() => {
-      inputRefs.current[Math.min(otpDigits.length, 6) - 1]?.focus();
+      const lastIndex = Math.max(0, Math.min(otpDigits.length, 6) - 1);
+      inputRefs.current[lastIndex]?.focus();
     });
   }, [latestMessage, step.manualInput]);
 
