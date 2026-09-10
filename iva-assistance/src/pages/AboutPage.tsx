@@ -38,12 +38,12 @@ export default function AboutPage({ onBack }: { onBack: () => void }) {
               <img src="/icons/icon32.png" alt="" className="h-7 w-7" />
             </div>
             <div className="min-w-0">
-              <p className="text-[9px] font-semibold uppercase tracking-wide text-[var(--app-primary)]">
-                IVA Solutions
-              </p>
-              <h2 className="mt-1 text-base font-bold leading-tight text-[var(--app-text)]">
-                Indian Visa Assistance
-              </h2>
+              <span className="text-[18px] tracking-[-0.04em] text-[var(--app-text)]">
+                <strong className="text-[25px] tracking-[-0.08em]">iva</strong>
+                <em className="ml-1 text-[17px] not-italic tracking-[-0.06em] text-[var(--app-text)]">
+                  assistance
+                </em>
+              </span>
               <p className="mt-1.5 text-[10px] leading-4 text-[var(--app-text-secondary)]">
                 A focused workspace for organizing Indian visa applications and
                 appointments in one place.

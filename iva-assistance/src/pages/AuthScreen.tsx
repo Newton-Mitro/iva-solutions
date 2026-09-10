@@ -78,9 +78,12 @@ export default function AuthScreen({
               />
             </div>
             <div>
-              <p className="text-sm font-bold text-[var(--app-text)]">
-                ইন্ডিয়ান ভিসা অ্যাসিস্ট্যান্স
-              </p>
+              <span className="text-[18px] tracking-[-0.04em] text-[var(--app-text)]">
+                <strong className="text-[25px] tracking-[-0.08em]">iva</strong>
+                <em className="ml-1 text-[17px] not-italic tracking-[-0.06em] text-[var(--app-text)]">
+                  assistance
+                </em>
+              </span>
               <p className="text-[11px] text-[var(--app-text-muted)]">
                 Firebase সংযোগ প্রয়োজন
               </p>
@@ -112,7 +115,12 @@ export default function AuthScreen({
             />
           </div>
           <div>
-            <p className="text-sm font-bold">ইন্ডিয়ান ভিসা অ্যাসিস্ট্যান্স</p>
+            <span className="text-[18px] tracking-[-0.04em] text-[var(--app-text)]">
+              <strong className="text-[25px] tracking-[-0.08em]">iva</strong>
+              <em className="ml-1 text-[17px] not-italic tracking-[-0.06em] text-[var(--app-text)]">
+                assistance
+              </em>
+            </span>
             <p className="text-[11px] ivac-text-muted">
               নিরাপদ automation console
             </p>

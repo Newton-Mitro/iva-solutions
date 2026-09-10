@@ -24,9 +24,12 @@ export default function DashboardHeader({
             />
           </div>
           <div>
-            <h1 className="text-sm font-bold text-[var(--app-text)]">
-              Indian Visa Assistance
-            </h1>
+            <span className="text-[18px] tracking-[-0.04em] text-[var(--app-text)]">
+              <strong className="text-[25px] tracking-[-0.08em]">iva</strong>
+              <em className="ml-1 text-[17px] not-italic tracking-[-0.06em] text-[var(--app-text)]">
+                assistance
+              </em>
+            </span>
             <p className="text-[9px] text-[var(--app-text-muted)]">
               Application & Appointment Booking Assistant
             </p>
