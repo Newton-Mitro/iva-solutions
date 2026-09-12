@@ -24,7 +24,7 @@ export const phaseOneWorkFlow: WorkflowStepDefinition[] = [
   {
     id: "p1_open_ivac",
     phase: "phase_one",
-    title: "Open Indian Visa Application Centre Website",
+    title: "Navigate to Indian Visa Application Centre Website",
     icon: Globe2,
     selectors: [],
     action: "navigate",
